@@ -4,7 +4,7 @@ import StrainParser
 from ElongationRate import Elongation
 
 
-def Strain(fileName,interval_time):
+def Strain(fileName,interval_time,growthrateMethod):
     
     #dictionary of results lists
     finalCalculation={}
@@ -30,14 +30,14 @@ def Strain(fileName,interval_time):
     #elongation_rate list,first_time_step list,last_time_step list,final_lable list,first_length list,
     #last_length list
     #I store all of output lists into finalCalculation list
-    finalCalculation_dict=Elongation(interval_time,data.time_steps,data.all_bac_row_index,data.object_index,data.object_lable,data.length,
+    finalCalculation_dict=Elongation(growthrateMethod,interval_time,data.time_steps,data.all_bac_row_index,data.object_index,data.object_lable,data.length,
                                                          data.Parent_index,data.Parent_time_step)
 
     #write results
-    with open('OutputFile/'+fileName.split('/')[-1]+'_final_analysis.csv', 'w',newline='') as myfile:
+    with open('OutputFile/'+fileName.split('/')[-1]+"-"+growthrateMethod+"-"+'_final_analysis.csv', 'w',newline='') as myfile:
         wr = csv.writer(myfile)
         #header
-        wr.writerow(['lable','first time step','last time step','First Length','Last Length','elongation rate'])
+        wr.writerow(['lable','first time step','last time step','birth Length','division threshold','elongation rate'])
         #rows
         for counter,element in enumerate(finalCalculation_dict['first_time_step']):
                   wr.writerow([finalCalculation_dict['final_lable'][counter],element,

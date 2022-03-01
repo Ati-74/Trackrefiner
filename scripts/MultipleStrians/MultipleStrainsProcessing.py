@@ -3,7 +3,7 @@ import MultipleStrainsParser
 import StrainParser
 from ElongationRateProximity import ElongationProximity
 
-def MultipleStrains (fileName,interval_time,marker1,marker2):
+def MultipleStrains (fileName,interval_time,marker1,marker2,growthrateMethod):
     #dictionary of results lists
     finalCalculation_dict={}
 
@@ -32,14 +32,14 @@ def MultipleStrains (fileName,interval_time,marker1,marker2):
     #elongation_rate list,first_time_step list,last_time_step list,final_lable list,first_length list,
     #last_length list,average_proximity list
     #I store all of output lists into finalCalculation list
-    finalCalculation_dict=ElongationProximity(interval_time,data.time_steps,data.all_bac_row_index,data.object_index,data.object_lable,
+    finalCalculation_dict=ElongationProximity(growthrateMethod,interval_time,data.time_steps,data.all_bac_row_index,data.object_index,data.object_lable,
                                          data.length,data.Parent_index,data.Parent_time_step,data.marker2,data.x_location,data.y_location)
 
     #write results
-    with open('OutputFile/'+fileName.split('/')[-1]+'_final_analysis.csv', 'w',newline='') as myfile:
+    with open('OutputFile/'+fileName.split('/')[-1]+"-"+growthrateMethod+"-"+'_final_analysis.csv', 'w',newline='') as myfile:
         wr = csv.writer(myfile)
         #header
-        wr.writerow(['lable','first time step','last time step','First Length','Last Length','elongation rate','average proximity'])
+        wr.writerow(['lable','first time step','last time step','birth Length','division threshold','elongation rate','average proximity'])
         #rows
         for counter,element in enumerate(finalCalculation_dict['first_time_step']):
                   wr.writerow([finalCalculation_dict['final_lable'][counter],element,

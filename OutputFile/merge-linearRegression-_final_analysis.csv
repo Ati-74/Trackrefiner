@@ -1,4 +1,4 @@
-lable,first time step,last time step,First Length,Last Length,elongation rate,average proximity
+lable,first time step,last time step,birth Length,division threshold,elongation rate,average proximity
 1,1,68,19.11170477,63.14638374,0.194,562.6092960624727
 2,1,3,25.10612486,28.58705995,0.58,238.9797510610083
 3,1,75,16.87699444,53.78693014,0.14,132.0831071142542

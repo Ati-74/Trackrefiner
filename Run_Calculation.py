@@ -9,9 +9,13 @@ from StrainProcessing import Strain
 #Switch between MultipleStrains and one strain stage (if you have only one strain: Multiple_Strains=False)
 Multiple_Strains=True
 #getting the name of input file (should be in CSV format)
-fileName='C:/Users/Ati/Documents/PipeLineForCPAnalysis/OutputFile/merge'
+fileName='OutputFile/merge'
 #interval time
 interval_time=3
+
+#There are two choices: `linearRegression` , `average` (ln(last length)-ln(first length)/lifehistory)
+growthrateMethod="average"
+
 
 #MultipleStrains
 #if you have Multiple strains mode, fill these two variables
@@ -24,9 +28,9 @@ marker2='RFP'
 
 ####################################################### main  #######################################################
 if Multiple_Strains:
-    MultipleStrains (fileName,interval_time,marker1,marker2)
+    MultipleStrains (fileName,interval_time,marker1,marker2,growthrateMethod)
 elif Multiple_Strains==False:
-    Strain (fileName,interval_time)
+    Strain (fileName,interval_time,growthrateMethod)
 
 
 
