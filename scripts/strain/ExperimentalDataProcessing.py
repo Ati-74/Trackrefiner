@@ -256,7 +256,7 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method):
 
         # this line has been written by Aaron Yip (https://github.com/cheekolegend)
         data_frame.at[index, "radius"] = row["AreaShape_MinorAxisLength"] / 2
-        
+
         # modification of bacterium orientation
         # -(angle + 90) * np.pi / 180
         data_frame.at[index, "AreaShape_Orientation"] = \
