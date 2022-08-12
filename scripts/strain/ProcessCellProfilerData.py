@@ -114,7 +114,7 @@ def write_to_pickle_file(data, path, time_step):
     if not os.path.exists(path):
         os.mkdir(path)
 
-    output_file = path + "step-" + str(time_step) + ".pickle"
+    output_file = path + "step-" + '0' * (6-len(str(time_step))) + str(time_step) + ".pickle"
 
     with open(output_file, 'wb') as export:
         pickle.dump(data, export, protocol=-1)
