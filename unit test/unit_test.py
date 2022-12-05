@@ -3,9 +3,9 @@ from CellProfilerAnalysis.strain.ProcessCellProfilerData import process_data
 
 if __name__ == '__main__':
     input_file = '../examples/K12/K12_CP_output.csv'
-    # input_file = '../examples/test/IdentifyPrimaryObjects (copy).csv'
+    # input_file = '../examples/50-50/50-50_CP_output.csv'
     output_directory = '../examples/K12/outputs'
-    # output_directory = '../examples/test'
+    # output_directory = '../examples/50-50/outputs'
 
     # optional parameters
     # unit: minute
