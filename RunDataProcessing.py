@@ -14,8 +14,8 @@ def start_processing():
         output_directory_path_as_input_folder = '/'.join(input_file.split('/')[:-1])
         print("output directory: " + output_directory_path_as_input_folder)
         # start processing csv file
-        process_data(input_file, output_directory_path_as_input_folder, float(interval_time.get()),
-                     growth_rate_method_value.get(), float(um_per_pixel.get()))
+        process_data(input_file, output_directory_path_as_input_folder, interval_time=float(interval_time.get()),
+                     growth_rate_method=growth_rate_method_value.get(), um_per_pixel=float(um_per_pixel.get()))
 
         msg = messagebox.showinfo('Analysis were done', "Analysis were done")
         msg = messagebox.showinfo('The calculation files were written into ' + output_directory_path_as_input_folder,
