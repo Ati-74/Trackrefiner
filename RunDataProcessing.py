@@ -24,8 +24,8 @@ def start_processing():
     else:
         print("output directory: " + output_directory_path)
         # start processing csv file
-        process_data(input_file, output_directory_path, float(interval_time.get()), growth_rate_method_value.get(),
-                     float(um_per_pixel.get()))
+        process_data(input_file, output_directory_path, interval_time=float(interval_time.get()),
+                     growth_rate_method=growth_rate_method_value.get(), um_per_pixel=float(um_per_pixel.get()))
 
         msg = messagebox.showinfo("Analysis were done", "Analysis were done")
         msg = messagebox.showinfo("The calculation files were written into " + output_directory_path,
