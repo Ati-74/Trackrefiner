@@ -49,7 +49,7 @@ def check_intensity(dataframe_col):
     @param dataframe_col dataframe features value of bacteria in each time step
     """
     # fluorescence intensity columns
-    fluorescence_intensities_col = [col for col in dataframe_col if col.startswith('Intensity_MeanIntensity_')]
+    fluorescence_intensities_col = dataframe_col[dataframe_col.str.contains('Intensity_MeanIntensity_')].values.tolist()
 
     return fluorescence_intensities_col
 
