@@ -116,11 +116,4 @@ dmypy.json
 .idea/inspectionProfiles/profiles_settings.xml
 .idea/modules.xml
 .idea/vcs.xml
-scripts/strain/.idea/inspectionProfiles/profiles_settings.xml
-scripts/strain/.idea/misc.xml
-scripts/strain/.idea/modules.xml
-scripts/strain/.idea/strain.iml
-scripts/summaryStatistics/output/img/Anisotropy/Anisotropy_t1.png
-scripts/summaryStatistics/output/img/Anisotropy/Anisotropy_t10.png
-*.png
-*.pickle
+
