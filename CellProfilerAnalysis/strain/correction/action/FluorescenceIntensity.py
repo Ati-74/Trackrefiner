@@ -49,7 +49,7 @@ def check_intensity(dataframe_col):
     @param dataframe_col dataframe features value of bacteria in each time step
     """
     # fluorescence intensity columns
-    fluorescence_intensities_col = [col for col in dataframe_col if col.startswith('Intensity_MeanIntensity')]
+    fluorescence_intensities_col = [col for col in dataframe_col if col.startswith('Intensity_MeanIntensity_')]
 
     return fluorescence_intensities_col
 
@@ -96,7 +96,7 @@ def final_cell_type(dataframe):
     dataframe['unknown_cell_type'] = False
     num_intensity_cols = len(check_intensity(dataframe.columns))
 
-    if num_intensity_cols >1:
+    if num_intensity_cols > 1:
 
         bacteria_labels = dataframe['TrackObjects_Label_50'].unique()
 
