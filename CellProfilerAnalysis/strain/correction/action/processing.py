@@ -304,13 +304,13 @@ def find_related_bacteria(df, target_bacterium, target_bacterium_index, bacteria
 def convert_to_um(data_frame, um_per_pixel=0.144):
 
     # Convert distances to um (0.144 um/pixel on 63X objective)
-    data_frame["AreaShape_MajorAxisLength"] = data_frame["AreaShape_MajorAxisLength"] * um_per_pixel
-    data_frame["AreaShape_MinorAxisLength"] = data_frame["AreaShape_MinorAxisLength"] * um_per_pixel
+    # selected columns
+    cols1 = ["AreaShape_MajorAxisLength", "AreaShape_MinorAxisLength", "Location_Center_X", "Location_Center_Y"]
+    cols2 = ["AreaShape_MajorAxisLength", "AreaShape_MinorAxisLength", "AreaShape_Center_X", "AreaShape_Center_Y"]
+
     try:
-        data_frame["Location_Center_X"] = data_frame["Location_Center_X"] * um_per_pixel
-        data_frame["Location_Center_Y"] = data_frame["Location_Center_Y"] * um_per_pixel
+        data_frame[cols1] = data_frame[cols1] * um_per_pixel
     except TypeError:
-        data_frame["AreaShape_Center_X"] = data_frame["AreaShape_Center_X"] * um_per_pixel
-        data_frame["AreaShape_Center_Y"] = data_frame["AreaShape_Center_Y"] * um_per_pixel
+        data_frame[cols2] = data_frame[cols2] * um_per_pixel
 
     return data_frame
