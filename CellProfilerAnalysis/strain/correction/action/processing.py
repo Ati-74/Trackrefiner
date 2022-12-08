@@ -12,11 +12,11 @@ def find_vertex(center, major, angle_rotation):
     # (x- center_x) * np.sin(angle_rotation) - (y-center_y) * np.cos(angle_rotation) = 0
     # np.power((x - center_x) * np.cos(angle_rotation) + (y - center_y) * np.sin(angle_rotation), 2) =
     # np.power(major, 2)
-
-    vertex_1_x = float((major / (np.cos(angle_rotation) + (np.tan(angle_rotation) * np.sin(angle_rotation)))) + center[0])
-    vertex_1_y = float(((vertex_1_x - center[0]) * np.tan(angle_rotation)) + center[1])
-    vertex_2_x = float((-major / (np.cos(angle_rotation) + (np.tan(angle_rotation) * np.sin(angle_rotation)))) + center[0])
-    vertex_2_y = float(((vertex_2_x - center[0]) * np.tan(angle_rotation)) + center[1])
+    semi_major = major / 2
+    vertex_1_x = float(semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
+    vertex_1_y = float((vertex_1_x - center[0]) * np.tan(angle_rotation) + center[1])
+    vertex_2_x = float(-semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
+    vertex_2_y = float((vertex_2_x - center[0]) * np.tan(angle_rotation) + center[1])
 
     return [[vertex_1_x, vertex_1_y], [vertex_2_x, vertex_2_y]]
 
@@ -31,10 +31,10 @@ def angle_convert_to_radian(df):
 
 def bacteria_features(df):
     """
-    output: major, minor, orientation, center coordinate
+    output: length, radius, orientation, center coordinate
     """
     major = df['AreaShape_MajorAxisLength']
-    minor = df['AreaShape_MinorAxisLength']
+    radius = df['AreaShape_MinorAxisLength'] / 2
     orientation = df['AreaShape_Orientation']
     try:
         center_x = df['Location_Center_X']
@@ -43,7 +43,7 @@ def bacteria_features(df):
         center_x = df['AreaShape_Center_X']
         center_y = df['AreaShape_Center_Y']
 
-    return major, minor, orientation, center_x, center_y
+    return major, radius, orientation, center_x, center_y
 
 
 def increase_rate_major_minor(bacteria_current_time_step, bacteria_next_time_step, min_increase_rate_threshold):
@@ -299,6 +299,17 @@ def find_related_bacteria(df, target_bacterium, target_bacterium_index, bacteria
                 bacteria_index_list = find_related_bacteria(df, next_bacterium, bac_index, bacteria_index_list)
 
     return bacteria_index_list
+
+
+def convert_to_pixel(length, radius, ends, pos, um_per_pixel=0.144):
+
+    # Convert distances to pixel (0.144 um/pixel on 63X objective)
+    length = length / um_per_pixel
+    radius = radius / um_per_pixel
+    ends = np.array(ends) / um_per_pixel
+    pos = np.array(pos) / um_per_pixel
+
+    return length, radius, ends, pos
 
 
 def convert_to_um(data_frame, um_per_pixel=0.144):
