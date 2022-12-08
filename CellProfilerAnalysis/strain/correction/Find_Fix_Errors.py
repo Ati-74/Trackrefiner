@@ -89,13 +89,26 @@ def data_cleaning(raw_df):
     return modified_df
 
 
-def find_fix_errors(dataframe, number_of_gap=4, um_per_pixel=0.144, intensity_threshold=0.1):
+def data_modification(dataframe, intensity_threshold=0.1):
 
     dataframe = data_cleaning(dataframe)
     dataframe = assign_feature_find_errors(dataframe, intensity_threshold)
+
+    return dataframe
+
+
+def data_conversion(dataframe, um_per_pixel=0.144):
+
     dataframe = convert_to_um(dataframe, um_per_pixel)
     dataframe = angle_convert_to_radian(dataframe)
-    # dataframe.to_csv('x.csv', index=False)
+
+    return dataframe
+
+
+def find_fix_errors(dataframe, number_of_gap=4, um_per_pixel=0.144, intensity_threshold=0.1):
+
+    dataframe = data_modification(dataframe, intensity_threshold)
+    dataframe = data_conversion(dataframe, um_per_pixel)
 
     # modification of errors:
     # 1. transition error
@@ -108,6 +121,5 @@ def find_fix_errors(dataframe, number_of_gap=4, um_per_pixel=0.144, intensity_th
     # remove incorrect bacteria
     df = remove_rows(df, 'transition_drop', False)
     df = remove_rows(df, 'bad_daughter_drop', False)
-    # df.to_csv('x2.csv', index=False)
 
     return df
