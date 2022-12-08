@@ -22,9 +22,10 @@ if __name__ == '__main__':
     cs = data['cellStates']
 
     # bacterium
-    bacterium = cs[1]
-    # attributes: 'id', 'cellType', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol', 'targetVol',
-    # 'pos', 'time', 'radius', 'length', 'orientation'
+    bacterium = cs[197]
+
+    # attributes: 'id', 'label', 'cellType', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
+    # 'targetVol', 'pos', 'time', 'radius', 'length', 'dir', 'ends', 'strainRate', 'strainRate_rolling'
 
     bacterium_id = bacterium.id
     bacterium_growth_rate = bacterium.growthRate
