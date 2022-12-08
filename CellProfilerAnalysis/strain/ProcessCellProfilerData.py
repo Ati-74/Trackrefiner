@@ -53,7 +53,7 @@ def create_pickle_files(df, path):
     @param path     path where .pickle files are saved
     """
     lineage = {}
-    time_steps = list(set(df['stepNum'].values))
+    time_steps = sorted(df['stepNum'].unique())
     for t in time_steps:
         lineage_data_frame = df.loc[(df["stepNum"] == t) & df["parent_id"]]
         lineage.update(dict(zip(lineage_data_frame["id"].values, lineage_data_frame["parent_id"].values)))
@@ -62,7 +62,8 @@ def create_pickle_files(df, path):
         data["stepNum"] = t
         data["lineage"] = lineage
         # start index from 1
-        data_frame_current_time_step.index = np.arange(1, len(data_frame_current_time_step) + 1)
+        data_frame_current_time_step.index = data_frame_current_time_step['id']
+
         # select important columns
         data_frame_current_time_step = data_frame_current_time_step[
             ['id', 'label', 'cellType', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol', 'targetVol',
