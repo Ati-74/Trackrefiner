@@ -1,5 +1,5 @@
 import numpy as np
-from CellProfilerAnalysis.strain.correction.action.processing import find_vertex
+from CellProfilerAnalysis.strain.correction.action.processing import find_vertex, bacteria_features
 from CellProfilerAnalysis.strain.correction.action.CalcGrowthRate import calculate_growth_rate
 from CellProfilerAnalysis.strain.correction.action.FluorescenceIntensity import final_cell_type
 
@@ -60,24 +60,19 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method):
                 strain_rate_rolling = np.mean(strain_rate_list)
             data_frame.at[idx, "strainRate_rolling"] = strain_rate_rolling
 
-            try:
-                data_frame.at[idx, "pos"] = [bacterium["Location_Center_X"], bacterium["Location_Center_Y"]]
-                bacterium_center_position = [bacterium["Location_Center_X"], bacterium["Location_Center_Y"]]
-            except TypeError:
-                data_frame.at[idx, "pos"] = [bacterium["AreaShape_Center_X"], bacterium["AreaShape_Center_Y"]]
-                bacterium_center_position = [bacterium["AreaShape_Center_X"], bacterium["AreaShape_Center_Y"]]
+            major, radius, orientation, center_x, center_y = bacteria_features(bacterium)
+            bacterium_center_position = [center_x, center_y]
+            data_frame.at[idx, "pos"] = bacterium_center_position
 
             data_frame.at[idx, "time"] = bacterium["ImageNumber"] * interval_time
 
-            # this line has been written by Aaron Yip (https://github.com/cheekolegend)
-            data_frame.at[idx, "radius"] = bacterium["AreaShape_MinorAxisLength"] / 2
+            data_frame.at[idx, "radius"] = radius
 
             data_frame.at[idx, "dir"] = [np.cos(bacterium["AreaShape_Orientation"]),
                                          np.sin(bacterium["AreaShape_Orientation"])]
 
             # find end points
-            end_points = find_vertex(bacterium_center_position, bacterium["AreaShape_MajorAxisLength"],
-                                     bacterium["AreaShape_Orientation"])
+            end_points = find_vertex(bacterium_center_position, major, orientation)
 
             data_frame.at[idx, "ends"] = end_points
 
