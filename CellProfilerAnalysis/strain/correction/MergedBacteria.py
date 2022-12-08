@@ -1,47 +1,26 @@
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import LinearRegression
+from scipy import interpolate
 from CellProfilerAnalysis.strain.correction.action.processing import k_nearest_neighbors, increase_rate_major_minor, bacteria_features
 
 
-def predict_x_test(linear_regression, y_test):
-
-    # y = mx + b
-    coefficient = linear_regression.coef_[0][0]
-    intercept = linear_regression.intercept_[0]
-
-    # x = (y - b) / x
-    if coefficient != 0:
-        x_test = (y_test - intercept) / coefficient
-    else:
-        x_test = (y_test - intercept)
-
-    return x_test
-
-
-def predict_new_feature_value(linear_regressions, y_bacterium):
+def predict_new_feature_value(linear_interpolations, y_bacterium):
 
     """
     goal: using feature value of bacterium in t +2 (y), I try to predict feature value of bacterium in t +1 (x)
     """
 
-    new_bacterium_major = predict_x_test(linear_regressions['major_linear_regressor'],
-                                         y_bacterium['AreaShape_MajorAxisLength'])
-    new_bacterium_minor = predict_x_test(linear_regressions['minor_linear_regressor'],
-                                         y_bacterium['AreaShape_MinorAxisLength'])
-    new_bacterium_orientation = predict_x_test(linear_regressions['orientation_linear_regressor'],
-                                               y_bacterium['AreaShape_Orientation'])
+    new_bacterium_major = linear_interpolations['major_linear_interpolation'](y_bacterium['AreaShape_MajorAxisLength'])
+    new_bacterium_minor = linear_interpolations['minor_linear_interpolation'](y_bacterium['AreaShape_MinorAxisLength'])
+    new_bacterium_orientation = linear_interpolations['orientation_linear_interpolation'](
+        y_bacterium['AreaShape_Orientation'])
 
     try:
-        new_bacterium_center_x = predict_x_test(linear_regressions['center_x_linear_regressor'],
-                                                y_bacterium['Location_Center_X'])
-        new_bacterium_center_y = predict_x_test(linear_regressions['center_y_linear_regressor'],
-                                                y_bacterium['Location_Center_Y'])
+        new_bacterium_center_x = linear_interpolations['center_x_linear_interpolation'](y_bacterium['Location_Center_X'])
+        new_bacterium_center_y = linear_interpolations['center_y_linear_interpolation'](y_bacterium['Location_Center_Y'])
     except TypeError:
-        new_bacterium_center_x = predict_x_test(linear_regressions['center_x_linear_regressor'],
-                                                y_bacterium['AreaShape_Center_X'])
-        new_bacterium_center_y = predict_x_test(linear_regressions['center_y_linear_regressor'],
-                                                y_bacterium['AreaShape_Center_X'])
+        new_bacterium_center_x = linear_interpolations['center_x_linear_interpolation'](y_bacterium['AreaShape_Center_X'])
+        new_bacterium_center_y = linear_interpolations['center_y_linear_interpolation'](y_bacterium['AreaShape_Center_X'])
 
     new_values = {'minor': new_bacterium_minor, 'major': new_bacterium_major, 'orientation': new_bacterium_orientation,
                   'center_x': new_bacterium_center_x, 'center_y': new_bacterium_center_y}
@@ -49,28 +28,25 @@ def predict_new_feature_value(linear_regressions, y_bacterium):
     return new_values
 
 
-def fit_linear_regression(minor, major, orientation, center_x, center_y):
+def fit_linear_interpolation(minor, major, orientation, center_x, center_y):
 
-    major_linear_regressor = LinearRegression()  # create object for the class
-    minor_linear_regressor = LinearRegression()  # create object for the class
-    orientation_linear_regressor = LinearRegression()  # create object for the class
-    center_x_linear_regressor = LinearRegression()  # create object for the class
-    center_y_linear_regressor = LinearRegression()  # create object for the class
+    # perform linear interpolation
+    major_linear_interpolation = interpolate.interp1d(major[:-1], major[1:], kind='linear', fill_value='extrapolate')
+    minor_linear_interpolation = interpolate.interp1d(minor[:-1], minor[1:], kind='linear', fill_value='extrapolate')
+    orientation_linear_interpolation = interpolate.interp1d(orientation[:-1], orientation[1:], kind='linear',
+                                                            fill_value='extrapolate')
+    center_x_linear_interpolation = interpolate.interp1d(center_x[:-1], center_x[1:], kind='linear',
+                                                         fill_value='extrapolate')
+    center_y_linear_interpolation = interpolate.interp1d(center_y[:-1], center_y[1:], kind='linear',
+                                                         fill_value='extrapolate')
 
-    # perform linear regression
-    major_linear_regressor.fit(np.array(major[:-1]).reshape(-1, 1), np.array(major[1:]).reshape(-1, 1))
-    minor_linear_regressor.fit(np.array(minor[:-1]).reshape(-1, 1), np.array(minor[1:]).reshape(-1, 1))
-    orientation_linear_regressor.fit(np.array(orientation[:-1]).reshape(-1, 1), np.array(orientation[1:]).reshape(-1, 1))
-    center_x_linear_regressor.fit(np.array(center_x[:-1]).reshape(-1, 1), np.array(center_x[1:]).reshape(-1, 1))
-    center_y_linear_regressor.fit(np.array(center_y[:-1]).reshape(-1, 1), np.array(center_y[1:]).reshape(-1, 1))
+    linear_interpolations = {"major_linear_interpolation": major_linear_interpolation,
+                             "minor_linear_interpolation": minor_linear_interpolation,
+                             "orientation_linear_interpolation": orientation_linear_interpolation,
+                             "center_x_linear_interpolation": center_x_linear_interpolation,
+                             "center_y_linear_interpolation": center_y_linear_interpolation}
 
-    linear_regressions = {"major_linear_regressor": major_linear_regressor,
-                          "minor_linear_regressor": minor_linear_regressor,
-                          "orientation_linear_regressor": orientation_linear_regressor,
-                          "center_x_linear_regressor": center_x_linear_regressor,
-                          "center_y_linear_regressor": center_y_linear_regressor}
-
-    return linear_regressions
+    return linear_interpolations
 
 
 def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, nearest_bacterium_life_history,
@@ -172,40 +148,41 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
     nearest_bacterium_to_neighbor_bacterium_life_history = df.loc[df['id'] ==
                                                                   df.loc[nearest_bacterium_to_neighbor_bacterium_index]['id']]
 
-    if len(unexpected_end_bac_major) > 1:
-        target_bacterium_linear_regressions = fit_linear_regression(unexpected_end_bac_major, unexpected_end_bac_minor,
-                                                                    unexpected_end_bac_orientation,
-                                                                    unexpected_end_bac_center_x,
-                                                                    unexpected_end_bac_center_y)
+    if len(unexpected_end_bac_major) > 2:
+        target_bacterium_linear_interpolations = fit_linear_interpolation(unexpected_end_bac_minor,
+                                                                          unexpected_end_bac_major,
+                                                                          unexpected_end_bac_orientation,
+                                                                          unexpected_end_bac_center_x,
+                                                                          unexpected_end_bac_center_y)
         # predict values of new bacterium
         # target bacterium
-        new_bacterium_values = predict_new_feature_value(target_bacterium_linear_regressions,
-                                                         nearest_bacterium_to_unexpected_end_bac_life_history.iloc[0])
+        new_bacterium_values = predict_new_feature_value(target_bacterium_linear_interpolations,
+                                                         unexpected_end_bacterium_life_history.iloc[-1])
 
-    if len(neighbor_major) > 1:
-        neighbor_bacterium_linear_regressions = fit_linear_regression(neighbor_major, neighbor_minor,
-                                                                      neighbor_orientation, neighbor_center_x,
-                                                                      neighbor_center_y)
+    if len(neighbor_major) > 2:
+        neighbor_bacterium_linear_interpolations = fit_linear_interpolation(neighbor_minor, neighbor_major,
+                                                                            neighbor_orientation, neighbor_center_x,
+                                                                            neighbor_center_y)
 
-        new_neighbor_bacterium_values = predict_new_feature_value(neighbor_bacterium_linear_regressions,
-                                                                  nearest_bacterium_to_neighbor_bacterium_life_history.iloc[0])
+        new_neighbor_bacterium_values = predict_new_feature_value(neighbor_bacterium_linear_interpolations,
+                                                                  unusual_neighbor_life_history_before_merged_bacterium.iloc[-1])
 
-    if len(unexpected_end_bac_major) > 1 and len(neighbor_major) == 1:
-        new_neighbor_bacterium_values = predict_new_feature_value(target_bacterium_linear_regressions,
-                                                                  nearest_bacterium_to_neighbor_bacterium_life_history.iloc[0])
+    if len(unexpected_end_bac_major) > 2 >= len(neighbor_major):
+        new_neighbor_bacterium_values = predict_new_feature_value(target_bacterium_linear_interpolations,
+                                                                  unusual_neighbor_life_history_before_merged_bacterium.iloc[-1])
 
-    elif len(neighbor_major) > 1 and len(unexpected_end_bac_major) == 1:
-        new_bacterium_values = predict_new_feature_value(neighbor_bacterium_linear_regressions,
-                                                         nearest_bacterium_to_unexpected_end_bac_life_history.iloc[0])
+    elif len(neighbor_major) > 2 >= len(unexpected_end_bac_major):
+        new_bacterium_values = predict_new_feature_value(neighbor_bacterium_linear_interpolations,
+                                                         unexpected_end_bacterium_life_history.iloc[-1])
 
-    elif len(neighbor_major) == 1 and len(unexpected_end_bac_major) == 1:
+    elif len(neighbor_major) <= 2 and len(unexpected_end_bac_major) <= 2:
         other_neighbor_bacteria = df.loc[(df['ImageNumber'] ==
                                           unexpected_end_bacterium_life_history['ImageNumber'].iloc[0]) &
                                          (df['ObjectNumber'] !=
                                           unexpected_end_bacterium_life_history['ObjectNumber'].iloc[0]) &
                                          (df['ObjectNumber'] !=
                                           unusual_neighbor_life_history_before_merged_bacterium['ObjectNumber'].iloc[0]) &
-                                         (df['LifeHistory'] > 1)]
+                                         (df['LifeHistory'] > 2)]
 
         new_nearest_bacterium_index = k_nearest_neighbors(1, unexpected_end_bacterium_life_history.iloc[[-1]],
                                                           other_neighbor_bacteria, distance_check=False)[0]
@@ -216,22 +193,23 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
         new_nearest_bac_major, new_nearest_bac_minor, new_nearest_bac_orientation, new_nearest_bac_center_x, \
             new_nearest_bac_center_y = bacteria_features(new_nearest_bacterium_life_history)
 
-        new_nearest_bac_linear_regressions = fit_linear_regression(new_nearest_bac_major, new_nearest_bac_minor,
-                                                                   new_nearest_bac_orientation, new_nearest_bac_center_x,
-                                                                   new_nearest_bac_center_y)
+        new_nearest_bac_linear_interpolations = fit_linear_interpolation(new_nearest_bac_minor, new_nearest_bac_major,
+                                                                         new_nearest_bac_orientation,
+                                                                         new_nearest_bac_center_x,
+                                                                         new_nearest_bac_center_y)
 
         # predict values
-        new_bacterium_values = predict_new_feature_value(new_nearest_bac_linear_regressions,
-                                                         nearest_bacterium_to_unexpected_end_bac_life_history.iloc[0])
+        new_bacterium_values = predict_new_feature_value(new_nearest_bac_linear_interpolations,
+                                                         unexpected_end_bacterium_life_history.iloc[-1])
 
-        new_neighbor_bacterium_values = predict_new_feature_value(new_nearest_bac_linear_regressions,
-                                                                  nearest_bacterium_to_neighbor_bacterium_life_history.iloc[0])
+        new_neighbor_bacterium_values = predict_new_feature_value(new_nearest_bac_linear_interpolations,
+                                                                  unusual_neighbor_life_history_before_merged_bacterium.iloc[-1])
 
     # update features value
     # neighbor bacterium
     df = assign_new_feature_value(df, merged_bacterium_index, new_neighbor_bacterium_values,
-                                      nearest_bacterium_to_neighbor_bacterium_life_history,
-                                      unusual_neighbor_life_history_before_merged_bacterium)
+                                  nearest_bacterium_to_neighbor_bacterium_life_history,
+                                  unusual_neighbor_life_history_before_merged_bacterium)
     # unexpected end  bacterium
     # insert new row to dataframe
     # append empty row to dataframe
