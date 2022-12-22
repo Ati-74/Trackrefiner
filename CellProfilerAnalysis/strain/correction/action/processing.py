@@ -34,6 +34,7 @@ def bacteria_features(df):
     output: length, radius, orientation, center coordinate
     """
     major = df['AreaShape_MajorAxisLength']
+    minor = df['AreaShape_MinorAxisLength']
     radius = df['AreaShape_MinorAxisLength'] / 2
     orientation = df['AreaShape_Orientation']
     try:
@@ -43,7 +44,9 @@ def bacteria_features(df):
         center_x = df['AreaShape_Center_X']
         center_y = df['AreaShape_Center_Y']
 
-    return major, radius, orientation, center_x, center_y
+    features = {'major': major, 'minor': minor, 'radius': radius, 'orientation': orientation, 'center_x': center_x,
+                'center_y': center_y}
+    return features
 
 
 def increase_rate_major_minor(bacteria_current_time_step, bacteria_next_time_step, min_increase_rate_threshold):
