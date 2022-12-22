@@ -60,19 +60,20 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method):
                 strain_rate_rolling = np.mean(strain_rate_list)
             data_frame.at[idx, "strainRate_rolling"] = strain_rate_rolling
 
-            major, radius, orientation, center_x, center_y = bacteria_features(bacterium)
-            bacterium_center_position = [center_x, center_y]
+            bacterium_features = bacteria_features(bacterium)
+            bacterium_center_position = [bacterium_features['center_x'], bacterium_features['center_y']]
             data_frame.at[idx, "pos"] = bacterium_center_position
 
             data_frame.at[idx, "time"] = bacterium["ImageNumber"] * interval_time
 
-            data_frame.at[idx, "radius"] = radius
+            data_frame.at[idx, "radius"] = bacterium_features['radius']
 
             data_frame.at[idx, "dir"] = [np.cos(bacterium["AreaShape_Orientation"]),
                                          np.sin(bacterium["AreaShape_Orientation"])]
 
             # find end points
-            end_points = find_vertex(bacterium_center_position, major, orientation)
+            end_points = find_vertex(bacterium_center_position, bacterium_features['major'],
+                                     bacterium_features['orientation'])
 
             data_frame.at[idx, "ends"] = end_points
 
