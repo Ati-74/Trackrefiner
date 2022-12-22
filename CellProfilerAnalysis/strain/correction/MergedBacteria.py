@@ -4,23 +4,28 @@ from scipy import interpolate
 from CellProfilerAnalysis.strain.correction.action.processing import k_nearest_neighbors, increase_rate_major_minor, bacteria_features
 
 
-def predict_new_feature_value(linear_interpolations, y_bacterium):
+def average_feature_value(bacterium_in_t, bacterium_in_t_2):
 
     """
-    goal: using feature value of bacterium in t +2 (y), I try to predict feature value of bacterium in t +1 (x)
+    goal: using feature value of bacterium in t, and bacterium in t + 1 , I try to find feature value of bacterium
+     in t +1 (x)
+     @param bacterium_in_t series bacterium features value in time step `t`
+     @param bacterium_in_t_2 series bacterium features value in time step `t + 1`
     """
 
-    new_bacterium_major = linear_interpolations['major_linear_interpolation'](y_bacterium['AreaShape_MajorAxisLength'])
-    new_bacterium_minor = linear_interpolations['minor_linear_interpolation'](y_bacterium['AreaShape_MinorAxisLength'])
-    new_bacterium_orientation = linear_interpolations['orientation_linear_interpolation'](
-        y_bacterium['AreaShape_Orientation'])
+    new_bacterium_major = np.average([bacterium_in_t['AreaShape_MajorAxisLength'],
+                                     bacterium_in_t_2['AreaShape_MajorAxisLength']])
+    new_bacterium_minor = np.average([bacterium_in_t['AreaShape_MinorAxisLength'],
+                                     bacterium_in_t_2['AreaShape_MinorAxisLength']])
+    new_bacterium_orientation = np.average([bacterium_in_t['AreaShape_Orientation'],
+                                           bacterium_in_t_2['AreaShape_Orientation']])
 
     try:
-        new_bacterium_center_x = linear_interpolations['center_x_linear_interpolation'](y_bacterium['Location_Center_X'])
-        new_bacterium_center_y = linear_interpolations['center_y_linear_interpolation'](y_bacterium['Location_Center_Y'])
+        new_bacterium_center_x = np.average([bacterium_in_t['Location_Center_X'], bacterium_in_t_2['Location_Center_X']])
+        new_bacterium_center_y = np.average([bacterium_in_t['Location_Center_Y'], bacterium_in_t_2['Location_Center_Y']])
     except TypeError:
-        new_bacterium_center_x = linear_interpolations['center_x_linear_interpolation'](y_bacterium['AreaShape_Center_X'])
-        new_bacterium_center_y = linear_interpolations['center_y_linear_interpolation'](y_bacterium['AreaShape_Center_X'])
+        new_bacterium_center_x = np.average([bacterium_in_t['AreaShape_Center_X'], bacterium_in_t_2['AreaShape_Center_X']])
+        new_bacterium_center_y = np.average([bacterium_in_t['AreaShape_Center_Y'], bacterium_in_t_2['AreaShape_Center_Y']])
 
     new_values = {'minor': new_bacterium_minor, 'major': new_bacterium_major, 'orientation': new_bacterium_orientation,
                   'center_x': new_bacterium_center_x, 'center_y': new_bacterium_center_y}
@@ -28,23 +33,46 @@ def predict_new_feature_value(linear_interpolations, y_bacterium):
     return new_values
 
 
-def fit_linear_interpolation(minor, major, orientation, center_x, center_y):
+def predict_new_feature_value(linear_interpolations, y_bacterium):
+
+    """
+    goal: using feature value of bacterium in t, I try to predict feature value of bacterium in t +1 (x)
+    """
+    new_bacterium_major = linear_interpolations['major_linear_extrapolation'](y_bacterium['AreaShape_MajorAxisLength'])
+    new_bacterium_minor = linear_interpolations['minor_linear_extrapolation'](y_bacterium['AreaShape_MinorAxisLength'])
+    new_bacterium_orientation = linear_interpolations['orientation_linear_extrapolation'](
+        y_bacterium['AreaShape_Orientation'])
+
+    try:
+        new_bacterium_center_x = linear_interpolations['center_x_linear_extrapolation'](y_bacterium['Location_Center_X'])
+        new_bacterium_center_y = linear_interpolations['center_y_linear_extrapolation'](y_bacterium['Location_Center_Y'])
+    except TypeError:
+        new_bacterium_center_x = linear_interpolations['center_x_linear_extrapolation'](y_bacterium['AreaShape_Center_X'])
+        new_bacterium_center_y = linear_interpolations['center_y_linear_extrapolation'](y_bacterium['AreaShape_Center_X'])
+
+    new_values = {'minor': new_bacterium_minor, 'major': new_bacterium_major, 'orientation': new_bacterium_orientation,
+                  'center_x': new_bacterium_center_x, 'center_y': new_bacterium_center_y}
+
+    return new_values
+
+
+def fit_linear_extrapolation(minor, major, orientation, center_x, center_y):
 
     # perform linear interpolation
-    major_linear_interpolation = interpolate.interp1d(major[:-1], major[1:], kind='linear', fill_value='extrapolate')
-    minor_linear_interpolation = interpolate.interp1d(minor[:-1], minor[1:], kind='linear', fill_value='extrapolate')
-    orientation_linear_interpolation = interpolate.interp1d(orientation[:-1], orientation[1:], kind='linear',
+    major_linear_extrapolation = interpolate.interp1d(major[:-1], major[1:], kind='linear', fill_value='extrapolate')
+    minor_linear_extrapolation = interpolate.interp1d(minor[:-1], minor[1:], kind='linear', fill_value='extrapolate')
+    orientation_linear_extrapolation = interpolate.interp1d(orientation[:-1], orientation[1:], kind='linear',
                                                             fill_value='extrapolate')
-    center_x_linear_interpolation = interpolate.interp1d(center_x[:-1], center_x[1:], kind='linear',
+    center_x_linear_extrapolation = interpolate.interp1d(center_x[:-1], center_x[1:], kind='linear',
                                                          fill_value='extrapolate')
-    center_y_linear_interpolation = interpolate.interp1d(center_y[:-1], center_y[1:], kind='linear',
+    center_y_linear_extrapolation = interpolate.interp1d(center_y[:-1], center_y[1:], kind='linear',
                                                          fill_value='extrapolate')
 
-    linear_interpolations = {"major_linear_interpolation": major_linear_interpolation,
-                             "minor_linear_interpolation": minor_linear_interpolation,
-                             "orientation_linear_interpolation": orientation_linear_interpolation,
-                             "center_x_linear_interpolation": center_x_linear_interpolation,
-                             "center_y_linear_interpolation": center_y_linear_interpolation}
+    linear_interpolations = {"major_linear_extrapolation": major_linear_extrapolation,
+                             "minor_linear_extrapolation": minor_linear_extrapolation,
+                             "orientation_linear_extrapolation": orientation_linear_extrapolation,
+                             "center_x_linear_extrapolation": center_x_linear_extrapolation,
+                             "center_y_linear_extrapolation": center_y_linear_extrapolation}
 
     return linear_interpolations
 
@@ -124,10 +152,8 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
                                unusual_neighbor_life_history_before_merged_bacterium, merged_bacterium,
                                merged_bacterium_index):
 
-    unexpected_end_bac_major, unexpected_end_bac_minor, unexpected_end_bac_orientation, unexpected_end_bac_center_x, \
-        unexpected_end_bac_center_y = bacteria_features(unexpected_end_bacterium_life_history)
-    neighbor_major, neighbor_minor, neighbor_orientation, neighbor_center_x, neighbor_center_y = \
-        bacteria_features(unusual_neighbor_life_history_before_merged_bacterium)
+    unexpected_end_bac_features = bacteria_features(unexpected_end_bacterium_life_history)
+    neighbor_features = bacteria_features(unusual_neighbor_life_history_before_merged_bacterium)
 
     # Which bacterium in the t+2 time step is related to the unexpected end bacterium?
     merged_bacterium_daughters = df.loc[(df["ImageNumber"] == (merged_bacterium["ImageNumber"] + 1)) &
@@ -148,63 +174,33 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
     nearest_bacterium_to_neighbor_bacterium_life_history = df.loc[df['id'] ==
                                                                   df.loc[nearest_bacterium_to_neighbor_bacterium_index]['id']]
 
-    if len(unexpected_end_bac_major) > 2:
-        target_bacterium_linear_interpolations = fit_linear_interpolation(unexpected_end_bac_minor,
-                                                                          unexpected_end_bac_major,
-                                                                          unexpected_end_bac_orientation,
-                                                                          unexpected_end_bac_center_x,
-                                                                          unexpected_end_bac_center_y)
+    if len(unexpected_end_bac_features['minor']) > 2:
+        target_bacterium_linear_extrapolations = fit_linear_extrapolation(unexpected_end_bac_features['minor'],
+                                                                          unexpected_end_bac_features['major'],
+                                                                          unexpected_end_bac_features['orientation'],
+                                                                          unexpected_end_bac_features['center_x'],
+                                                                          unexpected_end_bac_features['center_y'])
         # predict values of new bacterium
         # target bacterium
-        new_bacterium_values = predict_new_feature_value(target_bacterium_linear_interpolations,
+        new_bacterium_values = predict_new_feature_value(target_bacterium_linear_extrapolations,
                                                          unexpected_end_bacterium_life_history.iloc[-1])
+    elif len(unexpected_end_bac_features['minor']) <= 2:
+        new_bacterium_values = average_feature_value(unexpected_end_bacterium_life_history.iloc[-1],
+                                                     nearest_bacterium_to_unexpected_end_bac_life_history.iloc[0])
 
-    if len(neighbor_major) > 2:
-        neighbor_bacterium_linear_interpolations = fit_linear_interpolation(neighbor_minor, neighbor_major,
-                                                                            neighbor_orientation, neighbor_center_x,
-                                                                            neighbor_center_y)
+    if len(neighbor_features['minor']) > 2:
+        neighbor_bacterium_linear_extrapolations = fit_linear_extrapolation(neighbor_features['minor'],
+                                                                            neighbor_features['major'],
+                                                                            neighbor_features['orientation'],
+                                                                            neighbor_features['center_x'],
+                                                                            neighbor_features['center_y'])
 
-        new_neighbor_bacterium_values = predict_new_feature_value(neighbor_bacterium_linear_interpolations,
+        new_neighbor_bacterium_values = predict_new_feature_value(neighbor_bacterium_linear_extrapolations,
                                                                   unusual_neighbor_life_history_before_merged_bacterium.iloc[-1])
 
-    if len(unexpected_end_bac_major) > 2 >= len(neighbor_major):
-        new_neighbor_bacterium_values = predict_new_feature_value(target_bacterium_linear_interpolations,
-                                                                  unusual_neighbor_life_history_before_merged_bacterium.iloc[-1])
-
-    elif len(neighbor_major) > 2 >= len(unexpected_end_bac_major):
-        new_bacterium_values = predict_new_feature_value(neighbor_bacterium_linear_interpolations,
-                                                         unexpected_end_bacterium_life_history.iloc[-1])
-
-    elif len(neighbor_major) <= 2 and len(unexpected_end_bac_major) <= 2:
-        other_neighbor_bacteria = df.loc[(df['ImageNumber'] ==
-                                          unexpected_end_bacterium_life_history['ImageNumber'].iloc[0]) &
-                                         (df['ObjectNumber'] !=
-                                          unexpected_end_bacterium_life_history['ObjectNumber'].iloc[0]) &
-                                         (df['ObjectNumber'] !=
-                                          unusual_neighbor_life_history_before_merged_bacterium['ObjectNumber'].iloc[0]) &
-                                         (df['LifeHistory'] > 2)]
-
-        new_nearest_bacterium_index = k_nearest_neighbors(1, unexpected_end_bacterium_life_history.iloc[[-1]],
-                                                          other_neighbor_bacteria, distance_check=False)[0]
-
-        new_nearest_bacterium_life_history = df.loc[df['id'] == df.loc[new_nearest_bacterium_index]['id']]
-
-        # fetch feature values
-        new_nearest_bac_major, new_nearest_bac_minor, new_nearest_bac_orientation, new_nearest_bac_center_x, \
-            new_nearest_bac_center_y = bacteria_features(new_nearest_bacterium_life_history)
-
-        new_nearest_bac_linear_interpolations = fit_linear_interpolation(new_nearest_bac_minor, new_nearest_bac_major,
-                                                                         new_nearest_bac_orientation,
-                                                                         new_nearest_bac_center_x,
-                                                                         new_nearest_bac_center_y)
-
-        # predict values
-        new_bacterium_values = predict_new_feature_value(new_nearest_bac_linear_interpolations,
-                                                         unexpected_end_bacterium_life_history.iloc[-1])
-
-        new_neighbor_bacterium_values = predict_new_feature_value(new_nearest_bac_linear_interpolations,
-                                                                  unusual_neighbor_life_history_before_merged_bacterium.iloc[-1])
-
+    elif len(neighbor_features['minor']) <= 2:
+        new_neighbor_bacterium_values = average_feature_value(unusual_neighbor_life_history_before_merged_bacterium.iloc[-1],
+                                                              nearest_bacterium_to_neighbor_bacterium_life_history.iloc[0])
     # update features value
     # neighbor bacterium
     df = assign_new_feature_value(df, merged_bacterium_index, new_neighbor_bacterium_values,
