@@ -45,7 +45,12 @@ def bacteria_plot(pickle_data, current_time_step_data, raw_img, output_dir):
     # raw data
     for bac_index, bac in current_time_step_data.iterrows():
 
-        major, radius, orientation, center_x, center_y = bacteria_features(bac)
+        features = bacteria_features(bac)
+        major = features['major']
+        radius = features['radius']
+        orientation = features['orientation']
+        center_x = features['center_x']
+        center_y = features['center_y']
         ends = find_vertex([center_x, center_y], major, orientation)
 
         # plot bacterium
