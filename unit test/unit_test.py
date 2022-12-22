@@ -10,6 +10,7 @@ if __name__ == '__main__':
     # optional parameters
     # unit: minute
     interval_time = 1.5
+    # `Average` or `Linear Regression`
     growth_rate_method = "Average"
     # useful for fixing transition & more than two daughters errors
     number_of_gap = 0
