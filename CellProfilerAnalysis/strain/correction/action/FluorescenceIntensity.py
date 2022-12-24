@@ -12,6 +12,9 @@ def check_fluorescent_intensity(transition_bac, candidate_parent_bac):
     if len(set(candidate_parent_bac['cellType'])) == 1:
         # means: all elements value = 0 or 1
         appropriate_intensity_pattern = True
+    elif len(set(transition_bac['cellType'])) == 1:
+        # means: all elements value = 0 or 1
+        appropriate_intensity_pattern = True
     else:
         sum_intensity = [sum(x) for x in zip(transition_bac['cellType'], candidate_parent_bac['cellType'])]
         if 2 in sum_intensity:
