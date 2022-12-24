@@ -16,7 +16,6 @@ def correction_bad_daughters(df, number_of_gap=0, distance_threshold=5, proporti
 
     df['drop'] = False
 
-    gap_parent_daughter = number_of_gap + 1
     bad_daughters_list = df.loc[(df['bad_division_flag'] == True) & (df['transition_drop'] == False)][
         'bad_daughters_index'].unique()
 
