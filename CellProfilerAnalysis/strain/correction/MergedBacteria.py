@@ -83,7 +83,6 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
     """
     assign new values to divided bacterium and modify all other related bacteria
     """
-
     df.at[new_bacterium_index, "AreaShape_MajorAxisLength"] = new_bacterium_values['major']
     df.at[new_bacterium_index, "AreaShape_MinorAxisLength"] = new_bacterium_values['minor']
     df.at[new_bacterium_index, "AreaShape_Orientation"] = new_bacterium_values['orientation']
@@ -94,14 +93,20 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
         df.at[new_bacterium_index, "AreaShape_Center_X"] = new_bacterium_values['center_x']
         df.at[new_bacterium_index, "AreaShape_Center_Y"] = new_bacterium_values['center_y']
 
-    df.at[new_bacterium_index, "ImageNumber"] = target_bacterium_life_history.iloc[-1]['ImageNumber'] + 1
-    df.at[new_bacterium_index, "ObjectNumber"] = target_bacterium_life_history.iloc[-1]['ObjectNumber'] + 1
     df.at[new_bacterium_index, "TrackObjects_ParentImageNumber_50"] = \
-        target_bacterium_life_history.iloc[-1]['TrackObjects_ParentImageNumber_50']
+        target_bacterium_life_history.iloc[-1]['ImageNumber']
     df.at[new_bacterium_index, "TrackObjects_ParentObjectNumber_50"] = \
-        target_bacterium_life_history.iloc[-1]['TrackObjects_ParentObjectNumber_50']
+        target_bacterium_life_history.iloc[-1]['ObjectNumber']
     df.at[new_bacterium_index, "TrackObjects_Label_50"] = \
         target_bacterium_life_history.iloc[-1]['TrackObjects_Label_50']
+
+    next_time_step = target_bacterium_life_history.iloc[-1]['ImageNumber'] + 1
+    df.at[new_bacterium_index, "ImageNumber"] = next_time_step
+
+    object_num_in_next_time_step = \
+        sorted(df.loc[(df["ObjectNumber"].notnull()) & (df["ImageNumber"] == next_time_step)]['ObjectNumber'])
+    last_object = object_num_in_next_time_step[-1]
+    df.at[new_bacterium_index, "ObjectNumber"] = last_object + 1
 
     df.at[new_bacterium_index, 'divideFlag'] = nearest_bacterium_life_history.iloc[-1]['divideFlag']
     df.at[new_bacterium_index, 'daughters_index'] = nearest_bacterium_life_history.iloc[-1]['daughters_index']
@@ -187,6 +192,10 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
     elif len(unexpected_end_bac_features['minor']) <= 2:
         new_bacterium_values = average_feature_value(unexpected_end_bacterium_life_history.iloc[-1],
                                                      nearest_bacterium_to_unexpected_end_bac_life_history.iloc[0])
+    if new_bacterium_values['minor'] <= 0 or new_bacterium_values['major'] <= 0 or \
+            new_bacterium_values['center_x'] <= 0 or new_bacterium_values['center_y'] <= 0:
+        new_bacterium_values = average_feature_value(unexpected_end_bacterium_life_history.iloc[-1],
+                                                     nearest_bacterium_to_unexpected_end_bac_life_history.iloc[0])
 
     if len(neighbor_features['minor']) > 2:
         neighbor_bacterium_linear_extrapolations = fit_linear_extrapolation(neighbor_features['minor'],
@@ -201,8 +210,15 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
     elif len(neighbor_features['minor']) <= 2:
         new_neighbor_bacterium_values = average_feature_value(unusual_neighbor_life_history_before_merged_bacterium.iloc[-1],
                                                               nearest_bacterium_to_neighbor_bacterium_life_history.iloc[0])
+    if new_neighbor_bacterium_values['minor'] <= 0 or new_neighbor_bacterium_values['major'] <= 0 or \
+            new_neighbor_bacterium_values['center_x'] <= 0 or new_neighbor_bacterium_values['center_y'] <= 0:
+        new_neighbor_bacterium_values = average_feature_value(
+            unusual_neighbor_life_history_before_merged_bacterium.iloc[-1],
+            nearest_bacterium_to_neighbor_bacterium_life_history.iloc[0])
+
     # update features value
     # neighbor bacterium
+
     df = assign_new_feature_value(df, merged_bacterium_index, new_neighbor_bacterium_values,
                                   nearest_bacterium_to_neighbor_bacterium_life_history,
                                   unusual_neighbor_life_history_before_merged_bacterium)
@@ -232,7 +248,7 @@ def merged_bacteria(df, k=6, distance_threshold=5, min_increase_rate_threshold=1
     # goal: I want to check all bacteria and find bacteria with life history = 1 and resolve them
 
     # define new column
-    df['las_id_before_modification'] = df['id']
+    df['last_id_before_modification'] = df['id']
 
     unexpected_end_bacteria = df.loc[(df['unexpected_end'] == True) & (df['transition_drop'] == False) &
                                      (df['bad_daughter_drop'] == False)]
@@ -242,7 +258,7 @@ def merged_bacteria(df, k=6, distance_threshold=5, min_increase_rate_threshold=1
         unexpected_end_bacterium_life_history = df.loc[df['id'] == unexpected_end_bacterium['id']]
 
         if unexpected_end_bacterium_life_history.shape[0] == 0:
-            unexpected_end_bacterium_life_history = df.loc[df['las_id_before_modification'] ==
+            unexpected_end_bacterium_life_history = df.loc[df['last_id_before_modification'] ==
                                                            unexpected_end_bacterium['id']]
 
         # features value of bacteria in the last time step of unexpected end bacterium life history
@@ -253,7 +269,7 @@ def merged_bacteria(df, k=6, distance_threshold=5, min_increase_rate_threshold=1
 
         # index of k nearest neighbors bacteria
         nearest_neighbors_index = k_nearest_neighbors(k, unexpected_end_bac_last_life_history, other_bacteria,
-                                                      distance_threshold, True)
+                                                      distance_threshold, distance_check=True)
         # features value of k nearest neighbors bacteria
         nearest_neighbors_df = other_bacteria.loc[nearest_neighbors_index]
 
