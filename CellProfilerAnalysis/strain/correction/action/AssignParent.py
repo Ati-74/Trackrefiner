@@ -132,7 +132,6 @@ def assign_parent(df, target_bac_index, distance_df_list, distance_threshold, pr
                                proportion_of_length_threshold)
     # find related bacteria to this transition bacterium
     target_bacterium = df.iloc[target_bac_index]
-    time_step = target_bacterium["ImageNumber"] + 1
     related_bacteria_index = find_related_bacteria(df, target_bacterium, target_bac_index, bacteria_index_list=None)
 
     if len(candidate_parents_index) == 0:
@@ -147,7 +146,7 @@ def assign_parent(df, target_bac_index, distance_df_list, distance_threshold, pr
         selected_parent = df.iloc[selected_parent_list_index]
         parent_life_history = df.loc[df['id'] == selected_parent['id']]
         target_bacterium_life_history = df.loc[df['id'] == target_bacterium['id']]
-        target_bacterium_daughters_life_history = df.loc[df['parent_id'] == target_bacterium['id']]
+        target_bacterium_daughters = df.loc[df['parent_id'] == target_bacterium['id']]
         # modify info
 
         if parent_life_history['ImageNumber'].iloc[-1] < target_bacterium['ImageNumber']:
@@ -167,7 +166,7 @@ def assign_parent(df, target_bac_index, distance_df_list, distance_threshold, pr
                 df.at[bac_index, 'id'] = selected_parent['id']
                 df.at[bac_index, "LifeHistory"] = target_bacterium["LifeHistory"] + selected_parent["LifeHistory"]
 
-            for bac_index in target_bacterium_daughters_life_history.index:
+            for bac_index in target_bacterium_daughters.index:
                 df.at[bac_index, 'parent_id'] = selected_parent['id']
         else:
             # this part of life history should define as new daughter
