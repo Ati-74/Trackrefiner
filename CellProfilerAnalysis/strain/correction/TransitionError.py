@@ -52,6 +52,7 @@ def correction_transition(raw_df, number_of_gap=0, distance_threshold=5, proport
                 except TypeError:
                     distance_df = adjacency_matrix(next_timestep_transition_bac, bacteria_time_step_under_invest,
                                                    'AreaShape_Center_X', 'AreaShape_Center_Y')
+
                 distance_df_list.append(distance_df)
 
             # find the parent of each transition bacterium in the next time step
