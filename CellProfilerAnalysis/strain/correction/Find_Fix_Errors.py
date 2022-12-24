@@ -76,8 +76,9 @@ def assign_feature_find_errors(dataframe, intensity_threshold):
 
 def data_cleaning(raw_df):
     """
-    goal: 1. Correct the labels of bacteria whose labels are nan.
-          2. remove related rows to bacteria with zero MajorAxisLength
+    goal:   1. remove related rows to bacteria with zero MajorAxisLength
+            2. Correct the labels of bacteria whose labels are nan.
+
     @param raw_df dataframe bacteria features value
     """
 
@@ -91,6 +92,8 @@ def data_cleaning(raw_df):
 
 def data_modification(dataframe, intensity_threshold=0.1):
 
+    # 1. remove related rows to bacteria with zero MajorAxisLength
+    # 2. Correct the labels of bacteria whose labels are nan.
     dataframe = data_cleaning(dataframe)
     dataframe = assign_feature_find_errors(dataframe, intensity_threshold)
 
@@ -105,7 +108,7 @@ def data_conversion(dataframe, um_per_pixel=0.144):
     return dataframe
 
 
-def find_fix_errors(dataframe, number_of_gap=4, um_per_pixel=0.144, intensity_threshold=0.1):
+def find_fix_errors(dataframe, number_of_gap=0, um_per_pixel=0.144, intensity_threshold=0.1):
 
     dataframe = data_modification(dataframe, intensity_threshold)
     dataframe = data_conversion(dataframe, um_per_pixel)
