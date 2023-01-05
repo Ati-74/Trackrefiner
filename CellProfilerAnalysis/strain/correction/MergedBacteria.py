@@ -83,6 +83,8 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
     """
     assign new values to divided bacterium and modify all other related bacteria
     """
+    daughters_of_nearest_bacterium_life_history = df.loc[df['parent_id'] == nearest_bacterium_life_history.iloc[-1]['id']]
+
     df.at[new_bacterium_index, "AreaShape_MajorAxisLength"] = new_bacterium_values['major']
     df.at[new_bacterium_index, "AreaShape_MinorAxisLength"] = new_bacterium_values['minor']
     df.at[new_bacterium_index, "AreaShape_Orientation"] = new_bacterium_values['orientation']
@@ -103,11 +105,6 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
     next_time_step = target_bacterium_life_history.iloc[-1]['ImageNumber'] + 1
     df.at[new_bacterium_index, "ImageNumber"] = next_time_step
 
-    object_num_in_next_time_step = \
-        sorted(df.loc[(df["ObjectNumber"].notnull()) & (df["ImageNumber"] == next_time_step)]['ObjectNumber'])
-    last_object = object_num_in_next_time_step[-1]
-    df.at[new_bacterium_index, "ObjectNumber"] = last_object + 1
-
     df.at[new_bacterium_index, 'divideFlag'] = nearest_bacterium_life_history.iloc[-1]['divideFlag']
     df.at[new_bacterium_index, 'daughters_index'] = nearest_bacterium_life_history.iloc[-1]['daughters_index']
     df.at[new_bacterium_index, 'bad_division_flag'] = nearest_bacterium_life_history.iloc[-1]['bad_division_flag']
@@ -123,9 +120,19 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
         df.at[new_bacterium_index, 'LifeHistory'] = df.iloc[new_bacterium_index]['LifeHistory'] + \
                                                     nearest_bacterium_life_history.iloc[-1]['LifeHistory']
     else:
+        object_num_in_next_time_step = \
+            sorted(df.loc[(df["ObjectNumber"].notnull()) & (df["ImageNumber"] == next_time_step)]['ObjectNumber'])
+        last_object = object_num_in_next_time_step[-1]
+        df.at[new_bacterium_index, "ObjectNumber"] = last_object + 1
+
         df.at[new_bacterium_index, 'LifeHistory'] = target_bacterium_life_history.iloc[-1]['LifeHistory'] + \
                                                     nearest_bacterium_life_history.iloc[-1]['LifeHistory'] + 1
 
+    # change parent image number & parent object number
+    df.at[nearest_bacterium_life_history.index[0], "TrackObjects_ParentImageNumber_50"] = \
+        df.iloc[new_bacterium_index]['ImageNumber']
+    df.at[nearest_bacterium_life_history.index[0], "TrackObjects_ParentObjectNumber_50"] = \
+        df.iloc[new_bacterium_index]['ObjectNumber']
     for bacterium_index in nearest_bacterium_life_history.index:
         df.at[bacterium_index, 'id'] = target_bacterium_life_history.iloc[-1]['id']
         df.at[bacterium_index, 'parent_id'] = target_bacterium_life_history.iloc[-1]['parent_id']
@@ -135,6 +142,12 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
         else:
             df.at[bacterium_index, 'LifeHistory'] = df.iloc[bacterium_index]['LifeHistory'] + \
                                                     target_bacterium_life_history.iloc[-1]['LifeHistory'] + 1
+
+    if daughters_of_nearest_bacterium_life_history.shape[0] > 0:
+        for daughter_index in daughters_of_nearest_bacterium_life_history.index:
+            daughter_life_history = df.loc[df['id'] == df.iloc[daughter_index]['id']]
+            for daughter_life_history_index in daughter_life_history.index:
+                df.at[daughter_life_history_index, 'parent_id'] = target_bacterium_life_history.iloc[-1]['id']
 
     for bacterium_index in target_bacterium_life_history.index:
         df.at[bacterium_index, 'divideFlag'] = nearest_bacterium_life_history.iloc[-1]['divideFlag']
@@ -192,6 +205,7 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
     elif len(unexpected_end_bac_features['minor']) <= 2:
         new_bacterium_values = average_feature_value(unexpected_end_bacterium_life_history.iloc[-1],
                                                      nearest_bacterium_to_unexpected_end_bac_life_history.iloc[0])
+
     if new_bacterium_values['minor'] <= 0 or new_bacterium_values['major'] <= 0 or \
             new_bacterium_values['center_x'] <= 0 or new_bacterium_values['center_y'] <= 0:
         new_bacterium_values = average_feature_value(unexpected_end_bacterium_life_history.iloc[-1],
@@ -210,6 +224,7 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
     elif len(neighbor_features['minor']) <= 2:
         new_neighbor_bacterium_values = average_feature_value(unusual_neighbor_life_history_before_merged_bacterium.iloc[-1],
                                                               nearest_bacterium_to_neighbor_bacterium_life_history.iloc[0])
+
     if new_neighbor_bacterium_values['minor'] <= 0 or new_neighbor_bacterium_values['major'] <= 0 or \
             new_neighbor_bacterium_values['center_x'] <= 0 or new_neighbor_bacterium_values['center_y'] <= 0:
         new_neighbor_bacterium_values = average_feature_value(
@@ -254,53 +269,53 @@ def merged_bacteria(df, k=6, distance_threshold=5, min_increase_rate_threshold=1
                                      (df['bad_daughter_drop'] == False)]
 
     for unexpected_end_bacterium_index, unexpected_end_bacterium in unexpected_end_bacteria.iterrows():
-
         unexpected_end_bacterium_life_history = df.loc[df['id'] == unexpected_end_bacterium['id']]
 
         if unexpected_end_bacterium_life_history.shape[0] == 0:
             unexpected_end_bacterium_life_history = df.loc[df['last_id_before_modification'] ==
                                                            unexpected_end_bacterium['id']]
 
+            unexpected_end_bacterium_life_history = df.loc[df['id'] == unexpected_end_bacterium_life_history.iloc[-1]['id']]
+
         # features value of bacteria in the last time step of unexpected end bacterium life history
         # features value of unexpected bacterium in the last time step of its life history
-        unexpected_end_bac_last_life_history = unexpected_end_bacterium_life_history.iloc[[-1]]
-        other_bacteria = df.loc[(df["ImageNumber"] == unexpected_end_bac_last_life_history['ImageNumber'].iloc[0]) &
-                                (df["ObjectNumber"] != unexpected_end_bac_last_life_history['ObjectNumber'].iloc[0])]
+        unexpected_end_bac_last_time_step = unexpected_end_bacterium_life_history.iloc[[-1]]
+        other_bacteria = df.loc[(df["ImageNumber"] == unexpected_end_bac_last_time_step['ImageNumber'].iloc[0]) &
+                                (df["ObjectNumber"] != unexpected_end_bac_last_time_step['ObjectNumber'].iloc[0])]
 
         # index of k nearest neighbors bacteria
-        nearest_neighbors_index = k_nearest_neighbors(k, unexpected_end_bac_last_life_history, other_bacteria,
+        nearest_neighbors_index = k_nearest_neighbors(k, unexpected_end_bac_last_time_step, other_bacteria,
                                                       distance_threshold, distance_check=True)
-        # features value of k nearest neighbors bacteria
-        nearest_neighbors_df = other_bacteria.loc[nearest_neighbors_index]
+        if nearest_neighbors_index:
+            # features value of k nearest neighbors bacteria
+            nearest_neighbors_df = other_bacteria.loc[nearest_neighbors_index]
 
-        next_time_step_bacteria = df.loc[df["ImageNumber"] == unexpected_end_bac_last_life_history['ImageNumber'].iloc[0] + 1]
-        # unusual neighbor
-        unusual_neighbor_index, merged_bacterium_index = \
-            increase_rate_major_minor(nearest_neighbors_df, next_time_step_bacteria, min_increase_rate_threshold)
+            next_time_step_bacteria = df.loc[df["ImageNumber"] == unexpected_end_bac_last_time_step.iloc[0]['ImageNumber'] + 1]
+            # unusual neighbor
+            unusual_neighbor_index, merged_bacterium_index = \
+                increase_rate_major_minor(nearest_neighbors_df, next_time_step_bacteria, min_increase_rate_threshold)
 
-        if unusual_neighbor_index >= 0:
+            if unusual_neighbor_index != -1:
+                merged_bacterium = df.iloc[merged_bacterium_index]
+                relative_bacteria_to_merged_bacterium_in_next_timestep = df.loc[(df["ImageNumber"] ==
+                                                                                 (merged_bacterium["ImageNumber"] + 1)) &
+                                                                                (df["TrackObjects_ParentImageNumber_50"] ==
+                                                                                 merged_bacterium["ImageNumber"]) &
+                                                                                (df["TrackObjects_ParentObjectNumber_50"] ==
+                                                                                 merged_bacterium["ObjectNumber"]) &
+                                                                                (df["transition_drop"] == False) &
+                                                                                (df["bad_daughter_drop"] == False)]
 
-            merged_bacterium = df.iloc[merged_bacterium_index]
-            relative_bacteria_to_merged_bacterium_in_next_timestep = df.loc[(df["ImageNumber"] ==
-                                                                             (merged_bacterium["ImageNumber"] + 1)) &
-                                                                            (df["TrackObjects_ParentImageNumber_50"] ==
-                                                                             merged_bacterium["ImageNumber"]) &
-                                                                            (df["TrackObjects_ParentObjectNumber_50"] ==
-                                                                             merged_bacterium["ObjectNumber"]) &
-                                                                            (df["transition_drop"] == False) &
-                                                                            (df["bad_daughter_drop"] == False)]
+                if relative_bacteria_to_merged_bacterium_in_next_timestep.shape[0] == 2:
+                    unusual_neighbor = df.loc[unusual_neighbor_index]
+                    unusual_neighbor_life_history_before_merged_bacterium = df.loc[(df['id'] == unusual_neighbor['id']) &
+                                                                                   (df['ImageNumber'] <=
+                                                                                    unusual_neighbor['ImageNumber'])]
 
-            if relative_bacteria_to_merged_bacterium_in_next_timestep.shape[0] == 2:
+                    df = correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
+                                                    unusual_neighbor_life_history_before_merged_bacterium, merged_bacterium,
+                                                    merged_bacterium_index)
 
-                unusual_neighbor = df.loc[unusual_neighbor_index]
-                unusual_neighbor_life_history_before_merged_bacterium = df.loc[(df['id'] == unusual_neighbor['id']) &
-                                                                               (df['ImageNumber'] <=
-                                                                                unusual_neighbor['ImageNumber'])]
-
-                df = correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
-                                                unusual_neighbor_life_history_before_merged_bacterium, merged_bacterium,
-                                                merged_bacterium_index)
-
-    df = df.sort_values(by=['ImageNumber', 'ObjectNumber']).reset_index(drop=True)
+                    df = df.sort_values(by=['ImageNumber', 'ObjectNumber']).reset_index(drop=True)
 
     return df
