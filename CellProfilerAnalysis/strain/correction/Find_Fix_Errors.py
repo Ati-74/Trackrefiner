@@ -63,7 +63,8 @@ def assign_feature_find_errors(dataframe, intensity_threshold):
 
                 dataframe.at[indx, 'parent_id'] = parent_id
 
-            dataframe.at[row_index, 'unexpected_end'] = bacterium_status['unexpected_end']
+            last_bacterium_in_life_history = bacterium_status['lifeHistoryIndex'][-1]
+            dataframe.at[last_bacterium_in_life_history, 'unexpected_end'] = bacterium_status['unexpected_end']
             dataframe.at[row_index, 'transition'] = transition
 
             bacterium_id += 1
