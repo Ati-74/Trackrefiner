@@ -1,5 +1,5 @@
 import pickle
-from CellProfilerAnalysis.strain.ProcessCellProfilerData import Dict2Class
+import CellProfilerAnalysis
 
 if __name__ == '__main__':
 
