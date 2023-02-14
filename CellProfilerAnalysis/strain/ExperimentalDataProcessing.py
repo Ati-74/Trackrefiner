@@ -4,7 +4,7 @@ from CellProfilerAnalysis.strain.correction.action.CalcGrowthRate import calcula
 from CellProfilerAnalysis.strain.correction.action.FluorescenceIntensity import final_cell_type
 
 
-def bacteria_analysis_func(data_frame, interval_time, growth_rate_method):
+def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assigning_cell_type):
     """
     goal: assign
     """
@@ -79,14 +79,20 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method):
 
             cell_age += 1
 
-    # determine final cell type of each bacterium
-    data_frame = final_cell_type(data_frame)
+    if assigning_cell_type:
+        # determine final cell type of each bacterium
+        data_frame = final_cell_type(data_frame)
 
     # rename some columns
     data_frame.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length',
                                'TrackObjects_Label_50': 'label'}, inplace=True)
-    data_frame = data_frame[
-        ['stepNum', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol', 'targetVol',
-         'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'cellType', 'strainRate', 'strainRate_rolling']]
+    if assigning_cell_type:
+        data_frame = data_frame[
+            ['stepNum', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol', 'targetVol',
+             'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'cellType', 'strainRate', 'strainRate_rolling']]
+    else:
+        data_frame = data_frame[
+            ['stepNum', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol', 'targetVol',
+             'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'strainRate', 'strainRate_rolling']]
 
     return data_frame

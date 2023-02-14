@@ -7,7 +7,7 @@ from CellProfilerAnalysis.strain.correction.Find_Fix_Errors import find_fix_erro
 
 
 def process_data(input_file, output_directory, interval_time=1, growth_rate_method="Average", number_of_gap=0,
-                 um_per_pixel=0.144, intensity_threshold=0.1):
+                 um_per_pixel=0.144, intensity_threshold=0.1, assigning_cell_type=True):
     """
     The main function that processes CellProfiler data.
     .pickle Files are exported to the same directory as input_file.
@@ -25,7 +25,7 @@ def process_data(input_file, output_directory, interval_time=1, growth_rate_meth
                                  intensity_threshold=intensity_threshold)
 
     # process the tracking data
-    processed_df = bacteria_analysis_func(data_frame, interval_time, growth_rate_method)
+    processed_df = bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assigning_cell_type)
     output_directory = output_directory + "/"
 
     create_pickle_files(processed_df, output_directory)

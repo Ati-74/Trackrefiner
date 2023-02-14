@@ -16,9 +16,10 @@ if __name__ == '__main__':
     number_of_gap = 0
     # convert pixel to um
     um_per_pixel = 0.144
+    assigning_cell_type = True
     # for assign cell type
     intensity_threshold = 0.1
 
     # run post-processing
     process_data(input_file, output_directory, interval_time, growth_rate_method, number_of_gap, um_per_pixel,
-                 intensity_threshold)
+                 intensity_threshold, assigning_cell_type)
