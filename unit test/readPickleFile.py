@@ -31,7 +31,10 @@ if __name__ == '__main__':
     bacterium_growth_rate = bacterium.growthRate
     bacterium_life_history = bacterium.LifeHistory
     bacterium_strainRate_rolling = bacterium.strainRate_rolling
+    # bacterium_cell_type = bacterium.cellType
     print('bacteria id: ' + str(bacterium_id))
     print('Growth rate: ' + str(bacterium_growth_rate))
     print('Life History: ' + str(bacterium_life_history))
     print('strainRate_rolling: ' + str(bacterium_strainRate_rolling))
+    # print('cell type: ' + str(bacterium_cell_type))
+
