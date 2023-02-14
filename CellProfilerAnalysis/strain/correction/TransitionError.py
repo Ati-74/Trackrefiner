@@ -2,7 +2,8 @@ from CellProfilerAnalysis.strain.correction.action.processing import bacteria_in
 from CellProfilerAnalysis.strain.correction.action.AssignParent import assign_parent
 
 
-def correction_transition(raw_df, number_of_gap=0, distance_threshold=5, proportion_of_length_threshold=0.85):
+def correction_transition(raw_df, number_of_gap=0, distance_threshold=5, proportion_of_length_threshold=0.85,
+                          check_cellType=True):
     """
         goal: For bacteria without parent, assign labels, ParentImageNumber, and ParentObjectNumber
         @param raw_df    dataframe   bacteria dataframe
@@ -59,7 +60,7 @@ def correction_transition(raw_df, number_of_gap=0, distance_threshold=5, proport
             for transition_bac_index, transition_bac in next_timestep_transition_bac.iterrows():
 
                 raw_df = assign_parent(raw_df, transition_bac_index, distance_df_list, distance_threshold,
-                                       proportion_of_length_threshold)
+                                       proportion_of_length_threshold, check_cellType)
 
     # rename drop column
     raw_df.rename(columns={'drop': 'transition_drop'}, inplace=True)

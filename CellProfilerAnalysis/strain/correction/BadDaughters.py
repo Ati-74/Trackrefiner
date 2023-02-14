@@ -2,7 +2,8 @@ from CellProfilerAnalysis.strain.correction.action.processing import bacteria_in
 from CellProfilerAnalysis.strain.correction.action.AssignParent import assign_parent
 
 
-def correction_bad_daughters(df, number_of_gap=0, distance_threshold=5, proportion_of_length_threshold=0.85):
+def correction_bad_daughters(df, number_of_gap=0, distance_threshold=5, proportion_of_length_threshold=0.85,
+                             check_cellType=True):
     """
         goal: modification of bad daughters (try to assign bad daughters to new parent)
         @param df    dataframe   bacteria dataframe
@@ -45,7 +46,7 @@ def correction_bad_daughters(df, number_of_gap=0, distance_threshold=5, proporti
             # find the parent of each transition bacterium in the next time step
             for daughter_bac_index in bad_daughters:
                 df = assign_parent(df, daughter_bac_index, distance_df_list, distance_threshold,
-                                   proportion_of_length_threshold)
+                                   proportion_of_length_threshold, check_cellType)
 
     # rename drop column
     df.rename(columns={'drop': 'bad_daughter_drop'}, inplace=True)

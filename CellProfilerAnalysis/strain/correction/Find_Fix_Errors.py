@@ -6,7 +6,7 @@ from CellProfilerAnalysis.strain.correction.BadDaughters import correction_bad_d
 from CellProfilerAnalysis.strain.correction.MergedBacteria import merged_bacteria
 
 
-def assign_feature_find_errors(dataframe, intensity_threshold):
+def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type):
     """
     goal: assign new features like: `id`, `divideFlag`, `daughters_index`, `bad_division_flag`, `bad_daughters_index`,
     `unexpected_end`, `division_time`, `transition`, `LifeHistory`, `parent_id` to bacteria and find errors
@@ -70,7 +70,8 @@ def assign_feature_find_errors(dataframe, intensity_threshold):
             bacterium_id += 1
 
     # assign cell type
-    dataframe = assign_cell_type(dataframe, intensity_threshold)
+    if check_cell_type:
+        dataframe = assign_cell_type(dataframe, intensity_threshold)
     dataframe.drop(labels='checked', axis=1, inplace=True)
     return dataframe
 
@@ -91,12 +92,12 @@ def data_cleaning(raw_df):
     return modified_df
 
 
-def data_modification(dataframe, intensity_threshold=0.1):
+def data_modification(dataframe, intensity_threshold, check_cell_type):
 
     # 1. remove related rows to bacteria with zero MajorAxisLength
     # 2. Correct the labels of bacteria whose labels are nan.
     dataframe = data_cleaning(dataframe)
-    dataframe = assign_feature_find_errors(dataframe, intensity_threshold)
+    dataframe = assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type)
 
     return dataframe
 
@@ -109,9 +110,9 @@ def data_conversion(dataframe, um_per_pixel=0.144):
     return dataframe
 
 
-def find_fix_errors(dataframe, number_of_gap=0, um_per_pixel=0.144, intensity_threshold=0.1):
+def find_fix_errors(dataframe, number_of_gap=0, um_per_pixel=0.144, intensity_threshold=0.1, check_cell_type=True):
 
-    dataframe = data_modification(dataframe, intensity_threshold)
+    dataframe = data_modification(dataframe, intensity_threshold, check_cell_type)
     dataframe = data_conversion(dataframe, um_per_pixel)
 
     # modification of errors:
@@ -119,9 +120,9 @@ def find_fix_errors(dataframe, number_of_gap=0, um_per_pixel=0.144, intensity_th
     # 2. more than two daughters
     # 3. merged bacteria
 
-    df = correction_transition(dataframe, number_of_gap)
-    df = correction_bad_daughters(df, number_of_gap)
-    df = merged_bacteria(df)
+    df = correction_transition(dataframe, number_of_gap, check_cell_type)
+    df = correction_bad_daughters(df, number_of_gap, check_cell_type)
+    df = merged_bacteria(df, check_cell_type)
     # remove incorrect bacteria
     df = remove_rows(df, 'transition_drop', False)
     df = remove_rows(df, 'bad_daughter_drop', False)

@@ -4,7 +4,7 @@ from CellProfilerAnalysis.strain.correction.action.processing import find_relate
 
 
 def find_parent_in_desire_time_step(df, transition_bac, sorted_distance, distance_threshold,
-                                    proportion_of_length_threshold):
+                                    proportion_of_length_threshold, check_cellType):
     """
     goal: finding parent bacterium in previous time steps
     @param df dataframe bacteria information in each time steps
@@ -33,7 +33,10 @@ def find_parent_in_desire_time_step(df, transition_bac, sorted_distance, distanc
         # candidate parent bacterium
         candidate_parent_bacterium = df.iloc[bacteria_index[element_index]]
         # check intensity (flag)
-        appropriate_candidate_parent = check_fluorescent_intensity(transition_bac, candidate_parent_bacterium)
+        if check_cellType:
+            appropriate_candidate_parent = check_fluorescent_intensity(transition_bac, candidate_parent_bacterium)
+        else:
+            appropriate_candidate_parent = True
 
         if appropriate_candidate_parent:
 
@@ -76,7 +79,8 @@ def find_parent_in_desire_time_step(df, transition_bac, sorted_distance, distanc
     return candidate_parent_stat
 
 
-def find_candidate_parents(df, target_bac_index, distance_df_list, distance_threshold, proportion_of_length_threshold):
+def find_candidate_parents(df, target_bac_index, distance_df_list, distance_threshold, proportion_of_length_threshold,
+                           check_cellType):
     """
     this function calls for each target (transition or incorrect daughter) bacterium
     @param df dataframe features value of bacteria in each time step
@@ -99,7 +103,8 @@ def find_candidate_parents(df, target_bac_index, distance_df_list, distance_thre
         sorted_distance = distance_df.loc[target_bac_index].sort_values()
 
         candidate_parent_stat = find_parent_in_desire_time_step(df, transition_bacterium, sorted_distance,
-                                                                distance_threshold, proportion_of_length_threshold)
+                                                                distance_threshold, proportion_of_length_threshold,
+                                                                check_cellType)
 
         if candidate_parent_stat['was_parent_found']:
             candidate_parents_index.append(candidate_parent_stat['candidate_parent_index'])
@@ -112,7 +117,8 @@ def find_candidate_parents(df, target_bac_index, distance_df_list, distance_thre
            candidate_parents_distance_from_transition_bac
 
 
-def assign_parent(df, target_bac_index, distance_df_list, distance_threshold, proportion_of_length_threshold):
+def assign_parent(df, target_bac_index, distance_df_list, distance_threshold, proportion_of_length_threshold,
+                  check_cellType):
     """
     we should find the nearest candidate bacterium in the previous time steps that has:
     similar Intensity_MeanIntensity pattern (if exist)
@@ -129,7 +135,7 @@ def assign_parent(df, target_bac_index, distance_df_list, distance_threshold, pr
 
     candidate_parents_index, candidate_parents_index_in_last_time_step, distance_from_target_bac = \
         find_candidate_parents(df, target_bac_index, distance_df_list, distance_threshold,
-                               proportion_of_length_threshold)
+                               proportion_of_length_threshold, check_cellType)
     # find related bacteria to this transition bacterium
     target_bacterium = df.iloc[target_bac_index]
     related_bacteria_index = find_related_bacteria(df, target_bacterium, target_bac_index, bacteria_index_list=None)

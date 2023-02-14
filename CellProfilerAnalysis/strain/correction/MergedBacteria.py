@@ -78,7 +78,7 @@ def fit_linear_extrapolation(minor, major, orientation, center_x, center_y):
 
 
 def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, nearest_bacterium_life_history,
-                             target_bacterium_life_history):
+                             target_bacterium_life_history, check_cell_type):
 
     """
     assign new values to divided bacterium and modify all other related bacteria
@@ -113,7 +113,8 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
     df.at[new_bacterium_index, 'unexpected_end'] = False
     df.at[new_bacterium_index, 'transition_drop'] = False
     df.at[new_bacterium_index, 'bad_daughter_drop'] = False
-    df.at[new_bacterium_index, 'cellType'] = target_bacterium_life_history.iloc[-1]['cellType']
+    if check_cell_type:
+        df.at[new_bacterium_index, 'cellType'] = target_bacterium_life_history.iloc[-1]['cellType']
     df.at[new_bacterium_index, 'id'] = target_bacterium_life_history.iloc[-1]['id']
     df.at[new_bacterium_index, 'parent_id'] = target_bacterium_life_history.iloc[-1]['parent_id']
     if str(df.iloc[new_bacterium_index]['LifeHistory']) != 'nan':
@@ -168,7 +169,7 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
 
 def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
                                unusual_neighbor_life_history_before_merged_bacterium, merged_bacterium,
-                               merged_bacterium_index):
+                               merged_bacterium_index, check_cellType):
 
     unexpected_end_bac_features = bacteria_features(unexpected_end_bacterium_life_history)
     neighbor_features = bacteria_features(unusual_neighbor_life_history_before_merged_bacterium)
@@ -236,7 +237,7 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
 
     df = assign_new_feature_value(df, merged_bacterium_index, new_neighbor_bacterium_values,
                                   nearest_bacterium_to_neighbor_bacterium_life_history,
-                                  unusual_neighbor_life_history_before_merged_bacterium)
+                                  unusual_neighbor_life_history_before_merged_bacterium, check_cellType)
     # unexpected end  bacterium
     # insert new row to dataframe
     # append empty row to dataframe
@@ -246,12 +247,12 @@ def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
 
     df = assign_new_feature_value(df, row_index, new_bacterium_values,
                                   nearest_bacterium_to_unexpected_end_bac_life_history,
-                                  unexpected_end_bacterium_life_history)
+                                  unexpected_end_bacterium_life_history, check_cellType)
 
     return df
 
 
-def merged_bacteria(df, k=6, distance_threshold=5, min_increase_rate_threshold=1.5):
+def merged_bacteria(df, k=6, distance_threshold=5, min_increase_rate_threshold=1.5, check_cellType=True):
     """
     @param df dataframe bacteria features value
     @param k int maximum number of nearest neighbor
@@ -314,7 +315,7 @@ def merged_bacteria(df, k=6, distance_threshold=5, min_increase_rate_threshold=1
 
                     df = correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
                                                     unusual_neighbor_life_history_before_merged_bacterium, merged_bacterium,
-                                                    merged_bacterium_index)
+                                                    merged_bacterium_index, check_cellType)
 
                     df = df.sort_values(by=['ImageNumber', 'ObjectNumber']).reset_index(drop=True)
 

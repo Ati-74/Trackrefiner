@@ -22,13 +22,13 @@ def process_data(input_file, output_directory, interval_time=1, growth_rate_meth
     # Parsing CellProfiler output
     data_frame = pd.read_csv(input_file)
     data_frame = find_fix_errors(data_frame, number_of_gap=number_of_gap, um_per_pixel=um_per_pixel,
-                                 intensity_threshold=intensity_threshold)
+                                 intensity_threshold=intensity_threshold, check_cell_type=assigning_cell_type)
 
     # process the tracking data
     processed_df = bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assigning_cell_type)
     output_directory = output_directory + "/"
 
-    create_pickle_files(processed_df, output_directory)
+    create_pickle_files(processed_df, output_directory, assigning_cell_type)
 
     path = output_directory + input_file.split('/')[-1].split('.')[0] + "-" + growth_rate_method + "-analysis"
     # write to csv
@@ -46,7 +46,7 @@ class Dict2Class(object):
             setattr(self, key, my_dict[key])
 
 
-def create_pickle_files(df, path):
+def create_pickle_files(df, path, assigning_cell_type):
     """
     Saves processed data in a dictionary similar to CellModeller output style and exports as .pickle files
     @param df       data after being processed in ExperimentalDataProcessing.py
@@ -65,9 +65,14 @@ def create_pickle_files(df, path):
         data_frame_current_time_step.index = data_frame_current_time_step['id']
 
         # select important columns
-        data_frame_current_time_step = data_frame_current_time_step[
-            ['id', 'label', 'cellType', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol', 'targetVol',
-             'pos', 'time', 'radius', 'length', 'dir', 'ends', 'strainRate', 'strainRate_rolling']]
+        if assigning_cell_type:
+            data_frame_current_time_step = data_frame_current_time_step[
+                ['id', 'label', 'cellType', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
+                 'targetVol', 'pos', 'time', 'radius', 'length', 'dir', 'ends', 'strainRate', 'strainRate_rolling']]
+        else:
+            data_frame_current_time_step = data_frame_current_time_step[
+                ['id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
+                 'targetVol', 'pos', 'time', 'radius', 'length', 'dir', 'ends', 'strainRate', 'strainRate_rolling']]
         # convert to dictionary
         df_to_dict = data_frame_current_time_step.to_dict('index')
         # change dictionary to class
