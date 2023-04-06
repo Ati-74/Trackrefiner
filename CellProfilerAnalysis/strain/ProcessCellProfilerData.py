@@ -30,7 +30,7 @@ def process_data(input_file, output_directory, interval_time=1, growth_rate_meth
 
     create_pickle_files(processed_df, output_directory, assigning_cell_type)
 
-    path = output_directory + input_file.split('/')[-1].split('.')[0] + "-" + growth_rate_method + "-analysis"
+    path = output_directory + os.path.basename(input_file).split('.')[0] + "-" + growth_rate_method + "-analysis"
     # write to csv
     processed_df.to_csv(path + '.csv', index=False)
 
