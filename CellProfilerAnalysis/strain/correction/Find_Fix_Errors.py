@@ -124,7 +124,7 @@ def find_fix_errors(dataframe, number_of_gap=0, um_per_pixel=0.144, intensity_th
     df = correction_bad_daughters(df, number_of_gap, check_cell_type)
     df = merged_bacteria(df, check_cell_type)
     # remove incorrect bacteria
-    df = remove_rows(df, 'transition_drop', False)
-    df = remove_rows(df, 'bad_daughter_drop', False)
+    # df = remove_rows(df, 'transition_drop', False)
+    # df = remove_rows(df, 'bad_daughter_drop', False)
 
     return df
