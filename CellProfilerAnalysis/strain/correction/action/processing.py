@@ -7,16 +7,27 @@ from scipy.spatial import distance_matrix
 # references:
 # https://math.stackexchange.com/questions/426150/what-is-the-general-equation-of-the-ellipse-that-is-not-in-the-origin-and-rotate
 # https://math.stackexchange.com/questions/2645689/what-is-the-parametric-equation-of-a-rotated-ellipse-given-the-angle-of-rotatio
-def find_vertex(center, major, angle_rotation):
+def find_vertex(center, major, angle_rotation, angle_tolerance=1e-6):
 
-    # (x- center_x) * np.sin(angle_rotation) - (y-center_y) * np.cos(angle_rotation) = 0
-    # np.power((x - center_x) * np.cos(angle_rotation) + (y - center_y) * np.sin(angle_rotation), 2) =
-    # np.power(major, 2)
-    semi_major = major / 2
-    vertex_1_x = float(semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
-    vertex_1_y = float((vertex_1_x - center[0]) * np.tan(angle_rotation) + center[1])
-    vertex_2_x = float(-semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
-    vertex_2_y = float((vertex_2_x - center[0]) * np.tan(angle_rotation) + center[1])
+    if np.abs(angle_rotation - np.pi / 2) < angle_tolerance:  # Bacteria parallel to the vertical axis
+        vertex_1_x = center[0]
+        vertex_1_y = center[1] + major
+        vertex_2_x = center[0]
+        vertex_2_y = center[1] - major
+    elif np.abs(angle_rotation) < angle_tolerance:  # Bacteria parallel to the horizontal axis
+        vertex_1_x = center[0] + major
+        vertex_1_y = center[1]
+        vertex_2_x = center[0] - major
+        vertex_2_y = center[1]
+    else:
+        # (x- center_x) * np.sin(angle_rotation) - (y-center_y) * np.cos(angle_rotation) = 0
+        # np.power((x - center_x) * np.cos(angle_rotation) + (y - center_y) * np.sin(angle_rotation), 2) =
+        # np.power(major, 2)
+        semi_major = major / 2
+        vertex_1_x = float(semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
+        vertex_1_y = float((vertex_1_x - center[0]) * np.tan(angle_rotation) + center[1])
+        vertex_2_x = float(-semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
+        vertex_2_y = float((vertex_2_x - center[0]) * np.tan(angle_rotation) + center[1])
 
     return [[vertex_1_x, vertex_1_y], [vertex_2_x, vertex_2_y]]
 
