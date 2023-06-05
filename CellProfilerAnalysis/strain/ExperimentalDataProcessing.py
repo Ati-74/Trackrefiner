@@ -88,11 +88,13 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
                                'TrackObjects_Label_50': 'label'}, inplace=True)
     if assigning_cell_type:
         data_frame = data_frame[
-            ['stepNum', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol', 'targetVol',
-             'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'cellType', 'strainRate', 'strainRate_rolling']]
+            ['stepNum', 'ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
+             'targetVol', 'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'cellType', 'strainRate',
+             'strainRate_rolling']]
     else:
         data_frame = data_frame[
-            ['stepNum', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol', 'targetVol',
-             'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'strainRate', 'strainRate_rolling']]
+            ['stepNum', 'ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
+             'targetVol', 'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'strainRate',
+             'strainRate_rolling']]
 
     return data_frame
