@@ -315,6 +315,11 @@ def find_related_bacteria(df, target_bacterium, target_bacterium_index, bacteria
     return bacteria_index_list
 
 
+def convert_ends_to_pixel(ends, um_per_pixel=0.144):
+    ends = np.array(ends) / um_per_pixel
+    return ends
+    
+
 def convert_to_pixel(length, radius, ends, pos, um_per_pixel=0.144):
 
     # Convert distances to pixel (0.144 um/pixel on 63X objective)
