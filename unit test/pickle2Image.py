@@ -123,7 +123,7 @@ if __name__ == "__main__":
     # The path to the directory containing the raw image
     # Optional, if you set it, the bacteria will be drawn on the raw images
     # raw images should be in tif format
-    raw_image_file_directory = '../examples/K12/raw img3'
+    raw_image_file_directory = '../examples/K12/raw img'
 
     # If you set it to Non, the images will be saved in the same directory as the pickle files
     output_directory = None
