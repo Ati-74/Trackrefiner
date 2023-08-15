@@ -84,9 +84,25 @@ def data_cleaning(raw_df):
     @param raw_df dataframe bacteria features value
     """
 
+    # find bacteria with zero length
+    zero_length_bac = raw_df.loc[raw_df["AreaShape_MajorAxisLength"] == 0]
     # remove related rows to bacteria with zero MajorAxisLength
-    raw_df = raw_df.loc[raw_df["AreaShape_MajorAxisLength"] != 0].reset_index(drop=True)
+    raw_df = raw_df.loc[raw_df["AreaShape_MajorAxisLength"] != 0]
 
+    # The parent image number and parent object number of the daughters (or same bacteria) of the zero-length mother
+    # should now be set to zero
+    for indx , row in zero_length_bac.iterrows():
+        parent_img_number = row['ImageNumber']
+        parent_obj_number = row['ObjectNumber']
+
+        daughters = raw_df.loc[(raw_df['TrackObjects_ParentImageNumber_50'] == parent_img_number) &
+                               (raw_df['TrackObjects_ParentObjectNumber_50'] == parent_obj_number)]
+
+        for daughter_indx , daughter in daughters.iterrows():
+            raw_df.at[daughter_indx, 'TrackObjects_ParentImageNumber_50'] = 0
+            raw_df.at[daughter_indx, 'TrackObjects_ParentObjectNumber_50'] = 0
+
+    raw_df = raw_df.reset_index(drop=True)
     modified_df = modify_nan_labels(raw_df)
 
     return modified_df
