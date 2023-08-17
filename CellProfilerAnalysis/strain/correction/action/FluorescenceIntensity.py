@@ -73,11 +73,14 @@ def assign_cell_type(dataframe, intensity_threshold):
 
 def fix_cell_type_error(dataframe):
 
+    # column name
+    label_col = [col for col in dataframe.columns if 'TrackObjects_Label_' in col][0]
+
     df_bacteria_cell_type_errors = dataframe.loc[dataframe['unknown_cell_type'] == True]
-    bacteria_labels = df_bacteria_cell_type_errors['TrackObjects_Label_50'].unique()
+    bacteria_labels = df_bacteria_cell_type_errors[label_col].unique()
 
     for label in bacteria_labels:
-        bacteria_family_tree = dataframe.loc[dataframe['TrackObjects_Label_50'] == label]
+        bacteria_family_tree = dataframe.loc[dataframe[label_col] == label]
         root_bacterium = bacteria_family_tree.iloc[[0]]
 
         other_same_time_step_bacteria = dataframe.loc[(dataframe['ImageNumber'] == root_bacterium.iloc[0]['ImageNumber']) &
@@ -96,15 +99,18 @@ def fix_cell_type_error(dataframe):
 
 def final_cell_type(dataframe):
 
+    # column name
+    label_col = [col for col in dataframe.columns if 'TrackObjects_Label_' in col][0]
+
     dataframe['unknown_cell_type'] = False
     num_intensity_cols = len(check_intensity(dataframe.columns))
 
     if num_intensity_cols > 1:
 
-        bacteria_labels = dataframe['TrackObjects_Label_50'].unique()
+        bacteria_labels = dataframe[label_col].unique()
 
         for label in bacteria_labels:
-            bacteria_family_tree = dataframe.loc[dataframe['TrackObjects_Label_50'] == label]
+            bacteria_family_tree = dataframe.loc[dataframe[label_col] == label]
             bacteria_family_tree_cell_types = bacteria_family_tree['cellType'].values.tolist()
             frequency = []
             for i in range(num_intensity_cols):
