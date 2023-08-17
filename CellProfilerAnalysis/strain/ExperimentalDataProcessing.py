@@ -84,17 +84,19 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
         data_frame = final_cell_type(data_frame)
 
     # rename some columns
+    # column name
+    label_col = [col for col in data_frame.columns if 'TrackObjects_Label_' in col][0]
     data_frame.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length',
-                               'TrackObjects_Label_50': 'label'}, inplace=True)
+                               label_col: 'label'}, inplace=True)
     if assigning_cell_type:
-        data_frame = data_frame[
+        data_frame_with_selected_col = data_frame[
             ['stepNum', 'ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
              'targetVol', 'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'cellType', 'strainRate',
              'strainRate_rolling']]
     else:
-        data_frame = data_frame[
+        data_frame_with_selected_col = data_frame[
             ['stepNum', 'ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
              'targetVol', 'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'strainRate',
              'strainRate_rolling']]
 
-    return data_frame
+    return data_frame, data_frame_with_selected_col
