@@ -59,7 +59,7 @@ def show():
 if __name__ == "__main__":
     top = Tk()
     top.geometry("700x300")
-    top.title("Image Processing")
+    top.title("CellProfilerAnalysis")
 
     # interval Time
     interval_time_lable = Label(top, text="Interval Time: ")
