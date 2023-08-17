@@ -25,10 +25,11 @@ def process_data(input_file, output_directory, interval_time=1, growth_rate_meth
                                  intensity_threshold=intensity_threshold, check_cell_type=assigning_cell_type)
 
     # process the tracking data
-    processed_df = bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assigning_cell_type)
+    processed_df, processed_df_with_specific_cols = bacteria_analysis_func(data_frame, interval_time,
+                                                                           growth_rate_method, assigning_cell_type)
     output_directory = output_directory + "/"
 
-    create_pickle_files(processed_df, output_directory, assigning_cell_type)
+    create_pickle_files(processed_df_with_specific_cols, output_directory, assigning_cell_type)
 
     path = output_directory + os.path.basename(input_file).split('.')[0] + "-" + growth_rate_method + "-analysis"
     # write to csv
