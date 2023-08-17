@@ -78,12 +78,18 @@ def increase_rate_major_minor(bacteria_current_time_step, bacteria_next_time_ste
     unusual_neighbor_index = -1
     merged_bacterium_index = -1
 
+    # columns name
+    parent_image_number_col = [col for col in bacteria_current_time_step.columns if
+                               'TrackObjects_ParentImageNumber_' in col][0]
+    parent_object_number_col = [col for col in bacteria_current_time_step.columns if
+                                'TrackObjects_ParentObjectNumber_' in col][0]
+
     for index, bacterium in bacteria_current_time_step.iterrows():
 
         # track bacterium it in next time step
         relative_bacteria_in_next_timestep = bacteria_next_time_step.loc[
-            (bacteria_next_time_step["TrackObjects_ParentImageNumber_50"] == bacterium["ImageNumber"]) &
-            (bacteria_next_time_step["TrackObjects_ParentObjectNumber_50"] == bacterium["ObjectNumber"])]
+            (bacteria_next_time_step[parent_image_number_col] == bacterium["ImageNumber"]) &
+            (bacteria_next_time_step[parent_object_number_col] == bacterium["ObjectNumber"])]
 
         number_of_relative_bacteria = relative_bacteria_in_next_timestep.shape[0]
 
@@ -230,6 +236,10 @@ def bacteria_life_history(df, desired_bacterium, desired_bacterium_index, last_t
     bacterium_time_step = desired_bacterium["ImageNumber"]
     bacterium_obj_num = desired_bacterium["ObjectNumber"]
 
+    # columns name
+    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
+    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+
     life_history = 1
     life_history_index = [desired_bacterium_index]
 
@@ -247,8 +257,7 @@ def bacteria_life_history(df, desired_bacterium, desired_bacterium_index, last_t
     while (division_occ is False) and (bad_division_occ is False) and (unexpected_end is False) and \
             (bacterium_time_step < last_time_step):
         relative_bacteria_in_next_timestep = df.loc[
-            (df["TrackObjects_ParentImageNumber_50"] == bacterium_time_step) &
-            (df["TrackObjects_ParentObjectNumber_50"] == bacterium_obj_num)]
+            (df[parent_image_number_col] == bacterium_time_step) & (df[parent_object_number_col] == bacterium_obj_num)]
 
         number_of_relative_bacteria = relative_bacteria_in_next_timestep.shape[0]
 
@@ -302,10 +311,14 @@ def find_related_bacteria(df, target_bacterium, target_bacterium_index, bacteria
     if bacteria_index_list is None:
         bacteria_index_list = [target_bacterium_index]
 
+    # columns name
+    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
+    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+
     # related bacteria in next time steps
     if target_bacterium['ImageNumber'] <= df.iloc[-1]['ImageNumber']:
-        bac_in_next_timestep = df.loc[(df["TrackObjects_ParentImageNumber_50"] == target_bacterium['ImageNumber']) &
-                                      (df["TrackObjects_ParentObjectNumber_50"] == target_bacterium['ObjectNumber'])]
+        bac_in_next_timestep = df.loc[(df[parent_image_number_col] == target_bacterium['ImageNumber']) &
+                                      (df[parent_object_number_col] == target_bacterium['ObjectNumber'])]
 
         if bac_in_next_timestep.shape[0] > 0:
             bacteria_index_list.extend(bac_in_next_timestep.index.tolist())
