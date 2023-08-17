@@ -140,6 +140,12 @@ def assign_parent(df, target_bac_index, distance_df_list, distance_threshold, pr
     target_bacterium = df.iloc[target_bac_index]
     related_bacteria_index = find_related_bacteria(df, target_bacterium, target_bac_index, bacteria_index_list=None)
 
+    # columns name
+    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
+    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+    distance_traveled_col = [col for col in df.columns if 'TrackObjects_DistanceTraveled_' in col][0]
+    label_col = [col for col in df.columns if 'TrackObjects_Label_' in col][0]
+
     if len(candidate_parents_index) == 0:
         # it means that no parent has been found for this bacterium
         # remove this bacterium and related bacteria
@@ -209,16 +215,15 @@ def assign_parent(df, target_bac_index, distance_df_list, distance_threshold, pr
                 df.at[transition_bac_index, 'parent_id'] = selected_parent['id']
 
         # change parent image number & parent object number of root bacterium
-        df.at[target_bac_index, 'TrackObjects_ParentImageNumber_50'] = selected_parent["ImageNumber"]
-        df.at[target_bac_index, 'TrackObjects_ParentObjectNumber_50'] = selected_parent["ObjectNumber"]
+        df.at[target_bac_index, parent_image_number_col] = selected_parent["ImageNumber"]
+        df.at[target_bac_index, parent_object_number_col] = selected_parent["ObjectNumber"]
         # update distance traveled
-        df.at[target_bac_index, 'TrackObjects_DistanceTraveled_50'] = \
-            distance_from_target_bac[nearest_parent_index]
+        df.at[target_bac_index, distance_traveled_col] = distance_from_target_bac[nearest_parent_index]
 
         df.at[target_bac_index, "transition"] = False
 
         for idx in related_bacteria_index:
             # change bacteria label to parent label
-            df.at[idx, "TrackObjects_Label_50"] = df.iloc[selected_parent_list_index]["TrackObjects_Label_50"]
+            df.at[idx, label_col] = df.iloc[selected_parent_list_index][label_col]
 
     return df
