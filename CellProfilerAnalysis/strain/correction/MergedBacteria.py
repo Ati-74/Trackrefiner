@@ -83,6 +83,11 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
     """
     assign new values to divided bacterium and modify all other related bacteria
     """
+    # columns name
+    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
+    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+    label_col = [col for col in df.columns if 'TrackObjects_Label_' in col][0]
+
     daughters_of_nearest_bacterium_life_history = df.loc[df['parent_id'] == nearest_bacterium_life_history.iloc[-1]['id']]
 
     df.at[new_bacterium_index, "AreaShape_MajorAxisLength"] = new_bacterium_values['major']
@@ -95,12 +100,12 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
         df.at[new_bacterium_index, "AreaShape_Center_X"] = new_bacterium_values['center_x']
         df.at[new_bacterium_index, "AreaShape_Center_Y"] = new_bacterium_values['center_y']
 
-    df.at[new_bacterium_index, "TrackObjects_ParentImageNumber_50"] = \
+    df.at[new_bacterium_index, parent_image_number_col] = \
         target_bacterium_life_history.iloc[-1]['ImageNumber']
-    df.at[new_bacterium_index, "TrackObjects_ParentObjectNumber_50"] = \
+    df.at[new_bacterium_index, parent_object_number_col] = \
         target_bacterium_life_history.iloc[-1]['ObjectNumber']
-    df.at[new_bacterium_index, "TrackObjects_Label_50"] = \
-        target_bacterium_life_history.iloc[-1]['TrackObjects_Label_50']
+    df.at[new_bacterium_index, label_col] = \
+        target_bacterium_life_history.iloc[-1][label_col]
 
     next_time_step = target_bacterium_life_history.iloc[-1]['ImageNumber'] + 1
     df.at[new_bacterium_index, "ImageNumber"] = next_time_step
@@ -130,9 +135,9 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
                                                     nearest_bacterium_life_history.iloc[-1]['LifeHistory'] + 1
 
     # change parent image number & parent object number
-    df.at[nearest_bacterium_life_history.index[0], "TrackObjects_ParentImageNumber_50"] = \
+    df.at[nearest_bacterium_life_history.index[0], parent_image_number_col] = \
         df.iloc[new_bacterium_index]['ImageNumber']
-    df.at[nearest_bacterium_life_history.index[0], "TrackObjects_ParentObjectNumber_50"] = \
+    df.at[nearest_bacterium_life_history.index[0], parent_object_number_col] = \
         df.iloc[new_bacterium_index]['ObjectNumber']
     for bacterium_index in nearest_bacterium_life_history.index:
         df.at[bacterium_index, 'id'] = target_bacterium_life_history.iloc[-1]['id']
@@ -170,14 +175,17 @@ def assign_new_feature_value(df, new_bacterium_index, new_bacterium_values, near
 def correction_merged_bacteria(df, unexpected_end_bacterium_life_history,
                                unusual_neighbor_life_history_before_merged_bacterium, merged_bacterium,
                                merged_bacterium_index, check_cellType):
+    # columns name
+    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
+    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
 
     unexpected_end_bac_features = bacteria_features(unexpected_end_bacterium_life_history)
     neighbor_features = bacteria_features(unusual_neighbor_life_history_before_merged_bacterium)
 
     # Which bacterium in the t+2 time step is related to the unexpected end bacterium?
     merged_bacterium_daughters = df.loc[(df["ImageNumber"] == (merged_bacterium["ImageNumber"] + 1)) &
-                                        (df["TrackObjects_ParentImageNumber_50"] == merged_bacterium["ImageNumber"]) &
-                                        (df["TrackObjects_ParentObjectNumber_50"] == merged_bacterium["ObjectNumber"]) &
+                                        (df[parent_image_number_col] == merged_bacterium["ImageNumber"]) &
+                                        (df[parent_object_number_col] == merged_bacterium["ObjectNumber"]) &
                                         (df["transition_drop"] == False) & (df["bad_daughter_drop"] == False)]
 
     # which daughter bacteria is descendant of unexpected end bacterium?
@@ -263,6 +271,10 @@ def merged_bacteria(df, k=6, distance_threshold=5, min_increase_rate_threshold=1
     # correction of segmentation error
     # goal: I want to check all bacteria and find bacteria with life history = 1 and resolve them
 
+    # columns name
+    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
+    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+
     # define new column
     df['last_id_before_modification'] = df['id']
 
@@ -300,9 +312,9 @@ def merged_bacteria(df, k=6, distance_threshold=5, min_increase_rate_threshold=1
                 merged_bacterium = df.iloc[merged_bacterium_index]
                 relative_bacteria_to_merged_bacterium_in_next_timestep = df.loc[(df["ImageNumber"] ==
                                                                                  (merged_bacterium["ImageNumber"] + 1)) &
-                                                                                (df["TrackObjects_ParentImageNumber_50"] ==
+                                                                                (df[parent_image_number_col] ==
                                                                                  merged_bacterium["ImageNumber"]) &
-                                                                                (df["TrackObjects_ParentObjectNumber_50"] ==
+                                                                                (df[parent_object_number_col] ==
                                                                                  merged_bacterium["ObjectNumber"]) &
                                                                                 (df["transition_drop"] == False) &
                                                                                 (df["bad_daughter_drop"] == False)]
