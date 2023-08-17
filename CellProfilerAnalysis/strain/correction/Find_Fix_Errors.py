@@ -31,11 +31,15 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type):
     bacterium_id = 1
     transition = False
 
+    # columns name
+    parent_image_number_col = [col for col in dataframe.columns if 'TrackObjects_ParentImageNumber_' in col][0]
+    parent_object_number_col = [col for col in dataframe.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+
     for row_index, row in dataframe.iterrows():
         if not dataframe.iloc[row_index]["checked"]:
             bacterium_status = bacteria_life_history(dataframe, row, row_index, last_time_step)
-            parent_img_num = row['TrackObjects_ParentImageNumber_50']
-            parent_obj_num = row['TrackObjects_ParentObjectNumber_50']
+            parent_img_num = row[parent_image_number_col]
+            parent_obj_num = row[parent_object_number_col]
             if parent_img_num != 0 and parent_obj_num != 0:
                 parent = dataframe.loc[(dataframe["ImageNumber"] == parent_img_num) & (dataframe["ObjectNumber"] ==
                                                                                        parent_obj_num)]
@@ -89,18 +93,22 @@ def data_cleaning(raw_df):
     # remove related rows to bacteria with zero MajorAxisLength
     raw_df = raw_df.loc[raw_df["AreaShape_MajorAxisLength"] != 0]
 
+    # columns name
+    parent_image_number_col = [col for col in raw_df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
+    parent_object_number_col = [col for col in raw_df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+
     # The parent image number and parent object number of the daughters (or same bacteria) of the zero-length mother
     # should now be set to zero
     for indx , row in zero_length_bac.iterrows():
         parent_img_number = row['ImageNumber']
         parent_obj_number = row['ObjectNumber']
 
-        daughters = raw_df.loc[(raw_df['TrackObjects_ParentImageNumber_50'] == parent_img_number) &
-                               (raw_df['TrackObjects_ParentObjectNumber_50'] == parent_obj_number)]
+        daughters = raw_df.loc[(raw_df[parent_image_number_col] == parent_img_number) &
+                               (raw_df[parent_object_number_col] == parent_obj_number)]
 
         for daughter_indx , daughter in daughters.iterrows():
-            raw_df.at[daughter_indx, 'TrackObjects_ParentImageNumber_50'] = 0
-            raw_df.at[daughter_indx, 'TrackObjects_ParentObjectNumber_50'] = 0
+            raw_df.at[daughter_indx, parent_image_number_col] = 0
+            raw_df.at[daughter_indx, parent_object_number_col] = 0
 
     raw_df = raw_df.reset_index(drop=True)
     modified_df = modify_nan_labels(raw_df)
