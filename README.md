@@ -4,7 +4,6 @@ Codes used to analyze CellProfiler output
 
 ## Converting CellProfiler data similar to CellModeller:
 <div align="justify">
-The process can be done in the command line.
 
 ## How can I install the CellProfilerAnalysis package?
 1. Download the most recent version of the package. For beta versions, check the development branch.
@@ -20,7 +19,7 @@ conda env create -f environment.yml
 python -e .
 ```
 
-## Required dependencies for this package include:
+## Required dependencies for this package include
 - numpy
 - scipy
 - pandas
@@ -33,3 +32,8 @@ To execute it, run the <a href="runningAnalysis/runPostProcessing.py">runPostPro
 ```
 python runPostProcessing.py -h
 ```
+
+## Inputs required to run this package
+1. The output CSV file from "CP" which contains information about measured features of bacteria, such as length, orientation, etc., as well as tracking information. See an example <a href="examples/e.coli/FilterObjects.csv">here</a>.
+2. This folder contains files in the `npy` format, which are the results of segmentation, where the pixels of an object are unified in a specific color. See an example <a href="examples/e.coli/objects">here</a>.
+3. CSV file containing neighboring data of bacteria. See an example <a href="examples/e.coli/Object%20relationships.csv">here</a>.
