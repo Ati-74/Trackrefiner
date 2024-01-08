@@ -27,3 +27,9 @@ python -e .
 - scikit-learn
 - matplotlib
 - opencv-python
+
+## How do I execute the package?
+To execute it, run the <a href="runningAnalysis/runPostProcessing.py">runPostProcessing.py</a> file in your terminal. To understand the script's arguments, you can execute the following script:
+```
+python runPostProcessing.py -h
+```
