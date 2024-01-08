@@ -8,7 +8,6 @@ from scipy.spatial import distance_matrix
 # https://math.stackexchange.com/questions/426150/what-is-the-general-equation-of-the-ellipse-that-is-not-in-the-origin-and-rotate
 # https://math.stackexchange.com/questions/2645689/what-is-the-parametric-equation-of-a-rotated-ellipse-given-the-angle-of-rotatio
 def find_vertex(center, major, angle_rotation, angle_tolerance=1e-6):
-
     if np.abs(angle_rotation - np.pi / 2) < angle_tolerance:  # Bacteria parallel to the vertical axis
         vertex_1_x = center[0]
         vertex_1_y = center[1] + major
@@ -24,9 +23,11 @@ def find_vertex(center, major, angle_rotation, angle_tolerance=1e-6):
         # np.power((x - center_x) * np.cos(angle_rotation) + (y - center_y) * np.sin(angle_rotation), 2) =
         # np.power(major, 2)
         semi_major = major / 2
-        vertex_1_x = float(semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
+        vertex_1_x = float(
+            semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
         vertex_1_y = float((vertex_1_x - center[0]) * np.tan(angle_rotation) + center[1])
-        vertex_2_x = float(-semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
+        vertex_2_x = float(
+            -semi_major / (np.cos(angle_rotation) + np.tan(angle_rotation) * np.sin(angle_rotation)) + center[0])
         vertex_2_y = float((vertex_2_x - center[0]) * np.tan(angle_rotation) + center[1])
 
     return [[vertex_1_x, vertex_1_y], [vertex_2_x, vertex_2_y]]
@@ -136,21 +137,19 @@ def increase_rate_major_minor(bacteria_current_time_step, bacteria_next_time_ste
     return unusual_neighbor_index, merged_bacterium_index
 
 
-def k_nearest_neighbors(k, target_bacterium, other_bacteria, distance_threshold=None, distance_check=True):
+def k_nearest_neighbors(target_bacterium, other_bacteria, distance_check=True):
     """
     goal: find k nearest neighbors to target bacterium
-    @param k int number of desirable nearest neighbors
     @param target_bacterium  series value of features of bacterium that we want to find its neighbors
     @param other_bacteria dataframe
-    @param distance_threshold (unit: um) maximum distance threshold
     @param distance_check bool Is the distance threshold checked?
     @return nearest_neighbors list index of the nearest bacteria
     """
     # calculate distance matrix
     try:
-        distance_df = adjacency_matrix(target_bacterium, other_bacteria, 'Location_Center_X', 'Location_Center_Y')
+        distance_df = calc_distance_matrix(target_bacterium, other_bacteria, 'Location_Center_X', 'Location_Center_Y')
     except TypeError:
-        distance_df = adjacency_matrix(target_bacterium, other_bacteria, 'AreaShape_Center_X', 'AreaShape_Center_Y')
+        distance_df = calc_distance_matrix(target_bacterium, other_bacteria, 'AreaShape_Center_X', 'AreaShape_Center_Y')
 
     distance_df = distance_df.reset_index(drop=True).sort_values(by=0, ascending=True, axis=1)
     distance_val = list(zip(distance_df.columns.values, distance_df.iloc[0].values))
@@ -164,7 +163,34 @@ def k_nearest_neighbors(k, target_bacterium, other_bacteria, distance_threshold=
     return nearest_neighbors_index
 
 
-def adjacency_matrix(target_bacteria, other_bacteria, col1, col2):
+def calculate_orientation_angle(slope1, slope2):
+    # Calculate the angle in radians between the lines
+    angle_radians = np.arctan(abs((slope1 - slope2) / (1 + slope1 * slope2)))
+    # Convert to degrees
+    angle_degrees = np.degrees(angle_radians)
+    return angle_degrees
+
+
+def distance_normalization(df, distance_df):
+    bacteria_movement = [v for v in df['bacteria_movement'].dropna().values.tolist() if v != '']
+
+    min_val = min(bacteria_movement)
+    max_val = max(bacteria_movement)
+
+    normalized_df = pd.DataFrame()
+    for column in distance_df.columns:
+        normalized_df[column] = (distance_df[column] - min_val) / (max_val - min_val)
+
+    return normalized_df
+
+
+def min_max_normalize_row(row):
+    min_val = row.min()
+    max_val = row.max()
+    return (row - min_val) / (max_val - min_val)
+
+
+def calc_distance_matrix(target_bacteria, other_bacteria, col1, col2, col3=None, col4=None, normalization=False):
     """
     goal: this function is useful to create adjacency matrix (distance matrix)
     I want to find distance of one dataframe to another
@@ -179,9 +205,18 @@ def adjacency_matrix(target_bacteria, other_bacteria, col1, col2):
 
     """
     # create distance matrix (rows: next time step sudden bacteria, columns: another time step bacteria)
-    distance_df = pd.DataFrame(distance_matrix(target_bacteria[[col1, col2]].values,
-                                               other_bacteria[[col1, col2]].values),
-                               index=target_bacteria.index, columns=other_bacteria.index)
+    if col3 is None and col4 is None:
+        distance_df = pd.DataFrame(distance_matrix(target_bacteria[[col1, col2]].values,
+                                                   other_bacteria[[col1, col2]].values),
+                                   index=target_bacteria.index, columns=other_bacteria.index)
+    else:
+        distance_df = pd.DataFrame(distance_matrix(target_bacteria[[col1, col2]].values,
+                                                   other_bacteria[[col3, col4]].values),
+                                   index=target_bacteria.index, columns=other_bacteria.index)
+
+    if normalization:
+        # Apply Min-Max normalization to each row
+        distance_df = distance_df.apply(min_max_normalize_row, axis=1)
 
     return distance_df
 
@@ -192,9 +227,15 @@ def bacteria_in_specific_time_step(dataframe, t):
     @param dataframe dataframe bacteria information dataframe
     @param t int timestep
     """
-    correspond_bacteria = dataframe.loc[(dataframe["ImageNumber"] == t) & (dataframe["drop"] == False)]
+    # & (dataframe["drop"] == False)
+    correspond_bacteria = dataframe.loc[(dataframe["ImageNumber"] == t)]
 
     return correspond_bacteria
+
+
+# Function to modify list elements
+def modify_list(lst, thresh):
+    return [item - 1 if item > thresh else item for item in lst]
 
 
 def remove_rows(df, col, true_value):
@@ -207,7 +248,14 @@ def remove_rows(df, col, true_value):
 
     """
 
+    remove_rows_df = df.loc[df[col] != true_value]
     df = df.loc[df[col] == true_value].reset_index(drop=True)
+
+    for remove_row_ndx, remove_row in remove_rows_df.iterrows():
+        # Apply the function to each list in the DataFrame column
+        threshold = remove_row_ndx
+        df['daughters_index'] = df['daughters_index'].apply(modify_list, args=(threshold,))
+
     return df
 
 
@@ -248,6 +296,10 @@ def bacteria_life_history(df, desired_bacterium, desired_bacterium_index, last_t
     daughters_index = []
     # means: without division
     division_time = 0
+
+    daughters_len = np.nan
+    max_daughter_len = np.nan
+
     # If division has occurred (more than two daughters), then this flag will be set.
     bad_division_occ = False
     bad_daughters_index = []
@@ -274,25 +326,28 @@ def bacteria_life_history(df, desired_bacterium, desired_bacterium_index, last_t
             daughters_index = relative_bacteria_in_next_timestep.index.values.tolist()
             division_time = relative_bacteria_in_next_timestep.iloc[0]["ImageNumber"]
 
+            # daughters length
+            daughters_len = sum(relative_bacteria_in_next_timestep["AreaShape_MajorAxisLength"].values.tolist())
+            max_daughter_len = max(relative_bacteria_in_next_timestep["AreaShape_MajorAxisLength"].values.tolist())
+
         elif number_of_relative_bacteria > 2:
             # means: division with more than two daughters
             division_occ = True
             bad_division_occ = True
             division_time = relative_bacteria_in_next_timestep.iloc[0]["ImageNumber"]
 
-            # find bad daughters
-            bad_daughters_index = find_bad_daughters(relative_bacteria_in_next_timestep)
-            daughters_index = [i for i in relative_bacteria_in_next_timestep.index.values.tolist() if i not in
-                               bad_daughters_index]
+            # index of daughters
+            daughters_index = relative_bacteria_in_next_timestep.index.values.tolist()
 
         elif number_of_relative_bacteria == 0:  # interrupt
             unexpected_end = True
 
     bacterium_status = {"division_occ": division_occ, "daughters_index": daughters_index,
-                        "bad_division_occ": bad_division_occ, "bad_daughters_index": bad_daughters_index,
+                        "bad_division_occ": bad_division_occ,
                         "division_time": division_time, "unexpected_end": unexpected_end, 'life_history': life_history,
                         "lifeHistoryIndex": life_history_index,
-                        'bac_in_last_time_step': [bacterium_time_step, bacterium_obj_num]}
+                        'bac_in_last_time_step': [bacterium_time_step, bacterium_obj_num],
+                        "daughter_len": daughters_len, "max_daughter_len": max_daughter_len}
 
     return bacterium_status
 
@@ -331,10 +386,9 @@ def find_related_bacteria(df, target_bacterium, target_bacterium_index, bacteria
 def convert_ends_to_pixel(ends, um_per_pixel=0.144):
     ends = np.array(ends) / um_per_pixel
     return ends
-    
+
 
 def convert_to_pixel(length, radius, ends, pos, um_per_pixel=0.144):
-
     # Convert distances to pixel (0.144 um/pixel on 63X objective)
     length = length / um_per_pixel
     radius = radius / um_per_pixel
@@ -345,15 +399,19 @@ def convert_to_pixel(length, radius, ends, pos, um_per_pixel=0.144):
 
 
 def convert_to_um(data_frame, um_per_pixel=0.144):
-
     # Convert distances to um (0.144 um/pixel on 63X objective)
     # selected columns
     cols1 = ["AreaShape_MajorAxisLength", "AreaShape_MinorAxisLength", "Location_Center_X", "Location_Center_Y"]
     cols2 = ["AreaShape_MajorAxisLength", "AreaShape_MinorAxisLength", "AreaShape_Center_X", "AreaShape_Center_Y"]
+    cols3 = ["AreaShape_MajorAxisLength", "AreaShape_MinorAxisLength", "AreaShape_Center_X", "AreaShape_Center_Y",
+             "Location_Center_X", "Location_Center_Y"]
 
     try:
-        data_frame[cols1] = data_frame[cols1] * um_per_pixel
-    except TypeError:
-        data_frame[cols2] = data_frame[cols2] * um_per_pixel
+        data_frame[cols3] = data_frame[cols3] * um_per_pixel
+    except:
+        try:
+            data_frame[cols1] = data_frame[cols1] * um_per_pixel
+        except TypeError:
+            data_frame[cols2] = data_frame[cols2] * um_per_pixel
 
     return data_frame
