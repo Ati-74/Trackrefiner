@@ -3,11 +3,12 @@
 from setuptools import setup
 
 setup(name='CellProfilerAnalysis',
-      version='1.0.0',
+      version='1.1.0.b',
       description='analyzing CellProfiler output',
       install_requires=['numpy', 'scipy', 'pandas', 'scikit-learn', 'matplotlib', 'opencv-python'],
       setup_requires=['numpy', 'scipy', 'pandas', 'scikit-learn', 'matplotlib', 'opencv-python'],
-      packages=['CellProfilerAnalysis', 'CellProfilerAnalysis.strain', 'CellProfilerAnalysis.strain.correction', 'CellProfilerAnalysis.strain.correction.action'],
+      packages=['CellProfilerAnalysis', 'CellProfilerAnalysis.strain', 'CellProfilerAnalysis.strain.correction',
+                'CellProfilerAnalysis.strain.correction.action'],
       python_requires='>=3',
       url='https://github.com/Ati-74/CellProfilerAnalysis',
       author='Atiyeh Ahmadi',
