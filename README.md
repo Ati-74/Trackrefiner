@@ -1,5 +1,5 @@
 # CellProfilerAnalysis
-Codes used to analyze CellProfiler output
+Analyzing CellProfiler output
 
 
 ## Converting CellProfiler data similar to CellModeller:
