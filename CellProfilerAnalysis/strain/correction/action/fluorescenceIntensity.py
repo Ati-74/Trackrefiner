@@ -1,5 +1,5 @@
 import numpy as np
-from CellProfilerAnalysis.strain.correction.action.processing import k_nearest_neighbors
+from CellProfilerAnalysis.strain.correction.action.helperFunctions import k_nearest_neighbors
 
 
 def check_fluorescent_intensity(transition_bac, candidate_parent_bac):

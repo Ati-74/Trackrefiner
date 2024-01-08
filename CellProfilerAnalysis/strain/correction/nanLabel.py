@@ -1,4 +1,4 @@
-from CellProfilerAnalysis.strain.correction.action.processing import find_related_bacteria
+from CellProfilerAnalysis.strain.correction.action.helperFunctions import find_related_bacteria
 
 
 def modify_nan_labels(df):
