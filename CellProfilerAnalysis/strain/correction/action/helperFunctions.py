@@ -1,6 +1,252 @@
 import pandas as pd
 import numpy as np
 from scipy.spatial import distance_matrix
+from scipy.spatial.distance import euclidean
+
+
+def calc_neighbors_dir_motion(df, source_bac, neighbor_df):
+
+    direction_of_motion_list = {}
+
+    neighbor_to_mother_info = find_neighbors_info(df, neighbor_df, source_bac)
+
+    for neighbor_bac_ndx, neighbor_bac in neighbor_to_mother_info.iterrows():
+
+        direction_of_motion_list[neighbor_bac_ndx] = []
+        neighbor_bac_in_next_time_step = df.loc[(df['ImageNumber'] == neighbor_bac['ImageNumber'] + 1) &
+                                                (df['id'] == neighbor_bac['id'])]
+
+        neighbor_bac_daughters_in_next_time_step = df.loc[(df['ImageNumber'] == neighbor_bac['ImageNumber'] + 1) &
+                                                          (df['parent_id'] == neighbor_bac['id'])]
+
+        if neighbor_bac_in_next_time_step.shape[0] > 0:
+            direction_of_motion = \
+                calculate_trajectory_direction(
+                    np.array([neighbor_bac["AreaShape_Center_X"],
+                              neighbor_bac["AreaShape_Center_Y"]]),
+                    np.array([neighbor_bac_in_next_time_step.iloc[0]["AreaShape_Center_X"],
+                              neighbor_bac_in_next_time_step.iloc[0]["AreaShape_Center_Y"]]))
+
+            direction_of_motion_list[neighbor_bac_ndx] = [direction_of_motion]
+
+        elif neighbor_bac_daughters_in_next_time_step.shape[0] > 0:
+            for daughter_ndx, daughter_bac in neighbor_bac_daughters_in_next_time_step.iterrows():
+                direction_of_motion = \
+                    calculate_trajectory_direction(
+                        np.array([neighbor_bac["AreaShape_Center_X"],
+                                  neighbor_bac["AreaShape_Center_Y"]]),
+                        np.array([daughter_bac["AreaShape_Center_X"],
+                                  daughter_bac["AreaShape_Center_Y"]]))
+
+                direction_of_motion_list[neighbor_bac_ndx].append(direction_of_motion)
+
+    # Extracting the first and second elements from each array
+    first_elements = []
+    second_elements = []
+
+    for key, arrays in direction_of_motion_list.items():
+        for arr in arrays:
+            first_elements.append(arr[0])
+            second_elements.append(arr[1])
+
+    # Calculating the averages
+    if len(first_elements) == 0:
+        average_first = np.nan
+        average_second = np.nan
+    else:
+        average_first = np.mean(first_elements)
+        average_second = np.mean(second_elements)
+
+    return [average_first, average_second]
+
+
+def adding_features_related_to_division(dataframe, bac_ndx, bacterium_status):
+
+    dataframe.at[bac_ndx, 'divideFlag'] = bacterium_status['division_occ']
+    dataframe.at[bac_ndx, 'daughters_index'] = bacterium_status['daughters_index']
+    dataframe.at[bac_ndx, 'division_time'] = bacterium_status['division_time']
+    dataframe.at[bac_ndx, 'divideFlag'] = bacterium_status['division_occ']
+    dataframe.at[bac_ndx, 'bad_division_flag'] = bacterium_status['bad_division_occ']
+    dataframe.at[bac_ndx, 'division_time'] = bacterium_status['division_time']
+    return dataframe
+
+
+def adding_features_to_each_timestep_except_first(dataframe, bac_indx_in_list, bac_indx_in_df, bacterium_status,
+                                                  neighbor_df):
+    index_prev_stage_life = bac_indx_in_list - 1
+
+    dataframe.at[bac_indx_in_df, "bac_length_to_back"] = \
+        dataframe.iloc[bac_indx_in_df]["AreaShape_MajorAxisLength"] / \
+        dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_MajorAxisLength"]
+
+    direction_of_motion = \
+        calculate_trajectory_direction_angle(
+            np.array([dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Center_X"],
+                      dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
+                          "AreaShape_Center_Y"]]),
+            np.array([dataframe.iloc[bac_indx_in_df]["AreaShape_Center_X"], dataframe.iloc[bac_indx_in_df]["AreaShape_Center_Y"]]))
+
+    direction_of_motion_vector = \
+        calculate_trajectory_direction(
+            np.array([dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Center_X"],
+                      dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
+                          "AreaShape_Center_Y"]]),
+            np.array([dataframe.iloc[bac_indx_in_df]["AreaShape_Center_X"],
+                      dataframe.iloc[bac_indx_in_df]["AreaShape_Center_Y"]]))
+
+    neighbors_dir_motion = \
+        calc_neighbors_dir_motion(dataframe,
+                                  dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]],
+                                  neighbor_df)
+
+    if str(neighbors_dir_motion[0]) != 'nan':
+        angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion, direction_of_motion_vector)
+    else:
+        angle_between_motion = 0
+
+    dataframe.at[bac_indx_in_df, "direction_of_motion"] = direction_of_motion
+    dataframe.at[bac_indx_in_df, "angle_between_neighbor_motion_bac_motion"] = angle_between_motion
+
+    center_movement = \
+        np.sqrt((dataframe.iloc[bac_indx_in_df]["AreaShape_Center_X"] -
+                 dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
+                     "AreaShape_Center_X"]) ** 2 +
+                (dataframe.iloc[bac_indx_in_df]["AreaShape_Center_Y"] -
+                 dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
+                     "AreaShape_Center_Y"]) ** 2)
+
+    prev_bacterium_endpoints = find_vertex(
+        [dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Center_X"],
+         dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Center_Y"]],
+        dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
+            "AreaShape_MajorAxisLength"],
+        dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Orientation"])
+
+    current_bacterium_endpoints = find_vertex(
+        [dataframe.iloc[bac_indx_in_df]["AreaShape_Center_X"], dataframe.iloc[bac_indx_in_df]["AreaShape_Center_Y"]],
+        dataframe.iloc[bac_indx_in_df]["AreaShape_MajorAxisLength"], dataframe.iloc[bac_indx_in_df]["AreaShape_Orientation"])
+
+    endpoint1_1_movement = \
+        np.sqrt((current_bacterium_endpoints[0][0] - prev_bacterium_endpoints[0][0]) ** 2 +
+                (current_bacterium_endpoints[0][1] - prev_bacterium_endpoints[0][1]) ** 2)
+
+    endpoint1_endpoint2_movement = \
+        np.sqrt((current_bacterium_endpoints[0][0] - prev_bacterium_endpoints[1][0]) ** 2 +
+                (current_bacterium_endpoints[0][1] - prev_bacterium_endpoints[1][1]) ** 2)
+
+    endpoint2_2_movement = \
+        np.sqrt((current_bacterium_endpoints[1][0] - prev_bacterium_endpoints[1][0]) ** 2 +
+                (current_bacterium_endpoints[1][1] - prev_bacterium_endpoints[1][1]) ** 2)
+
+    endpoint2_endpoint1_movement = \
+        np.sqrt((current_bacterium_endpoints[1][0] - prev_bacterium_endpoints[0][0]) ** 2 +
+                (current_bacterium_endpoints[1][1] - prev_bacterium_endpoints[0][1]) ** 2)
+
+    dataframe.at[bac_indx_in_df, "bacteria_movement"] = min(center_movement, endpoint1_1_movement, endpoint2_2_movement,
+                                                            endpoint1_endpoint2_movement, endpoint2_endpoint1_movement)
+
+    slope2, intercept2 = calculate_slope_intercept(prev_bacterium_endpoints[0],
+                                                   prev_bacterium_endpoints[1])
+
+    # Convert points to vectors
+    # Calculate slopes and intercepts
+    slope1, intercept1 = calculate_slope_intercept(current_bacterium_endpoints[0],
+                                                   current_bacterium_endpoints[1])
+
+    # Calculate orientation angle
+    orientation_angle = calculate_orientation_angle(slope1, slope2)
+
+    dataframe.at[bac_indx_in_df, "bac_length_to_back_orientation_changes"] = orientation_angle
+
+    return dataframe
+
+
+def adding_features_only_for_last_time_step(dataframe, last_bacterium_in_life_history, bacterium_status):
+    dataframe.at[last_bacterium_in_life_history, 'unexpected_end'] = bacterium_status['unexpected_end']
+
+    dataframe.at[last_bacterium_in_life_history, "daughter_length_to_mother"] = \
+        bacterium_status['daughter_len'] / \
+        dataframe.iloc[last_bacterium_in_life_history]["AreaShape_MajorAxisLength"]
+
+    dataframe.at[last_bacterium_in_life_history, "max_daughter_len_to_mother"] = \
+        bacterium_status["max_daughter_len"] / \
+        dataframe.iloc[last_bacterium_in_life_history]["AreaShape_MajorAxisLength"]
+
+    if bacterium_status['division_occ'] and not bacterium_status['bad_division_occ']:
+        daughters_df = dataframe.iloc[bacterium_status['daughters_index']]
+
+        daughter1_endpoints = find_vertex([daughters_df["AreaShape_Center_X"].values.tolist()[0],
+                                           daughters_df["AreaShape_Center_Y"].values.tolist()[0]],
+                                          daughters_df["AreaShape_MajorAxisLength"].values.tolist()[0],
+                                          daughters_df["AreaShape_Orientation"].values.tolist()[0])
+
+        daughter2_endpoints = find_vertex([daughters_df["AreaShape_Center_X"].values.tolist()[1],
+                                           daughters_df["AreaShape_Center_Y"].values.tolist()[1]],
+                                          daughters_df["AreaShape_MajorAxisLength"].values.tolist()[1],
+                                          daughters_df["AreaShape_Orientation"].values.tolist()[1])
+
+        slope_daughter1, intercept_daughter1 = calculate_slope_intercept(daughter1_endpoints[0],
+                                                                         daughter1_endpoints[1])
+
+        slope_daughter2, intercept_daughter2 = calculate_slope_intercept(daughter2_endpoints[0],
+                                                                         daughter2_endpoints[1])
+
+        # Calculate orientation angle
+        daughters_orientation_angle = calculate_orientation_angle(slope_daughter1, slope_daughter2)
+        dataframe.at[last_bacterium_in_life_history, "daughter_orientation"] = daughters_orientation_angle
+
+    return dataframe
+
+
+def find_neighbors_info(df, neighbors_df, bac):
+    neighbors = neighbors_df.loc[(neighbors_df['First Image Number'] == bac['ImageNumber']) &
+                                 (neighbors_df['First Object Number'] == bac['ObjectNumber'])]
+
+    if neighbors.shape[0] > 0:
+        neighbors_df = df.loc[(df['ImageNumber'] == neighbors['Second Image Number'].values.tolist()[0]) &
+                              (df['ObjectNumber'].isin(neighbors['Second Object Number'].values.tolist()))]
+    else:
+        neighbors_df = pd.DataFrame()
+
+    return neighbors_df
+
+
+def calculate_trajectory_direction(previous_position, current_position):
+    # Calculate the direction vector from the previous position to the current position
+    direction = current_position - previous_position
+
+    return direction
+
+
+def calculate_trajectory_direction_angle(previous_position, current_position):
+    # Calculate the direction vector from the previous position to the current position
+    direction = current_position - previous_position
+
+    # Calculate the angle of the direction vector
+    angle = np.arctan2(direction[1], direction[0])
+
+    return angle
+
+
+def calculate_slope_intercept(point1, point2):
+    x1, y1 = point1
+    x2, y2 = point2
+
+    if x2 - x1 != 0:
+        slope = (y2 - y1) / (x2 - x1)
+        intercept = y1 - slope * x1
+    else:
+        slope = np.nan
+        intercept = np.nan
+    return slope, intercept
+
+
+def calculate_orientation_angle(slope1, slope2):
+    # Calculate the angle in radians between the lines
+    angle_radians = np.arctan(abs((slope1 - slope2) / (1 + slope1 * slope2)))
+    # Convert to degrees
+    angle_degrees = np.degrees(angle_radians)
+    return angle_degrees
 
 
 # find vertices of an ellipse (bacteria):
@@ -163,6 +409,25 @@ def k_nearest_neighbors(target_bacterium, other_bacteria, distance_check=True):
     return nearest_neighbors_index
 
 
+def calc_normalized_angle_between_motion(motion1, motion2):
+
+    # Calculate the dot product
+    dot_product = motion1[0] * motion2[0] + motion1[1] * motion2[1]
+
+    # Calculate the magnitudes of the vectors
+    magnitude_A = np.sqrt(motion1[0] ** 2 + motion1[1] ** 2)
+    magnitude_B = np.sqrt(motion2[0] ** 2 + motion2[1] ** 2)
+
+    # Calculate the cosine of the angle
+    cos_angle = dot_product / (magnitude_A * magnitude_B)
+
+    # Calculate the angle in radians and then convert to degrees
+    angle_radians = np.arccos(cos_angle)
+    angle_degrees = np.degrees(angle_radians)
+
+    return angle_degrees / 180
+
+
 def calculate_orientation_angle(slope1, slope2):
     # Calculate the angle in radians between the lines
     angle_radians = np.arctan(abs((slope1 - slope2) / (1 + slope1 * slope2)))
@@ -172,14 +437,25 @@ def calculate_orientation_angle(slope1, slope2):
 
 
 def distance_normalization(df, distance_df):
-    bacteria_movement = [v for v in df['bacteria_movement'].dropna().values.tolist() if v != '']
+    # bacteria_movement = [v for v in df['bacteria_movement'].dropna().values.tolist() if v != '']
 
-    min_val = min(bacteria_movement)
-    max_val = max(bacteria_movement)
+    # min_val = min(bacteria_movement)
+    # max_val = max(bacteria_movement)
 
-    normalized_df = pd.DataFrame()
-    for column in distance_df.columns:
-        normalized_df[column] = (distance_df[column] - min_val) / (max_val - min_val)
+    # normalized_df = pd.DataFrame()
+    # for column in distance_df.columns:
+    #    normalized_df[column] = (distance_df[column] - min_val) / (max_val - min_val)
+
+    # Extract 'bacteria_movement' values, drop NaNs, and filter out empty strings
+    bacteria_movement = df['bacteria_movement'].dropna()
+    bacteria_movement = bacteria_movement[bacteria_movement != ''].astype(float)
+
+    # Calculate min and max
+    min_val = bacteria_movement.min()
+    max_val = bacteria_movement.max()
+
+    # Normalize the entire DataFrame at once
+    normalized_df = (distance_df - min_val) / (max_val - min_val)
 
     return normalized_df
 
@@ -188,6 +464,24 @@ def min_max_normalize_row(row):
     min_val = row.min()
     max_val = row.max()
     return (row - min_val) / (max_val - min_val)
+
+
+def calc_distance_between_daughters(dataframe, d1_ndx, d2_ndx):
+
+    daughter1 = dataframe.iloc[d1_ndx]
+    daughter2 = dataframe.iloc[d2_ndx]
+
+    daughter1_endpoints = find_vertex([daughter1["AreaShape_Center_X"], daughter1["AreaShape_Center_Y"]],
+                                      daughter1["AreaShape_MajorAxisLength"], daughter1["AreaShape_Orientation"])
+
+    daughter2_endpoints = find_vertex([daughter2["AreaShape_Center_X"], daughter2["AreaShape_Center_Y"]],
+                                      daughter2["AreaShape_MajorAxisLength"], daughter2["AreaShape_Orientation"])
+
+    endpoint1_2_dis = euclidean(daughter1_endpoints[0], daughter2_endpoints[1])
+    endpoint2_1_dis = euclidean(daughter1_endpoints[1], daughter2_endpoints[0])
+
+    return min(endpoint1_2_dis, endpoint2_1_dis)
+
 
 
 def calc_distance_matrix(target_bacteria, other_bacteria, col1, col2, col3=None, col4=None, normalization=False):
@@ -257,18 +551,6 @@ def remove_rows(df, col, true_value):
         df['daughters_index'] = df['daughters_index'].apply(modify_list, args=(threshold,))
 
     return df
-
-
-def find_bad_daughters(daughters_df):
-    """
-    goal: find indexes of bad daughters according to daughters bacteria major axis length
-    """
-
-    sorted_daughters_df = daughters_df.sort_values(by=['AreaShape_MajorAxisLength'], ascending=False)
-    sorted_daughters_index = sorted_daughters_df.index.values.tolist()
-    bad_daughters_index = sorted_daughters_index[0:len(sorted_daughters_index) - 2]
-
-    return bad_daughters_index
 
 
 def bacteria_life_history(df, desired_bacterium, desired_bacterium_index, last_time_step):
