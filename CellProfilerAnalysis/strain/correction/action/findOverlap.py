@@ -1,158 +1,132 @@
+import os.path
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
+from skimage.measure import label, regionprops
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import cv2
 
 
-def is_outer_contour(contour, mask, unique_colors, current_color, output_image):
-    # Check each point of the contour
-    for point in contour:
-        x, y = point[0]
-        neighbors = [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]  # Direct neighbors (4-connectivity)
-
-        for nx, ny in neighbors:
-            if 0 <= nx < mask.shape[1] and 0 <= ny < mask.shape[0]:
-                neighbor_color = tuple(output_image[ny, nx])
-                if neighbor_color in unique_colors and neighbor_color != current_color:
-                    return True  # If any contour point is adjacent to a different object, it is not fully enclosed
-    return False
-
-
-def find_outer_objects(output_image):
-    unique_colors = set(tuple(map(tuple, output_image.reshape(-1, 3))))  # Extract unique colors
-    unique_colors.discard((0, 0, 0))  # Exclude the background color
-
-    outer_objects_ids = []
-
-    for color in unique_colors:
-        # Create a binary mask for the current object
-        mask = np.all(output_image == color, axis=-1).astype(np.uint8)
-
-        # Find contours of the object
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        # Check each contour to see if it's enclosed by other objects
-        for contour in contours:
-            if is_outer_contour(contour, mask, unique_colors, color, output_image):
-                outer_objects_ids.append(color[2] - 1)
-                break  # If any contour of the object is outer, consider the whole object as outer
-
-    return outer_objects_ids
-
-
-def calculate_iou_and_draw_overlap(selected_object_image1, selected_object_image2):
+def calculate_iou(selected_object_image1, selected_object_image2, daughter_flag):
     # Convert images to boolean masks (True where the pixel is not black)
     mask1 = np.any(selected_object_image1 != [0, 0, 0], axis=-1)
     mask2 = np.any(selected_object_image2 != [0, 0, 0], axis=-1)
 
     # Calculate intersection and union
     intersection = np.logical_and(mask1, mask2)
-    union = np.logical_or(mask1, mask2)
+    # Calculate unique areas
+    unique_mask1 = np.logical_and(mask1, np.logical_not(mask2))
+    unique_mask2 = np.logical_and(mask2, np.logical_not(mask1))
 
-    # Calculate IOU
-    iou = np.sum(intersection) / np.sum(union)
+    if daughter_flag:
+        # Calculate modified IOU
+        # iou = np.sum(intersection) / (np.sum(intersection) + np.sum(unique_mask1) / 2)
+        iou = np.sum(intersection) / (np.sum(intersection) + np.sum(unique_mask2))
+    else:
+        union = np.logical_or(mask1, mask2)
+        # Calculate IOU
+        # iou = np.sum(intersection) / (np.sum(intersection) + np.sum(unique_mask1))
+        iou = np.sum(intersection) / np.sum(union)
 
     # Create an image to visualize the overlap
-    overlap_image = np.zeros_like(selected_object_image1)
-    overlap_image[intersection] = [255, 0, 0]  # Marking overlap with red, for example
+    # overlap_image = np.zeros_like(selected_object_image1)
+    # overlap_image[intersection] = [255, 0, 0]  # Marking overlap with red, for example
 
-    return iou, overlap_image
-
-
-def set_color_to_objects(img_npy_file, current_df, um_per_pixel):
-
-    img_array = np.load(img_npy_file)
-
-    # Flatten the image to get a list of RGB values
-    rgb_values = img_array.reshape(-1, 3)
-
-    # Convert RGB values to tuples
-    tuple_rgb_values = [tuple(row) for row in rgb_values]
-
-    # Convert to set to get unique RGB values
-    unique_colors = set(tuple_rgb_values)
-
-    # Exclude the background color (0,0,0)
-    if (0, 0, 0) in unique_colors:
-        unique_colors.remove((0, 0, 0))
-
-        # The number of unique colors is the number of objects
-        num_objects = len(unique_colors)
-
-    # Find the center for each object based on color
-    object_centers = {}
-    for color in unique_colors:
-        # Create a mask for the current color
-        mask = np.all(img_array == np.array(color).reshape(1, 1, 3), axis=2)
-        y, x = np.where(mask)
-        center_x, center_y = x.mean(), y.mean()
-        object_centers[color] = (center_x * um_per_pixel, center_y * um_per_pixel)
-
-    # Map each object to its closest CSV row based on centers
-    object_to_id = {}
-    for color, (obj_x, obj_y) in object_centers.items():
-        try:
-            distances = ((current_df['Location_Center_X'] - obj_x) ** 2 +
-                         (current_df['Location_Center_Y'] - obj_y) ** 2) ** 0.5
-        except:
-            distances = ((current_df['AreaShape_Center_X'] - obj_x) ** 2 +
-                         (current_df['AreaShape_Center_Y'] - obj_y) ** 2) ** 0.5
-
-        # Convert the Series to a list
-        distance_list = distances.tolist()
-        closest_index = np.argmin(distance_list)
-        object_to_id[color] = (0, 0, (current_df['id'].values.tolist()[closest_index] + 1))
-
-    output_image = np.zeros_like(img_array)
-
-    if len(set(object_to_id.values())) != len(object_to_id.values()):
-        print(img_npy_file)
-
-    for color in unique_colors:
-        mask = np.all(img_array == np.array(color).reshape(1, 1, 3), axis=2)
-        id_color = object_to_id[color]  # you'd need to define a function or mapping for this
-        output_image[mask] = id_color
-
-    return output_image
+    return iou
 
 
-def find_overlap_object_to_next_frame(current_npy_file, current_df, selected_objects, next_npy_file, next_df,
-                                      selected_objects_in_next_time_step, um_per_pixel):
+def batch_calculate_iou(selected_object_images1, selected_object_images2, daughter_flags):
+    # Assuming images are in a batched form where each image is a 2D mask
+    # Convert to boolean arrays if they are not already
+    masks1 = np.array([np.any(img != [0, 0, 0], axis=-1) for img in selected_object_images1])
+    masks2 = np.array([np.any(img != [0, 0, 0], axis=-1) for img in selected_object_images2])
 
-    current_img_array = set_color_to_objects(current_npy_file, current_df, um_per_pixel)
-    next_img_array = set_color_to_objects(next_npy_file, next_df, um_per_pixel)
+    # Calculate intersections and unions in a vectorized manner
+    intersections = np.logical_and(masks1, masks2)
+    unions = np.logical_or(masks1, masks2)
 
-    overlap_dict = {}
+    # Calculate unique areas for conditional logic
+    unique_masks1 = np.logical_and(masks1, np.logical_not(masks2))
+    unique_masks2 = np.logical_and(masks2, np.logical_not(masks1))
 
-    for selected_object_indx, selected_object in selected_objects.iterrows():
-        selected_object_mask = np.all(current_img_array ==
-                                      np.array((0, 0, selected_object['id'] + 1)).reshape(1, 1, 3), axis=2)
+    # Initialize IoU array
+    ious = np.zeros(len(selected_object_images1))
 
-        # Apply the mask to the image
-        selected_object_image = np.zeros_like(current_img_array)
-        selected_object_image[selected_object_mask] = current_img_array[selected_object_mask]
+    # Calculate IoU based on daughter_flag
+    for i, daughter_flag in enumerate(daughter_flags):
+        if daughter_flag:
+            ious[i] = np.sum(intersections[i]) / (np.sum(intersections[i]) + np.sum(unique_masks2[i]))
+        else:
+            ious[i] = np.sum(intersections[i]) / np.sum(unions[i])
 
-        overlap_dict[selected_object_indx] = {}
+    return ious
 
-        for obj_next_time_step_indx, obj_next_time_step in selected_objects_in_next_time_step.iterrows():
 
-            # find the related object from image array
-            obj_next_time_step_mask = np.all(next_img_array ==
-                                             np.array((0, 0, obj_next_time_step['id'] + 1)).reshape(1, 1, 3), axis=2)
+def find_overlap_object_to_next_frame(sorted_npy_files_list, current_df, selected_objects, next_df,
+                                      selected_objects_in_next_time_step, daughter_flag=False, maintain=False):
 
-            obj_next_time_step_image = np.zeros_like(next_img_array)
-            obj_next_time_step_image[obj_next_time_step_mask] = next_img_array[obj_next_time_step_mask]
+    overlap_results = []
 
-            # calculate IOU
-            iou_val, overlap_image = calculate_iou_and_draw_overlap(selected_object_image, obj_next_time_step_image)
+    if len(current_df['color_mask'].values.tolist()) != len(set(current_df['color_mask'].values.tolist())):
 
-            overlap_dict[selected_object_indx][obj_next_time_step_indx] = iou_val
+        print(current_df['ImageNumber'].values[0])
+        breakpoint()
 
-    overlap_df = pd.DataFrame.from_dict(overlap_dict, orient='index')
-    # overlap_df = overlap_df.applymap(lambda x: pd.to_numeric(x, errors='coerce'))
+    if len(next_df['color_mask'].values.tolist()) != len(set(next_df['color_mask'].values.tolist())):
+
+        print(next_df['ImageNumber'].values[0])
+        breakpoint()
+
+    source_img_num = current_df['ImageNumber'].values[0]
+    source_img_npy_file = sorted_npy_files_list[source_img_num - 1]
+    source_img_npy = np.load(os.path.splitext(source_img_npy_file)[0] + '_modified.npy' if os.path.exists(
+        os.path.splitext(source_img_npy_file)[0] + '_modified.npy') else source_img_npy_file)
+
+    target_img_num = next_df['ImageNumber'].values[0]
+    target_img_npy_file = sorted_npy_files_list[target_img_num - 1]
+    target_img_npy = np.load(os.path.splitext(target_img_npy_file)[0] + '_modified.npy' if os.path.exists(
+        os.path.splitext(target_img_npy_file)[0] + '_modified.npy') else target_img_npy_file)
+
+    # Prepare data for batch processing
+    selected_object_images1 = []
+    selected_object_images2 = []
+    daughter_flags = []
+
+    for source_obj_ndx, target_obj_ndx in [(source_obj_ndx, target_obj_ndx) for source_obj_ndx in selected_objects.index
+                                           for target_obj_ndx in selected_objects_in_next_time_step.index]:
+        selected_object_color = selected_objects.loc[source_obj_ndx]['color_mask']
+        selected_object_image = np.all(source_img_npy == np.array(selected_object_color).reshape(1, 1, 3), axis=2)
+        obj_next_time_step_color = selected_objects_in_next_time_step.loc[target_obj_ndx]['color_mask']
+        obj_next_time_step_image = np.all(target_img_npy == np.array(obj_next_time_step_color).reshape(1, 1, 3), axis=2)
+
+        selected_object_images1.append(selected_object_image)
+        selected_object_images2.append(obj_next_time_step_image)
+
+        if maintain and next_df.loc[target_obj_ndx]['parent_id'] == current_df.loc[source_obj_ndx]['id']:
+            daughter_flags.append(True)
+        else:
+            daughter_flags.append(daughter_flag)
+
+    # Calculate IoU values in batch
+    iou_values = batch_calculate_iou(selected_object_images1, selected_object_images2, daughter_flags)
+
+    # Populate results
+    for i, (source_obj_ndx, target_obj_ndx) in enumerate(
+            [(source_obj_ndx, target_obj_ndx) for source_obj_ndx in selected_objects.index for target_obj_ndx in
+             selected_objects_in_next_time_step.index]):
+        overlap_results.append({'source': source_obj_ndx, 'target': target_obj_ndx, 'IoU': iou_values[i]})
+
+    # Create DataFrame from results
+    initial_df = pd.DataFrame(overlap_results)
+
+    # Pivot this DataFrame to get the desired structure
+    overlap_df = initial_df.pivot(index='source', columns='target', values='IoU')
+    overlap_df.columns.name = None
+    overlap_df.index.name = None
+
     return overlap_df
 
-
+"""
 def find_overlap(current_bacteria_df, current_img_array, bacteria_in_next_time_step, next_img_array, parent, daughters,
                  um_per_pixel):
 
@@ -182,5 +156,4 @@ def find_overlap(current_bacteria_df, current_img_array, bacteria_in_next_time_s
         iou_dict[daughters_id] = iou
 
     return iou_dict, current_time_step_objects, next_time_step_objects
-
-
+"""

@@ -1,28 +1,24 @@
 import numpy as np
 import pandas as pd
 import time
-
 from CellProfilerAnalysis.strain.correction.action.helperFunctions import bacteria_life_history, remove_rows, \
-    convert_to_um, \
-    find_vertex, angle_convert_to_radian
+    convert_to_um, find_vertex, angle_convert_to_radian, calculate_slope_intercept, \
+    adding_features_to_each_timestep_except_first, adding_features_only_for_last_time_step, \
+    adding_features_related_to_division, calc_distance_between_daughters
 from CellProfilerAnalysis.strain.correction.action.fluorescenceIntensity import assign_cell_type
 from CellProfilerAnalysis.strain.correction.nanLabel import modify_nan_labels
 from CellProfilerAnalysis.strain.correction.withoutParentError import correction_without_parent
 from CellProfilerAnalysis.strain.correction.badDaughters import detect_remove_bad_daughters_to_mother_link
 from CellProfilerAnalysis.strain.correction.redundantParentLink import detect_and_remove_redundant_parent_link
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import calculate_orientation_angle
 from CellProfilerAnalysis.strain.correction.noiseRemover import noise_remover
+from CellProfilerAnalysis.strain.correction.neighborChecking import neighbor_checking
+from CellProfilerAnalysis.strain.correction.incorrectSameLink import incorrect_same_link
+from CellProfilerAnalysis.strain.correction.unExpectedEnd import unexpected_end_bacteria
+from CellProfilerAnalysis.strain.correction.action.multiRegionsCorrection import multi_region_correction
+from CellProfilerAnalysis.strain.correction.action.finalMatching import final_matching
 
 
-def calculate_slope_intercept(point1, point2):
-    x1, y1 = point1
-    x2, y2 = point2
-    slope = (y2 - y1) / (x2 - x1)
-    intercept = y1 - slope * x1
-    return slope, intercept
-
-
-def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type):
+def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, neighbor_df):
     """
     goal: assign new features like: `id`, `divideFlag`, `daughters_index`, `bad_division_flag`,
     `unexpected_end`, `division_time`, `transition`, `LifeHistory`, `parent_id` to bacteria and find errors
@@ -46,15 +42,20 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type):
     dataframe['division_time'] = 0
     dataframe['transition'] = False
     dataframe["LifeHistory"] = ''
+    dataframe["difference_neighbors"] = 0
     dataframe["parent_id"] = ''
     dataframe["daughter_orientation"] = ''
     dataframe["daughter_length_to_mother"] = ''
-    dataframe["daughter_distance_to_mother"] = ''
+    dataframe["daughters_distance"] = ''
     dataframe["bac_length_to_back"] = ''
+    dataframe["next_to_first_bac_length_ratio"] = ''
+    dataframe["mother_last_to_first_bac_length_ratio"] = ''
     dataframe["bac_length_to_back_orientation_changes"] = ''
     dataframe["max_daughter_len_to_mother"] = ''
     dataframe["bacteria_movement"] = ''
     dataframe["bacteria_slope"] = ''
+    dataframe["direction_of_motion"] = 0
+    dataframe["angle_between_neighbor_motion_bac_motion"] = 0
 
     last_time_step = sorted(dataframe['ImageNumber'].unique())[-1]
     # bacterium id
@@ -80,6 +81,8 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type):
                 if row['ImageNumber'] > 1:
                     transition = True
 
+            dataframe.at[row_index, 'transition'] = transition
+
             for list_indx, indx in enumerate(bacterium_status['lifeHistoryIndex']):
                 dataframe.at[indx, 'checked'] = True
 
@@ -100,156 +103,76 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type):
                 dataframe.at[indx, 'bacteria_slope'] = slope1
 
                 dataframe.at[indx, 'id'] = bacterium_id
-                if list_indx > 0:
-                    dataframe.at[indx, "bac_length_to_back"] = \
-                        dataframe.iloc[indx]["AreaShape_MajorAxisLength"] / \
-                        dataframe.iloc[bacterium_status['lifeHistoryIndex'][list_indx - 1]]["AreaShape_MajorAxisLength"]
-
-                    prev_bacterium_endpoints = find_vertex(
-                        [dataframe.iloc[bacterium_status['lifeHistoryIndex'][list_indx - 1]]["AreaShape_Center_X"],
-                         dataframe.iloc[bacterium_status['lifeHistoryIndex'][list_indx - 1]]["AreaShape_Center_Y"]],
-                        dataframe.iloc[bacterium_status['lifeHistoryIndex'][list_indx - 1]][
-                            "AreaShape_MajorAxisLength"],
-                        dataframe.iloc[bacterium_status['lifeHistoryIndex'][list_indx - 1]]["AreaShape_Orientation"])
-
-                    center_movement = \
-                        np.sqrt((dataframe.iloc[indx]["AreaShape_Center_X"] -
-                                 dataframe.iloc[bacterium_status['lifeHistoryIndex'][list_indx - 1]][
-                                     "AreaShape_Center_X"]) ** 2 +
-                                (dataframe.iloc[indx]["AreaShape_Center_Y"] -
-                                 dataframe.iloc[bacterium_status['lifeHistoryIndex'][list_indx - 1]][
-                                     "AreaShape_Center_Y"]) ** 2)
-
-                    endpoint1_movement = \
-                        np.sqrt((current_bacterium_endpoints[0][0] - prev_bacterium_endpoints[0][0]) ** 2 +
-                                (current_bacterium_endpoints[0][1] - prev_bacterium_endpoints[0][1]) ** 2)
-
-                    endpoint1_endpoint2_movement = \
-                        np.sqrt((current_bacterium_endpoints[0][0] - prev_bacterium_endpoints[1][0]) ** 2 +
-                                (current_bacterium_endpoints[0][1] - prev_bacterium_endpoints[1][1]) ** 2)
-
-                    endpoint2_movement = \
-                        np.sqrt((current_bacterium_endpoints[1][0] - prev_bacterium_endpoints[1][0]) ** 2 +
-                                (current_bacterium_endpoints[1][1] - prev_bacterium_endpoints[1][1]) ** 2)
-
-                    endpoint2_endpoint1_movement = \
-                        np.sqrt((current_bacterium_endpoints[1][0] - prev_bacterium_endpoints[0][0]) ** 2 +
-                                (current_bacterium_endpoints[1][1] - prev_bacterium_endpoints[0][1]) ** 2)
-
-                    dataframe.at[indx, "bacteria_movement"] = min(center_movement, endpoint1_movement,
-                                                                  endpoint2_movement, endpoint1_endpoint2_movement,
-                                                                  endpoint2_endpoint1_movement)
-
-                    slope2, intercept2 = calculate_slope_intercept(prev_bacterium_endpoints[0],
-                                                                   prev_bacterium_endpoints[1])
-
-                    # Calculate orientation angle
-                    orientation_angle = calculate_orientation_angle(slope1, slope2)
-
-                    dataframe.at[indx, "bac_length_to_back_orientation_changes"] = orientation_angle
 
                 dataframe.at[indx, 'LifeHistory'] = bacterium_status['life_history']
+
+                if list_indx > 0:
+                    dataframe = adding_features_to_each_timestep_except_first(dataframe, list_indx, indx,
+                                                                              bacterium_status, neighbor_df)
+
                 if bacterium_status['division_occ']:
-                    dataframe.at[indx, 'divideFlag'] = bacterium_status['division_occ']
-                    dataframe.at[indx, 'daughters_index'] = bacterium_status['daughters_index']
-                    dataframe.at[indx, 'division_time'] = bacterium_status['division_time']
-                    dataframe.at[indx, 'divideFlag'] = bacterium_status['division_occ']
-                    dataframe.at[indx, 'bad_division_flag'] = bacterium_status['bad_division_occ']
-                    dataframe.at[indx, 'division_time'] = bacterium_status['division_time']
+                    dataframe = adding_features_related_to_division(dataframe, indx, bacterium_status)
+
+                    if indx == bacterium_status['lifeHistoryIndex'][-1] and not bacterium_status["bad_division_occ"]:
+                        dataframe.at[indx, 'daughters_distance'] = \
+                            calc_distance_between_daughters(dataframe, bacterium_status["daughters_index"][0],
+                                                            bacterium_status["daughters_index"][1])
+
+                    if list_indx > 0 and indx != bacterium_status['lifeHistoryIndex'][-1]:
+                        dataframe.at[indx, "next_to_first_bac_length_ratio"] = \
+                            dataframe.iloc[indx]["AreaShape_MajorAxisLength"] / \
+                            dataframe.iloc[bacterium_status['lifeHistoryIndex'][0]]["AreaShape_MajorAxisLength"]
+
+                    elif list_indx > 0:
+                        dataframe.at[indx, "mother_last_to_first_bac_length_ratio"] = \
+                            dataframe.iloc[bacterium_status['lifeHistoryIndex'][-1]][
+                                "AreaShape_MajorAxisLength"] / \
+                            dataframe.iloc[bacterium_status['lifeHistoryIndex'][0]]["AreaShape_MajorAxisLength"]
+                else:
+                    if list_indx > 0:
+                        dataframe.at[indx, "next_to_first_bac_length_ratio"] = \
+                            dataframe.iloc[indx]["AreaShape_MajorAxisLength"] / \
+                            dataframe.iloc[bacterium_status['lifeHistoryIndex'][0]]["AreaShape_MajorAxisLength"]
 
                 dataframe.at[indx, 'parent_id'] = parent_id
 
             last_bacterium_in_life_history = bacterium_status['lifeHistoryIndex'][-1]
-            dataframe.at[last_bacterium_in_life_history, 'unexpected_end'] = bacterium_status['unexpected_end']
-
-            dataframe.at[last_bacterium_in_life_history, "daughter_length_to_mother"] = \
-                bacterium_status['daughter_len'] / \
-                dataframe.iloc[last_bacterium_in_life_history]["AreaShape_MajorAxisLength"]
-
-            dataframe.at[last_bacterium_in_life_history, "max_daughter_len_to_mother"] = \
-                bacterium_status["max_daughter_len"] / \
-                dataframe.iloc[last_bacterium_in_life_history]["AreaShape_MajorAxisLength"]
-
-            dataframe.at[row_index, 'transition'] = transition
-
-            if bacterium_status['division_occ'] and not bacterium_status['bad_division_occ']:
-                daughters_df = dataframe.iloc[bacterium_status['daughters_index']]
-
-                daughter1_endpoints = find_vertex([daughters_df["AreaShape_Center_X"].values.tolist()[0],
-                                                   daughters_df["AreaShape_Center_Y"].values.tolist()[0]],
-                                                  daughters_df["AreaShape_MajorAxisLength"].values.tolist()[0],
-                                                  daughters_df["AreaShape_Orientation"].values.tolist()[0])
-
-                daughter2_endpoints = find_vertex([daughters_df["AreaShape_Center_X"].values.tolist()[1],
-                                                   daughters_df["AreaShape_Center_Y"].values.tolist()[1]],
-                                                  daughters_df["AreaShape_MajorAxisLength"].values.tolist()[1],
-                                                  daughters_df["AreaShape_Orientation"].values.tolist()[1])
-
-                slope_daughter1, intercept_daughter1 = calculate_slope_intercept(daughter1_endpoints[0],
-                                                                                 daughter1_endpoints[1])
-
-                slope_daughter2, intercept_daughter2 = calculate_slope_intercept(daughter2_endpoints[0],
-                                                                                 daughter2_endpoints[1])
-
-                # Calculate orientation angle
-                daughters_orientation_angle = calculate_orientation_angle(slope_daughter1, slope_daughter2)
-                dataframe.at[last_bacterium_in_life_history, "daughter_orientation"] = daughters_orientation_angle
+            dataframe = adding_features_only_for_last_time_step(dataframe, last_bacterium_in_life_history,
+                                                                bacterium_status)
 
             bacterium_id += 1
 
     # assign cell type
     if check_cell_type:
         dataframe = assign_cell_type(dataframe, intensity_threshold)
-    dataframe.drop(labels='checked', axis=1, inplace=True)
+
+    # dataframe.drop(labels='checked', axis=1, inplace=True)
     return dataframe
 
 
 def data_cleaning(raw_df):
     """
-    goal:   1. remove related rows to bacteria with zero MajorAxisLength
-            2. Correct the labels of bacteria whose labels are nan.
+    goal:   Correct the labels of bacteria whose labels are nan.
 
     @param raw_df dataframe bacteria features value
     """
 
-    # find bacteria with zero length
-    zero_length_bac = raw_df.loc[raw_df["AreaShape_MajorAxisLength"] == 0]
-    # remove related rows to bacteria with zero MajorAxisLength
-    raw_df = raw_df.loc[raw_df["AreaShape_MajorAxisLength"] != 0]
-
-    # columns name
-    parent_image_number_col = [col for col in raw_df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
-    parent_object_number_col = [col for col in raw_df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
-
-    # The parent image number and parent object number of the daughters (or same bacteria) of the zero-length mother
-    # should now be set to zero
-    for indx, row in zero_length_bac.iterrows():
-        parent_img_number = row['ImageNumber']
-        parent_obj_number = row['ObjectNumber']
-
-        daughters = raw_df.loc[(raw_df[parent_image_number_col] == parent_img_number) &
-                               (raw_df[parent_object_number_col] == parent_obj_number)]
-
-        for daughter_indx, daughter in daughters.iterrows():
-            raw_df.at[daughter_indx, parent_image_number_col] = 0
-            raw_df.at[daughter_indx, parent_object_number_col] = 0
-
-    raw_df = raw_df.reset_index(drop=True)
     modified_df = modify_nan_labels(raw_df)
 
     return modified_df
 
 
-def data_modification(dataframe, intensity_threshold, check_cell_type):
+def data_modification(dataframe, intensity_threshold, check_cell_type, neighbors_df):
     # 1. remove related rows to bacteria with zero MajorAxisLength
     # 2. Correct the labels of bacteria whose labels are nan.
     dataframe = data_cleaning(dataframe)
-    dataframe = assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type)
+    dataframe = assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, neighbors_df)
 
     return dataframe
 
 
 def data_conversion(dataframe, um_per_pixel=0.144):
+    dataframe['color_mask'] = ''
     dataframe = convert_to_um(dataframe, um_per_pixel)
     dataframe = angle_convert_to_radian(dataframe)
 
@@ -258,14 +181,21 @@ def data_conversion(dataframe, um_per_pixel=0.144):
 
 def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, number_of_gap=0, um_per_pixel=0.144,
                     intensity_threshold=0.1, check_cell_type=True, interval_time=1, min_life_history_of_bacteria=20):
+
     logs_list = []
+    logs_df = pd.DataFrame(columns=dataframe.columns)
 
     dataframe = data_conversion(dataframe, um_per_pixel)
-    dataframe = data_modification(dataframe, intensity_threshold, check_cell_type)
+
+    # correction of multi regions
+    dataframe, neighbors_df = multi_region_correction(dataframe, sorted_npy_files_list, neighbors_df, um_per_pixel)
+
+    dataframe = data_modification(dataframe, intensity_threshold, check_cell_type, neighbors_df)
 
     data_preparation_time = time.time()
     data_preparation_time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data_preparation_time))
     data_preparation_log = "At " + data_preparation_time_str + ',data preparation was completed.'
+
     print(data_preparation_log)
     logs_list.append(data_preparation_log)
 
@@ -278,26 +208,49 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, number_of_ga
     print(start_tracking_errors_correction_log)
     logs_list.append(start_tracking_errors_correction_log)
 
-    # dataframe = merged_bacteria(dataframe, check_cell_type)
+    raw_data_frame = dataframe.copy()
 
+    # dataframe = merged_bacteria(dataframe, check_cell_type)
     # remove noise objects
-    dataframe, noise_objects_log_list = noise_remover(dataframe)
+    dataframe, neighbors_df, noise_objects_log_list, logs_df = noise_remover(dataframe, neighbors_df, logs_df)
 
     logs_list.extend(noise_objects_log_list)
 
+    # check neighbors
+    dataframe = neighbor_checking(dataframe, neighbors_df)
+
     # more than two daughters
-    dataframe = detect_remove_bad_daughters_to_mother_link(dataframe, sorted_npy_files_list, um_per_pixel)
+    dataframe, logs_df = detect_remove_bad_daughters_to_mother_link(dataframe, neighbors_df, sorted_npy_files_list,
+                                                                    logs_df)
+
+    print("PART 1")
 
     # redundant links
-    dataframe = detect_and_remove_redundant_parent_link(dataframe, sorted_npy_files_list, um_per_pixel)
+    dataframe, logs_df = detect_and_remove_redundant_parent_link(dataframe, neighbors_df, sorted_npy_files_list,
+                                                                 logs_df)
+    print("PART 2")
 
     # try to assign new link
-    df, assign_new_link_log = correction_without_parent(dataframe, sorted_npy_files_list, neighbors_df, number_of_gap,
-                                                        check_cell_type, interval_time, um_per_pixel,
-                                                        min_life_history_of_bacteria)
+    df, assign_new_link_log, logs_df = correction_without_parent(dataframe, neighbors_df, sorted_npy_files_list,
+                                                                 number_of_gap, check_cell_type, interval_time,
+                                                                 min_life_history_of_bacteria, logs_df)
+
+    print("PART 3")
     logs_list.extend(assign_new_link_log)
 
-    # remove incorrect bacteria
+    df, logs_df = incorrect_same_link(df, neighbors_df, sorted_npy_files_list, min_life_history_of_bacteria,
+                                      interval_time, logs_df)
+
+    print("PART 4")
+
+    df, logs_df = unexpected_end_bacteria(df, neighbors_df, sorted_npy_files_list, min_life_history_of_bacteria,
+                                          interval_time, logs_df)
+
+    print("PART 5")
+
+    df, logs_df = final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time, sorted_npy_files_list,
+                                 logs_df)
+
     df = remove_rows(df, 'noise_bac', False)
 
     end_tracking_errors_correction_time = time.time()
@@ -310,4 +263,9 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, number_of_ga
     print(end_tracking_errors_correction_log)
     logs_list.append(end_tracking_errors_correction_log)
 
-    return df, logs_list
+    logs_df = logs_df.sort_values(by=['ImageNumber', 'ObjectNumber'])
+    logs_df = logs_df.drop_duplicates(subset=['ImageNumber', 'ObjectNumber'], keep='last')
+    logs_df.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length'}, inplace=True)
+    logs_df = logs_df[["stepNum", "ObjectNumber", "length",	"noise_bac", "unexpected_end",	"transition"]]
+
+    return df, logs_list, logs_df, neighbors_df

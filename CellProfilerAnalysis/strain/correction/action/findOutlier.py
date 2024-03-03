@@ -29,7 +29,7 @@ def find_outlier_traditional_bac_change_length(values):
     avg_val = np.average(values)
     std_val = np.std(values)
 
-    outlier_list = [v for v in values if v < avg_val - std_val]
+    outlier_list = [v for v in values if v < avg_val - 1.96 * std_val and v < 1]
 
     return outlier_list
 
@@ -40,9 +40,9 @@ def find_outlier_traditional_sum_daughter_len_to_mother_ratio(values, higher_tha
     std_val = np.std(values)
 
     if not higher_than_one_is_outlier:
-        outlier_list = [v for v in values if v > avg_val + std_val]
+        outlier_list = [v for v in values if v > avg_val + 1.96 * std_val]
     else:
-        outlier_list = [v for v in values if v > avg_val + std_val or v >= 1]
+        outlier_list = [v for v in values if v > avg_val + 1.96 * std_val or v >= 1]
 
     if outlier_list is None:
         outlier_list = [None]
@@ -50,8 +50,16 @@ def find_outlier_traditional_sum_daughter_len_to_mother_ratio(values, higher_tha
     return outlier_list
 
 
-def find_bac_change_length_ratio_outliers(df):
+def find_final_bac_change_length_ratio_outliers(df):
+    df = df.loc[df['noise_bac'] == False]
+    bac_change_length_ratio_list = [v for v in df["bac_length_to_back"].dropna().values.tolist() if v != '']
+    bac_change_length_ratio_list_outliers = find_outlier_traditional_bac_change_length(bac_change_length_ratio_list)
 
+    return bac_change_length_ratio_list_outliers
+
+
+def find_bac_change_length_ratio_outliers(df):
+    df = df.loc[df['noise_bac'] == False]
     bac_change_length_ratio_list = [v for v in df["bac_length_to_back"].dropna().values.tolist() if v != '' and v < 1]
     bac_change_length_ratio_list_outliers = find_outlier_traditional_bac_change_length(bac_change_length_ratio_list)
 
@@ -59,6 +67,8 @@ def find_bac_change_length_ratio_outliers(df):
 
 
 def find_daughter_len_to_mother_ratio_outliers(df):
+
+    df = df.loc[df['noise_bac'] == False]
 
     sum_daughter_length_ratio_list = [v for v in df["daughter_length_to_mother"].dropna().values.tolist() if v != '']
     sum_daughter_length_ratio_list_outliers = \
@@ -77,6 +87,8 @@ def find_daughter_len_to_mother_ratio_outliers(df):
 
 def find_max_daughter_len_to_mother_ratio_boundary(df):
 
+    df = df.loc[df['noise_bac'] == False]
+
     max_daughter_length_ratio_list = [v for v in df["max_daughter_len_to_mother"].dropna().values.tolist() if v != '']
     avg_val = np.average(max_daughter_length_ratio_list)
     std_val = np.std(max_daughter_length_ratio_list)
@@ -85,6 +97,7 @@ def find_max_daughter_len_to_mother_ratio_boundary(df):
 
 
 def find_sum_daughter_len_to_mother_ratio_boundary(df):
+    df = df.loc[df['noise_bac'] == False]
     sum_daughters_length_ratio_list = [v for v in df["daughter_length_to_mother"].dropna().values.tolist() if v != '']
     avg_val = np.average(sum_daughters_length_ratio_list)
     std_val = np.std(sum_daughters_length_ratio_list)
@@ -93,15 +106,21 @@ def find_sum_daughter_len_to_mother_ratio_boundary(df):
 
 
 def find_bac_len_to_bac_ratio_boundary(df):
+    df = df.loc[df['noise_bac'] == False]
     bac_change_length_ratio_list = [v for v in df["bac_length_to_back"].dropna().values.tolist() if v != '' and v < 1]
-    avg_val = np.average(bac_change_length_ratio_list)
-    std_val = np.std(bac_change_length_ratio_list)
+
+    if len(bac_change_length_ratio_list) > 0:
+        avg_val = np.average(bac_change_length_ratio_list)
+        std_val = np.std(bac_change_length_ratio_list)
+    else:
+        avg_val = 0
+        std_val = 0
 
     return {'avg': avg_val, 'std': std_val}
 
 
 def find_bac_movement_boundary(df):
-
+    df = df.loc[df['noise_bac'] == False]
     bacteria_movement = [v for v in df['bacteria_movement'].dropna().values.tolist() if v != '']
 
     avg_val = np.average(bacteria_movement)
@@ -112,7 +131,7 @@ def find_bac_movement_boundary(df):
 
 
 def find_bac_len_boundary(df):
-
+    df = df.loc[df['noise_bac'] == False]
     bacteria_length = [v for v in df['AreaShape_MajorAxisLength'].dropna().values.tolist() if v != '']
 
     avg_val = np.average(bacteria_length)

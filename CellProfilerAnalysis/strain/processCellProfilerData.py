@@ -42,7 +42,8 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
 
     if len(sorted_npy_files_list) > 0 and neighbors_df.shape[0] > 0:
 
-        data_frame, find_fix_errors_log = find_fix_errors(data_frame, sorted_npy_files_list, neighbors_df,
+        data_frame, find_fix_errors_log, logs_df, neighbors_df = \
+            find_fix_errors(data_frame, sorted_npy_files_list, neighbors_df,
                                                           number_of_gap=number_of_gap,
                                                           um_per_pixel=um_per_pixel,
                                                           intensity_threshold=intensity_threshold,
@@ -87,9 +88,14 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
         create_pickle_files(processed_df_with_specific_cols, output_directory, assigning_cell_type)
 
         path = output_directory + os.path.basename(input_file).split('.')[0] + "-" + growth_rate_method + "-analysis"
+        path_logs = output_directory + os.path.basename(input_file).split('.')[0] + "-" + growth_rate_method + "-logs"
+        path_neighbors = (output_directory + os.path.basename(input_file).split('.')[0] + "-" + growth_rate_method +
+                     "-neighbors")
 
         # write to csv
         processed_df.to_csv(path + '.csv', index=False)
+        logs_df.to_csv(path_logs + '.csv', index=False)
+        neighbors_df.to_csv(path_neighbors + '.csv', index=False)
 
         output_log = "The outputs are written in the " + output_directory + " directory."
         print(output_log)

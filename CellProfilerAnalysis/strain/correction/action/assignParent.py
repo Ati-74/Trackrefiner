@@ -1,11 +1,11 @@
 import numpy as np
-from CellProfilerAnalysis.strain.correction.action.bacteriaModification import bacteria_modification
+from CellProfilerAnalysis.strain.correction.action.bacteriaModification import bacteria_modification, remove_redundant_link
 
 
-def find_candidate_parents(target_bac_index, optimized_cost_df_list):
+def find_candidate_parents(without_source_bac_index, optimized_cost_df_list, redundant_link_dict_list):
     """
     this function calls for each target (transition or incorrect daughter) bacterium
-    @param target_bac_index int row index of target bacterium
+    @param without_source_bac_index int row index of target bacterium
     @param optimized_cost_df_list list list of distance of target bacterium from other candidate parents
     in different time steps
     in last time step of its life history before transition bacterium to length of candidate parent bacterium
@@ -16,11 +16,12 @@ def find_candidate_parents(target_bac_index, optimized_cost_df_list):
 
     lowest_cost = None
     correct_link_bac_indx = None
+    redundant_bac_ndx = []
 
     # was the parent found from previous time steps?
     for optimized_cost_df in optimized_cost_df_list:
 
-        linking_info = optimized_cost_df.loc[optimized_cost_df['without parent index'] == target_bac_index]
+        linking_info = optimized_cost_df.loc[optimized_cost_df['without parent index'] == without_source_bac_index]
 
         if linking_info.shape[0] > 0:
             if linking_info['Cost'].values.tolist()[0] != 999:
@@ -32,34 +33,49 @@ def find_candidate_parents(target_bac_index, optimized_cost_df_list):
         lowest_cost = candidate_parents_cost[lowest_cost_indx]
         correct_link_bac_indx = candidate_parents_index[lowest_cost_indx]
 
-    return correct_link_bac_indx, lowest_cost
+        if without_source_bac_index in list(redundant_link_dict_list[0].keys()):
+            if correct_link_bac_indx == redundant_link_dict_list[0][without_source_bac_index][0]:
+                redundant_bac_ndx = redundant_link_dict_list[0][without_source_bac_index][1]
+
+    return correct_link_bac_indx, redundant_bac_ndx, lowest_cost
 
 
-def assign_parent(df, target_bac_index, optimized_cost_df_list):
+def assign_parent(df, without_source_bac_index, optimized_cost_df_list, redundant_link_dict_list, neighbors_df):
     """
     we should find the nearest candidate bacterium in the previous time steps that has:
     similar Intensity_MeanIntensity pattern (if exist)
 
     @param df dataframe features value of bacteria in each time step
-    @param target_bac_index int row index of target bacterium
+    @param without_source_bac_index int row index of target bacterium
     @param optimized_cost_df_list list list of distance of target bacteria from other candidate parents
     in different time steps
     in last time step of its life history before transition bacterium to length of candidate parent bacterium
     in investigated time step
     """
 
-    correct_link_bac_indx, lowest_cost = find_candidate_parents(target_bac_index, optimized_cost_df_list)
+    correct_source_link_bac_indx, redundant_bac_ndx_list, lowest_cost = \
+        find_candidate_parents(without_source_bac_index, optimized_cost_df_list, redundant_link_dict_list)
     assign_new_link_flag = False
 
-    if correct_link_bac_indx is not None:
+    if correct_source_link_bac_indx is not None:
+
+        if len(redundant_bac_ndx_list) > 0:
+            for redundant_bac_ndx in redundant_bac_ndx_list:
+                wrong_daughter_life_history = df.loc[(df['id'] == df.iloc[redundant_bac_ndx]['id']) &
+                                                     (df['ImageNumber'] >= df.iloc[without_source_bac_index]['ImageNumber'])]
+
+                df = remove_redundant_link(df, wrong_daughter_life_history, neighbors_df)
+
         # find related bacteria to this transition bacterium
-        correct_bacterium = df.iloc[correct_link_bac_indx]
+        correct_source_bacterium = df.iloc[correct_source_link_bac_indx]
 
-        target_bacterium = df.iloc[target_bac_index]
-        target_bacterium_life_history = df.loc[df['id'] == target_bacterium['id']]
-        all_bac_undergo_phase_change = df.loc[df['ImageNumber'] == target_bacterium['ImageNumber']]
+        without_source_bacterium = df.loc[without_source_bac_index]
+        without_source_bacterium_life_history = df.loc[df['id'] == without_source_bacterium['id']]
+        all_bac_in_without_source_bac_time_step = df.loc[df['ImageNumber'] == without_source_bacterium['ImageNumber']]
 
-        df = bacteria_modification(df, correct_bacterium, target_bacterium_life_history, all_bac_undergo_phase_change)
+        df = bacteria_modification(df, correct_source_bacterium, without_source_bacterium_life_history,
+                                   all_bac_in_without_source_bac_time_step, neighbor_df=neighbors_df)
+
         assign_new_link_flag = True
 
     return df, assign_new_link_flag
