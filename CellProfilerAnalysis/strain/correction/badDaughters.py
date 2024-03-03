@@ -1,11 +1,13 @@
+import pandas as pd
+
 from CellProfilerAnalysis.strain.correction.action.bacteriaModification import remove_redundant_link
-from CellProfilerAnalysis.strain.correction.action.compareBacteria import compare_bacteria
+from CellProfilerAnalysis.strain.correction.action.compareBacteria import make_initial_distance_matrix
 from CellProfilerAnalysis.strain.correction.action.helperFunctions import distance_normalization
 from CellProfilerAnalysis.strain.correction.action.helperFunctions import calculate_orientation_angle
 import numpy as np
 
 
-def detect_remove_bad_daughters_to_mother_link(df, sorted_npy_files_list, um_per_pixel):
+def detect_remove_bad_daughters_to_mother_link(df, neighbor_df, sorted_npy_files_list, logs_df):
     """
         goal: modification of bad daughters (try to assign bad daughters to new parent)
         @param df    dataframe   bacteria dataframe
@@ -14,7 +16,7 @@ def detect_remove_bad_daughters_to_mother_link(df, sorted_npy_files_list, um_per
         output: df   dataframe   modified dataframe (without bad daughters)
     """
 
-    bad_daughters_list = df.loc[df['bad_division_flag'] == True]['daughters_index'].drop_duplicates()
+    bad_daughters_list = df.loc[(df['bad_division_flag'] == True) & (df['noise_bac'] == False)]['daughters_index'].drop_duplicates()
 
     # print("number of bad daughters: ")
     # print(bad_daughters_list.shape[0])
@@ -30,18 +32,14 @@ def detect_remove_bad_daughters_to_mother_link(df, sorted_npy_files_list, um_per
 
         mother_last_time_step = mother_df.loc[mother_df['ImageNumber'] == mother_df['ImageNumber'].max()]
 
-        last_time_step_mother_img_npy = sorted_npy_files_list[mother_df['ImageNumber'].max() - 1]
-
         bacteria_in_mother_last_time_step = df.loc[df['ImageNumber'] == mother_df['ImageNumber'].max()]
 
-        bacteria_in_daughter_time_step = df.loc[df['ImageNumber'] == daughters_df['ImageNumber'].values.tolist()[0] - 1]
-        daughter_time_step_img_npy = sorted_npy_files_list[daughters_df['ImageNumber'].values.tolist()[0] - 1]
+        bacteria_in_daughter_time_step = df.loc[df['ImageNumber'] == daughters_df['ImageNumber'].values.tolist()[0]]
 
         # check the cost of daughters to mother
-        overlap_df, distance_df = compare_bacteria(last_time_step_mother_img_npy, bacteria_in_mother_last_time_step,
-                                                   mother_last_time_step, daughter_time_step_img_npy,
-                                                   bacteria_in_daughter_time_step,
-                                                   daughters_df, um_per_pixel)
+        overlap_df, distance_df = make_initial_distance_matrix(sorted_npy_files_list, bacteria_in_mother_last_time_step,
+                                                               mother_last_time_step, bacteria_in_daughter_time_step,
+                                                               daughters_df)
 
         normalized_distance_df = distance_normalization(df, distance_df)
 
@@ -52,7 +50,7 @@ def detect_remove_bad_daughters_to_mother_link(df, sorted_npy_files_list, um_per
             # Calculate orientation angle
             orientation_angle = calculate_orientation_angle(mother_last_time_step['bacteria_slope'].values.tolist()[0],
                                                             daughter['bacteria_slope'])
-            cost_df[daughter_ndx] += orientation_angle
+            cost_df[daughter_ndx] = np.sqrt(np.power(cost_df[daughter_ndx], 2) + np.power(orientation_angle, 2))
 
         while cost_df.shape[1] > 2:
             wrong_daughter_index = cost_df.max().idxmax()
@@ -60,9 +58,11 @@ def detect_remove_bad_daughters_to_mother_link(df, sorted_npy_files_list, um_per
 
             wrong_daughter_life_history = df.loc[df['id'] == df.iloc[wrong_daughter_index]['id']]
 
-            df = remove_redundant_link(df, wrong_daughter_life_history)
+            df = remove_redundant_link(df, wrong_daughter_life_history, neighbor_df)
+            logs_df = pd.concat([logs_df, wrong_daughter_life_history.iloc[0].to_frame().transpose()],
+                                ignore_index=True)
 
     # change the value of bad division flag
     df['bad_division_flag'] = False
 
-    return df
+    return df, logs_df
