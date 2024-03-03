@@ -1,4 +1,4 @@
-name: CellProfilerAnalysisEnv
+name: TrackRefinerEnv
 channels:
   - defaults
   - conda-forge

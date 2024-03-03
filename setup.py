@@ -2,8 +2,8 @@
 
 from setuptools import setup
 
-setup(name='CellProfilerAnalysis',
-      version='1.1.0.b',
+setup(name='TrackRefiner',
+      version='1.1.1.b',
       description='analyzing CellProfiler output',
       install_requires=['numpy', 'scipy', 'pandas', 'scikit-learn', 'matplotlib', 'opencv-python'],
       setup_requires=['numpy', 'scipy', 'pandas', 'scikit-learn', 'matplotlib', 'opencv-python'],
