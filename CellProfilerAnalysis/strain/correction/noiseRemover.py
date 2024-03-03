@@ -1,29 +1,65 @@
 import pandas as pd
 from CellProfilerAnalysis.strain.correction.action.findOutlier import find_bac_len_boundary
 from CellProfilerAnalysis.strain.correction.action.bacteriaModification import remove_bac
+from CellProfilerAnalysis.strain.correction.action.helperFunctions import remove_rows
 
 
-def noise_remover(df):
-    daughters_to_mother_ratio_list_outliers = find_bac_len_boundary(df)
+def remove_from_neighbors_df(neighbors_df, bad_obj):
 
-    noise_objects_df = df.loc[df['AreaShape_MajorAxisLength'] <
-                              daughters_to_mother_ratio_list_outliers['avg'] -
-                              1.96 * daughters_to_mother_ratio_list_outliers['std']]
+    bad_obj_neighbor = neighbors_df.loc[(neighbors_df['First Image Number'] == bad_obj['ImageNumber']) &
+                                        (neighbors_df['First Object Number'] == bad_obj['ObjectNumber'])
+                                        ]
 
-    if noise_objects_df.shape[0] > 0:
-        noise_objects_log = ["The objects listed below are identified as noise and have been removed.: " \
-                             "\n ImageNumber\tObjectNumber"]
-    else:
-        noise_objects_df = ['']
+    bac_neighbor_bad = neighbors_df.loc[(neighbors_df['Second Image Number'] == bad_obj['ImageNumber']) &
+                                        (neighbors_df['Second Object Number'] == bad_obj['ObjectNumber'])
+                                        ]
 
-    # print("number of noise objects: ")
-    # print(noise_objects_df.shape[0])
+    should_be_remove_index = []
+    if bad_obj_neighbor.shape[0] > 0:
+        should_be_remove_index.extend(bad_obj_neighbor.index.values.tolist())
 
-    for noise_bac_ndx, noise_bac in noise_objects_df.iterrows():
-        df = remove_bac(df, noise_bac)
-        # change noise flag
-        df.at[noise_bac_ndx, 'noise_bac'] = True
+    if bac_neighbor_bad.shape[0] > 0:
+        should_be_remove_index.extend(bac_neighbor_bad.index.values.tolist())
 
-        noise_objects_log.append(str(noise_bac['ImageNumber']) + '\t' + str(noise_bac['ObjectNumber']))
+    if len(should_be_remove_index) > 0:
+        neighbors_df = neighbors_df.loc[~neighbors_df.index.isin(should_be_remove_index)]
 
-    return df, noise_objects_log
+    return neighbors_df
+
+
+def noise_remover(df, neighbors_df, logs_df):
+
+    num_noise_obj = None
+
+    while num_noise_obj != 0:
+
+        bac_len_boundary = find_bac_len_boundary(df)
+
+        noise_objects_df = df.loc[(df['AreaShape_MajorAxisLength'] < bac_len_boundary['avg'] -
+                                   1.96 * bac_len_boundary['std']) & (df['noise_bac'] == False)]
+
+        num_noise_obj = noise_objects_df.shape[0]
+
+        if noise_objects_df.shape[0] > 0:
+            noise_objects_log = ["The objects listed below are identified as noise and have been removed.: " \
+                                 "\n ImageNumber\tObjectNumber"]
+        else:
+            noise_objects_log = ['']
+
+        # print("number of noise objects: ")
+        # print(noise_objects_df.shape[0])
+
+        for noise_bac_ndx, noise_bac in noise_objects_df.iterrows():
+
+            df = remove_bac(df, noise_bac_ndx, noise_bac, neighbors_df)
+            df.at[noise_bac_ndx, 'noise_bac'] = True
+
+            logs_df = pd.concat([logs_df, df.iloc[noise_bac_ndx].to_frame().transpose()], ignore_index=True)
+
+            neighbors_df = remove_from_neighbors_df(neighbors_df, noise_bac)
+
+            noise_objects_log.append(str(noise_bac['ImageNumber']) + '\t' + str(noise_bac['ObjectNumber']))
+
+        # df = remove_rows(df, 'noise_bac', False)
+
+    return df, neighbors_df, noise_objects_log, logs_df
