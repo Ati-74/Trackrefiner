@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 from CellProfilerAnalysis.strain.processCellProfilerData import process_data
 
 if __name__ == '__main__':
@@ -49,22 +50,22 @@ if __name__ == '__main__':
 
     # optional parameters
     # unit: minute
-    interval_time = args.intervalTime
-    min_life_history_of_bacteria = args.minLifeHistory
+    interval_time = float(args.intervalTime)
+    min_life_history_of_bacteria = float(args.minLifeHistory)
 
     # `Average` or `Linear Regression`
     growth_rate_method = args.growthRateMethod
 
     # useful for fixing tracking errors
-    number_of_gap = args.gap
+    number_of_gap = int(args.gap)
 
     # convert pixel to um
-    um_per_pixel = args.umPerPixel
+    um_per_pixel = float(args.umPerPixel)
 
     assigning_cell_type = args.cellType
 
     # This parameter is related to assigning the cell type
-    intensity_threshold = args.intensityThreshold
+    intensity_threshold = float(args.intensityThreshold)
 
     # run post-processing
     process_data(input_file=input_file, npy_files_dir=npy_files_dir, neighbors_file=neighbors_file,
