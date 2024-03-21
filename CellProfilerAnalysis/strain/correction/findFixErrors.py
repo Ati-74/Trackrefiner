@@ -224,13 +224,13 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, number_of_ga
                                                                     logs_df)
 
     # redundant links
-    dataframe, logs_df = detect_and_remove_redundant_parent_link(dataframe, neighbors_df, sorted_npy_files_list,
+    dataframe, logs_df = detect_and_remove_redundant_parent_link(dataframe, neighbors_df, sorted_npy_files_list, logs_df)
 
     # try to assign new link
     df, assign_new_link_log, logs_df = correction_without_parent(dataframe, neighbors_df, sorted_npy_files_list,
                                                                  number_of_gap, check_cell_type, interval_time,
                                                                  min_life_history_of_bacteria, logs_df)
-
+                                                                 
     logs_list.extend(assign_new_link_log)
 
     df, logs_df = incorrect_same_link(df, neighbors_df, sorted_npy_files_list, min_life_history_of_bacteria,
