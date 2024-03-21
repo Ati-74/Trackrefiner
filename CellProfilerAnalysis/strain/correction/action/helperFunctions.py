@@ -693,7 +693,7 @@ def convert_to_um(data_frame, um_per_pixel=0.144):
     except:
         try:
             data_frame[cols1] = data_frame[cols1] * um_per_pixel
-        except TypeError:
+        except KeyError:
             data_frame[cols2] = data_frame[cols2] * um_per_pixel
 
     return data_frame
