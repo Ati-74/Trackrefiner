@@ -21,7 +21,7 @@ def make_initial_distance_matrix(masks_dict, source_time_step_df, sel_source_bac
             center_distance_df = calc_distance_matrix(sel_source_bacteria, sel_target_bacteria,
                                                       'Location_Center_X', 'Location_Center_Y')
 
-        except TypeError:
+        except KeyError:
             center_distance_df = calc_distance_matrix(sel_source_bacteria, sel_target_bacteria,
                                                       'AreaShape_Center_X', 'AreaShape_Center_Y')
 
@@ -45,7 +45,7 @@ def make_initial_distance_matrix(masks_dict, source_time_step_df, sel_source_bac
                                                                     'Location_Center_X', 'Location_Center_Y',
                                                                     'endppoint2_X', 'endppoint2_Y')
 
-            except TypeError:
+            except KeyError:
 
                 center_endpoint1_distance_df = calc_distance_matrix(sel_source_bacteria, sel_target_bacteria,
                                                                     'AreaShape_Center_X', 'AreaShape_Center_Y',
@@ -102,7 +102,7 @@ def make_initial_distance_matrix(masks_dict, source_time_step_df, sel_source_bac
                                  sel_target_bacteria.loc[target_bac_ndx]['endppoint2_Y']) ** 2
                             )
 
-                        except TypeError:
+                        except KeyError:
 
                             this_link_center_endpoint1_distance = np.sqrt(
                                 (sel_source_bacteria.loc[source_bac_ndx]['AreaShape_Center_X'] - \
