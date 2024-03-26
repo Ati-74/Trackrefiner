@@ -11,6 +11,11 @@ from CellProfilerAnalysis.strain.correction.action.bacteriaModification import r
 
 
 def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_files_list, logs_df):
+    try:
+        dataframe['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'      
 
     num_redundant_links = None
 
@@ -114,10 +119,10 @@ def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_f
 
                     direction_of_motion = \
                         calculate_trajectory_direction(
-                            np.array([dataframe.iloc[parent_indx]["AreaShape_Center_X"],
-                                      dataframe.iloc[parent_indx]["AreaShape_Center_Y"]]),
-                            np.array([dataframe.iloc[daughter_bac_ndx]["AreaShape_Center_X"],
-                                      dataframe.iloc[daughter_bac_ndx]["AreaShape_Center_Y"]]))
+                            np.array([dataframe.iloc[parent_indx][center_str + "Center_X"],
+                                      dataframe.iloc[parent_indx][center_str + "Center_Y"]]),
+                            np.array([dataframe.iloc[daughter_bac_ndx][center_str + "Center_X"],
+                                      dataframe.iloc[daughter_bac_ndx][center_str + "Center_Y"]]))
 
                     if str(neighbors_dir_motion[0]) != 'nan':
                         diff_direction_motion = np.sqrt(np.power(direction_of_motion[0] - neighbors_dir_motion[0], 2) +

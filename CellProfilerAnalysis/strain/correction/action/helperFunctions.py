@@ -5,7 +5,12 @@ from scipy.spatial.distance import euclidean
 
 
 def calc_neighbors_dir_motion(df, source_bac, neighbor_df):
-
+    try:
+        df['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'
+        
     direction_of_motion_list = {}
 
     neighbor_to_mother_info = find_neighbors_info(df, neighbor_df, source_bac)
@@ -22,10 +27,10 @@ def calc_neighbors_dir_motion(df, source_bac, neighbor_df):
         if neighbor_bac_in_next_time_step.shape[0] > 0:
             direction_of_motion = \
                 calculate_trajectory_direction(
-                    np.array([neighbor_bac["AreaShape_Center_X"],
-                              neighbor_bac["AreaShape_Center_Y"]]),
-                    np.array([neighbor_bac_in_next_time_step.iloc[0]["AreaShape_Center_X"],
-                              neighbor_bac_in_next_time_step.iloc[0]["AreaShape_Center_Y"]]))
+                    np.array([neighbor_bac[center_str + "Center_X"],
+                              neighbor_bac[center_str + "Center_Y"]]),
+                    np.array([neighbor_bac_in_next_time_step.iloc[0][center_str + "Center_X"],
+                              neighbor_bac_in_next_time_step.iloc[0][center_str + "Center_Y"]]))
 
             direction_of_motion_list[neighbor_bac_ndx] = [direction_of_motion]
 
@@ -33,10 +38,10 @@ def calc_neighbors_dir_motion(df, source_bac, neighbor_df):
             for daughter_ndx, daughter_bac in neighbor_bac_daughters_in_next_time_step.iterrows():
                 direction_of_motion = \
                     calculate_trajectory_direction(
-                        np.array([neighbor_bac["AreaShape_Center_X"],
-                                  neighbor_bac["AreaShape_Center_Y"]]),
-                        np.array([daughter_bac["AreaShape_Center_X"],
-                                  daughter_bac["AreaShape_Center_Y"]]))
+                        np.array([neighbor_bac[center_str + "Center_X"],
+                                  neighbor_bac[center_str + "Center_Y"]]),
+                        np.array([daughter_bac[center_str + "Center_X"],
+                                  daughter_bac[center_str + "Center_Y"]]))
 
                 direction_of_motion_list[neighbor_bac_ndx].append(direction_of_motion)
 
@@ -73,6 +78,12 @@ def adding_features_related_to_division(dataframe, bac_ndx, bacterium_status):
 
 def adding_features_to_each_timestep_except_first(dataframe, bac_indx_in_list, bac_indx_in_df, bacterium_status,
                                                   neighbor_df):
+    try:
+        dataframe['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'
+                                                  
     index_prev_stage_life = bac_indx_in_list - 1
 
     dataframe.at[bac_indx_in_df, "bac_length_to_back"] = \
@@ -81,18 +92,18 @@ def adding_features_to_each_timestep_except_first(dataframe, bac_indx_in_list, b
 
     direction_of_motion = \
         calculate_trajectory_direction_angle(
-            np.array([dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Center_X"],
+            np.array([dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][center_str + "Center_X"],
                       dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
-                          "AreaShape_Center_Y"]]),
-            np.array([dataframe.iloc[bac_indx_in_df]["AreaShape_Center_X"], dataframe.iloc[bac_indx_in_df]["AreaShape_Center_Y"]]))
+                          center_str + "Center_Y"]]),
+            np.array([dataframe.iloc[bac_indx_in_df][center_str + "Center_X"], dataframe.iloc[bac_indx_in_df][center_str + "Center_Y"]]))
 
     direction_of_motion_vector = \
         calculate_trajectory_direction(
-            np.array([dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Center_X"],
+            np.array([dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][center_str + "Center_X"],
                       dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
-                          "AreaShape_Center_Y"]]),
-            np.array([dataframe.iloc[bac_indx_in_df]["AreaShape_Center_X"],
-                      dataframe.iloc[bac_indx_in_df]["AreaShape_Center_Y"]]))
+                          center_str + "Center_Y"]]),
+            np.array([dataframe.iloc[bac_indx_in_df][center_str + "Center_X"],
+                      dataframe.iloc[bac_indx_in_df][center_str + "Center_Y"]]))
 
     neighbors_dir_motion = \
         calc_neighbors_dir_motion(dataframe,
@@ -108,22 +119,22 @@ def adding_features_to_each_timestep_except_first(dataframe, bac_indx_in_list, b
     dataframe.at[bac_indx_in_df, "angle_between_neighbor_motion_bac_motion"] = angle_between_motion
 
     center_movement = \
-        np.sqrt((dataframe.iloc[bac_indx_in_df]["AreaShape_Center_X"] -
+        np.sqrt((dataframe.iloc[bac_indx_in_df][center_str + "Center_X"] -
                  dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
-                     "AreaShape_Center_X"]) ** 2 +
-                (dataframe.iloc[bac_indx_in_df]["AreaShape_Center_Y"] -
+                     center_str + "Center_X"]) ** 2 +
+                (dataframe.iloc[bac_indx_in_df][center_str + "Center_Y"] -
                  dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
-                     "AreaShape_Center_Y"]) ** 2)
+                     center_str + "Center_Y"]) ** 2)
 
     prev_bacterium_endpoints = find_vertex(
-        [dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Center_X"],
-         dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Center_Y"]],
+        [dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][center_str + "Center_X"],
+         dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][center_str + "Center_Y"]],
         dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]][
             "AreaShape_MajorAxisLength"],
         dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]]["AreaShape_Orientation"])
 
     current_bacterium_endpoints = find_vertex(
-        [dataframe.iloc[bac_indx_in_df]["AreaShape_Center_X"], dataframe.iloc[bac_indx_in_df]["AreaShape_Center_Y"]],
+        [dataframe.iloc[bac_indx_in_df][center_str + "Center_X"], dataframe.iloc[bac_indx_in_df][center_str + "Center_Y"]],
         dataframe.iloc[bac_indx_in_df]["AreaShape_MajorAxisLength"], dataframe.iloc[bac_indx_in_df]["AreaShape_Orientation"])
 
     endpoint1_1_movement = \
@@ -162,6 +173,12 @@ def adding_features_to_each_timestep_except_first(dataframe, bac_indx_in_list, b
 
 
 def adding_features_only_for_last_time_step(dataframe, last_bacterium_in_life_history, bacterium_status):
+    try:
+        dataframe['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'
+        
     dataframe.at[last_bacterium_in_life_history, 'unexpected_end'] = bacterium_status['unexpected_end']
 
     dataframe.at[last_bacterium_in_life_history, "daughter_length_to_mother"] = \
@@ -175,13 +192,13 @@ def adding_features_only_for_last_time_step(dataframe, last_bacterium_in_life_hi
     if bacterium_status['division_occ'] and not bacterium_status['bad_division_occ']:
         daughters_df = dataframe.iloc[bacterium_status['daughters_index']]
 
-        daughter1_endpoints = find_vertex([daughters_df["AreaShape_Center_X"].values.tolist()[0],
-                                           daughters_df["AreaShape_Center_Y"].values.tolist()[0]],
+        daughter1_endpoints = find_vertex([daughters_df[center_str + "Center_X"].values.tolist()[0],
+                                           daughters_df[center_str + "Center_Y"].values.tolist()[0]],
                                           daughters_df["AreaShape_MajorAxisLength"].values.tolist()[0],
                                           daughters_df["AreaShape_Orientation"].values.tolist()[0])
 
-        daughter2_endpoints = find_vertex([daughters_df["AreaShape_Center_X"].values.tolist()[1],
-                                           daughters_df["AreaShape_Center_Y"].values.tolist()[1]],
+        daughter2_endpoints = find_vertex([daughters_df[center_str + "Center_X"].values.tolist()[1],
+                                           daughters_df[center_str + "Center_Y"].values.tolist()[1]],
                                           daughters_df["AreaShape_MajorAxisLength"].values.tolist()[1],
                                           daughters_df["AreaShape_Orientation"].values.tolist()[1])
 
@@ -298,7 +315,7 @@ def bacteria_features(df):
     try:
         center_x = df['Location_Center_X']
         center_y = df['Location_Center_Y']
-    except TypeError:
+    except KeyError:
         center_x = df['AreaShape_Center_X']
         center_y = df['AreaShape_Center_Y']
 
@@ -467,14 +484,19 @@ def min_max_normalize_row(row):
 
 
 def calc_distance_between_daughters(dataframe, d1_ndx, d2_ndx):
+    try:
+        dataframe['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'    
 
     daughter1 = dataframe.iloc[d1_ndx]
     daughter2 = dataframe.iloc[d2_ndx]
 
-    daughter1_endpoints = find_vertex([daughter1["AreaShape_Center_X"], daughter1["AreaShape_Center_Y"]],
+    daughter1_endpoints = find_vertex([daughter1[center_str + "Center_X"], daughter1[center_str + "Center_Y"]],
                                       daughter1["AreaShape_MajorAxisLength"], daughter1["AreaShape_Orientation"])
 
-    daughter2_endpoints = find_vertex([daughter2["AreaShape_Center_X"], daughter2["AreaShape_Center_Y"]],
+    daughter2_endpoints = find_vertex([daughter2[center_str + "Center_X"], daughter2[center_str + "Center_Y"]],
                                       daughter2["AreaShape_MajorAxisLength"], daughter2["AreaShape_Orientation"])
 
     endpoint1_2_dis = euclidean(daughter1_endpoints[0], daughter2_endpoints[1])

@@ -85,9 +85,16 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
 
             for list_indx, indx in enumerate(bacterium_status['lifeHistoryIndex']):
                 dataframe.at[indx, 'checked'] = True
-
+                
+                try:
+                    center_x = dataframe.iloc[indx]["AreaShape_Center_X"]
+                    center_y = dataframe.iloc[indx]["AreaShape_Center_Y"]
+                except:
+                    center_x = dataframe.iloc[indx]["Location_Center_X"]
+                    center_y = dataframe.iloc[indx]["Location_Center_Y"]
+                
                 current_bacterium_endpoints = find_vertex(
-                    [dataframe.iloc[indx]["AreaShape_Center_X"], dataframe.iloc[indx]["AreaShape_Center_Y"]],
+                    [center_x, center_y],
                     dataframe.iloc[indx]["AreaShape_MajorAxisLength"],
                     dataframe.iloc[indx]["AreaShape_Orientation"])
 

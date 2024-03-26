@@ -320,6 +320,11 @@ def receive_new_link_cost(df, neighbors_df, masks_dict, neighbors_bacteria_info,
 def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_link, all_bac_in_source_time_step,
                          target_incorrect_same_link,  all_bac_in_target_time_step, neighbors_bacteria_info,
                          neighbors_indx_dict):
+    try:
+        df['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'       
 
     parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
 
@@ -350,13 +355,13 @@ def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_lin
                 bac_to_bac_length_ratio = df.iloc[col]['AreaShape_MajorAxisLength'] / \
                                           source_bac['AreaShape_MajorAxisLength']
 
-                next_bac_endpoints = find_vertex([df.iloc[col]["AreaShape_Center_X"],
-                                                  df.iloc[col]["AreaShape_Center_Y"]],
+                next_bac_endpoints = find_vertex([df.iloc[col][center_str + "Center_X"],
+                                                  df.iloc[col][center_str + "Center_Y"]],
                                                  df.iloc[col]["AreaShape_MajorAxisLength"],
                                                  df.iloc[col]["AreaShape_Orientation"])
 
-                source_bac_endpoints = find_vertex([source_bac["AreaShape_Center_X"],
-                                                    source_bac["AreaShape_Center_Y"]],
+                source_bac_endpoints = find_vertex([source_bac[center_str + "Center_X"],
+                                                    source_bac[center_str + "Center_Y"]],
                                                    source_bac["AreaShape_MajorAxisLength"],
                                                    source_bac["AreaShape_Orientation"])
 
@@ -386,6 +391,11 @@ def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_lin
 
 def calc_maintenance_cost(df, masks_dict, all_bac_in_source_time_step, sel_source_bacteria_info,
                           all_bac_in_target_time_step, neighbor_df, sel_target_bacteria_info, F=False):
+    try:
+        df['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'       
 
     if sel_target_bacteria_info.shape[0] > 0 and sel_source_bacteria_info.shape[0] > 0:
         bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
@@ -410,10 +420,10 @@ def calc_maintenance_cost(df, masks_dict, all_bac_in_source_time_step, sel_sourc
                 neighbors_dir_motion = calc_neighbors_dir_motion(df, df.iloc[row_indx], neighbor_df)
                 direction_of_motion = \
                     calculate_trajectory_direction(
-                        np.array([df.iloc[row_indx]["AreaShape_Center_X"],
-                                  df.iloc[row_indx]["AreaShape_Center_Y"]]),
-                        np.array([df.iloc[col]["AreaShape_Center_X"],
-                                  df.iloc[col]["AreaShape_Center_Y"]]))
+                        np.array([df.iloc[row_indx][center_str + "Center_X"],
+                                  df.iloc[row_indx][center_str + "Center_Y"]]),
+                        np.array([df.iloc[col][center_str + "Center_X"],
+                                  df.iloc[col][center_str + "Center_Y"]]))
 
                 if str(neighbors_dir_motion[0]) != 'nan':
                     angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion, direction_of_motion)
@@ -470,6 +480,11 @@ def calc_maintenance_cost(df, masks_dict, all_bac_in_source_time_step, sel_sourc
 def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_bac_in_current_time_step,
                                   all_bac_in_current_time_step, all_bac_in_next_time_step,
                                   min_life_history_of_bacteria_time_step):
+    try:
+        df['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'   
 
     neighbor_changes = df['difference_neighbors'].values.tolist()
     neighbor_changes = [v for v in neighbor_changes if v != '']
@@ -552,10 +567,10 @@ def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_b
                 neighbors_dir_motion = calc_neighbors_dir_motion(df, unexpected_bac, neighbors_df)
 
                 direction_of_motion = \
-                    calculate_trajectory_direction(np.array([df.iloc[unexpected_ndx]["AreaShape_Center_X"],
-                                                             df.iloc[unexpected_ndx]["AreaShape_Center_Y"]]),
-                                                   np.array([df.iloc[col]["AreaShape_Center_X"],
-                                                             df.iloc[col]["AreaShape_Center_Y"]]))
+                    calculate_trajectory_direction(np.array([df.iloc[unexpected_ndx][center_str + "Center_X"],
+                                                             df.iloc[unexpected_ndx][center_str + "Center_Y"]]),
+                                                   np.array([df.iloc[col][center_str + "Center_X"],
+                                                             df.iloc[col][center_str + "Center_Y"]]))
 
                 if str(neighbors_dir_motion[0]) != 'nan':
                     angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion,

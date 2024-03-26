@@ -412,6 +412,12 @@ def adding_new_terms_to_cost_matrix(df, masks_dict, cost_df, maintenance_cost_df
                                     sum_daughter_len_to_mother_ratio_boundary,
                                     max_daughter_len_to_mother_ratio_boundary, min_life_history_of_bacteria,
                                     all_bacteria_in_source_time_step, all_bac_in_target_time_step_df):
+    try:
+        df['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'                                  
+                                    
     target_bac_len_to_source = target_bac['AreaShape_MajorAxisLength'] / source_bac['AreaShape_MajorAxisLength']
 
     source_bac_life_history = df.loc[(df['id'] == source_bac['id']) & (df['ImageNumber'] < target_bac['ImageNumber'])]
@@ -426,10 +432,10 @@ def adding_new_terms_to_cost_matrix(df, masks_dict, cost_df, maintenance_cost_df
     neighbors_dir_motion = calc_neighbors_dir_motion(df, source_bac, neighbors_df)
 
     direction_of_motion = \
-        calculate_trajectory_direction(np.array([source_bac["AreaShape_Center_X"],
-                                                 source_bac["AreaShape_Center_Y"]]),
-                                       np.array([target_bac["AreaShape_Center_X"],
-                                                 target_bac["AreaShape_Center_Y"]]))
+        calculate_trajectory_direction(np.array([source_bac[center_str + "Center_X"],
+                                                 source_bac[center_str + "Center_Y"]]),
+                                       np.array([target_bac[center_str + "Center_X"],
+                                                 target_bac[center_str + "Center_Y"]]))
 
     if str(neighbors_dir_motion[0]) != 'nan':
         angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion,

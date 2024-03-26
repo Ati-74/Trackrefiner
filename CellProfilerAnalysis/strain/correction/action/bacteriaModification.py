@@ -125,14 +125,14 @@ def new_parent_with_two_daughters(df, parent_life_history_before_current_time_st
 
             # angle between daughters
             daughter1_endpoints = (
-                find_vertex([old_daughter_current_time_step["AreaShape_Center_X"].values.tolist()[0],
-                             old_daughter_current_time_step["AreaShape_Center_Y"].values.tolist()[0]],
+                find_vertex([old_daughter_current_time_step[center_str + "Center_X"].values.tolist()[0],
+                             old_daughter_current_time_step[center_str + "Center_Y"].values.tolist()[0]],
                             old_daughter_current_time_step["AreaShape_MajorAxisLength"].values.tolist()[0],
                             old_daughter_current_time_step["AreaShape_Orientation"].values.tolist()[0]))
 
             daughter2_endpoints = (
-                find_vertex([new_daughter_current_time_step["AreaShape_Center_X"].values.tolist()[0],
-                             new_daughter_current_time_step["AreaShape_Center_Y"].values.tolist()[0]],
+                find_vertex([new_daughter_current_time_step[center_str + "Center_X"].values.tolist()[0],
+                             new_daughter_current_time_step[center_str + "Center_Y"].values.tolist()[0]],
                             new_daughter_current_time_step["AreaShape_MajorAxisLength"].values.tolist()[0],
                             new_daughter_current_time_step["AreaShape_Orientation"].values.tolist()[0]))
 
@@ -199,15 +199,15 @@ def new_daughter_modification(df, parent, daughter_life_history, neighbor_df, as
 
             direction_of_motion = \
                 calculate_trajectory_direction_angle(
-                    np.array([parent["AreaShape_Center_X"], parent["AreaShape_Center_Y"]]),
-                    np.array([df.iloc[daughter_ndx]["AreaShape_Center_X"],
-                              df.iloc[daughter_ndx]["AreaShape_Center_Y"]]))
+                    np.array([parent[center_str + "Center_X"], parent[center_str + "Center_Y"]]),
+                    np.array([df.iloc[daughter_ndx][center_str + "Center_X"],
+                              df.iloc[daughter_ndx][center_str + "Center_Y"]]))
 
             direction_of_motion_vector = \
                 calculate_trajectory_direction(
-                    np.array([parent["AreaShape_Center_X"], parent["AreaShape_Center_Y"]]),
-                    np.array([df.iloc[daughter_ndx]["AreaShape_Center_X"],
-                              df.iloc[daughter_ndx]["AreaShape_Center_Y"]]))
+                    np.array([parent[center_str + "Center_X"], parent[center_str + "Center_Y"]]),
+                    np.array([df.iloc[daughter_ndx][center_str + "Center_X"],
+                              df.iloc[daughter_ndx][center_str + "Center_Y"]]))
 
             df.at[daughter_ndx, "direction_of_motion"] = direction_of_motion
 
@@ -287,17 +287,17 @@ def parent_modification(df, parent_life_history, daughters, neighbor_df):
             else:
                 direction_of_motion = \
                     calculate_trajectory_direction_angle(
-                        np.array([df.iloc[grand_parent.index.values.tolist()[0]]["AreaShape_Center_X"],
-                                  df.iloc[grand_parent.index.values.tolist()[0]]["AreaShape_Center_Y"]]),
-                        np.array([df.iloc[parent_indx]["AreaShape_Center_X"],
-                                  df.iloc[parent_indx]["AreaShape_Center_Y"]]))
+                        np.array([df.iloc[grand_parent.index.values.tolist()[0]][center_str + "Center_X"],
+                                  df.iloc[grand_parent.index.values.tolist()[0]][center_str + "Center_Y"]]),
+                        np.array([df.iloc[parent_indx][center_str + "Center_X"],
+                                  df.iloc[parent_indx][center_str + "Center_Y"]]))
 
                 direction_of_motion_vector = \
                     calculate_trajectory_direction(
-                        np.array([df.iloc[grand_parent.index.values.tolist()[0]]["AreaShape_Center_X"],
-                                  df.iloc[grand_parent.index.values.tolist()[0]]["AreaShape_Center_Y"]]),
-                        np.array([df.iloc[parent_indx]["AreaShape_Center_X"],
-                                  df.iloc[parent_indx]["AreaShape_Center_Y"]]))
+                        np.array([df.iloc[grand_parent.index.values.tolist()[0]][center_str + "Center_X"],
+                                  df.iloc[grand_parent.index.values.tolist()[0]][center_str + "Center_Y"]]),
+                        np.array([df.iloc[parent_indx][center_str + "Center_X"],
+                                  df.iloc[parent_indx][center_str + "Center_Y"]]))
 
                 neighbors_dir_motion = \
                     calc_neighbors_dir_motion(df, df.iloc[grand_parent.index.values.tolist()[0]], neighbor_df)
@@ -335,13 +335,13 @@ def parent_modification(df, parent_life_history, daughters, neighbor_df):
                 max(division_frame_df["AreaShape_MajorAxisLength"].values.tolist()) / \
                 parent_bac["AreaShape_MajorAxisLength"]
 
-            daughter1_endpoints = find_vertex([division_frame_df["AreaShape_Center_X"].values.tolist()[0],
-                                               division_frame_df["AreaShape_Center_Y"].values.tolist()[0]],
+            daughter1_endpoints = find_vertex([division_frame_df[center_str + "Center_X"].values.tolist()[0],
+                                               division_frame_df[center_str + "Center_Y"].values.tolist()[0]],
                                               division_frame_df["AreaShape_MajorAxisLength"].values.tolist()[0],
                                               division_frame_df["AreaShape_Orientation"].values.tolist()[0])
 
-            daughter2_endpoints = find_vertex([division_frame_df["AreaShape_Center_X"].values.tolist()[1],
-                                               division_frame_df["AreaShape_Center_Y"].values.tolist()[1]],
+            daughter2_endpoints = find_vertex([division_frame_df[center_str + "Center_X"].values.tolist()[1],
+                                               division_frame_df[center_str + "Center_Y"].values.tolist()[1]],
                                               division_frame_df["AreaShape_MajorAxisLength"].values.tolist()[1],
                                               division_frame_df["AreaShape_Orientation"].values.tolist()[1])
 
@@ -359,6 +359,12 @@ def parent_modification(df, parent_life_history, daughters, neighbor_df):
 
 
 def same_bacterium_modification(df, bac1_life_history, bac2_life_history, neighbor_df):
+    try:
+        df['AreaShape_Center_X']
+        center_str = 'AreaShape_'
+    except:
+        center_str = 'Location_'      
+    
     # bac2 is after bac1
 
     # columns name
@@ -447,27 +453,27 @@ def same_bacterium_modification(df, bac1_life_history, bac2_life_history, neighb
                          bac1_life_history["endppoint1_Y"].values.tolist()[-1]) ** 2)
 
             center_movement = \
-                np.sqrt((bac2_life_history["AreaShape_Center_X"].values.tolist()[0] -
-                         bac1_life_history["AreaShape_Center_X"].values.tolist()[-1]) ** 2 +
-                        (bac2_life_history["AreaShape_Center_Y"].values.tolist()[0] -
-                         bac1_life_history["AreaShape_Center_Y"].values.tolist()[-1]) ** 2)
+                np.sqrt((bac2_life_history[center_str + "Center_X"].values.tolist()[0] -
+                         bac1_life_history[center_str + "Center_X"].values.tolist()[-1]) ** 2 +
+                        (bac2_life_history[center_str + "Center_Y"].values.tolist()[0] -
+                         bac1_life_history[center_str + "Center_Y"].values.tolist()[-1]) ** 2)
 
             df.at[bac2_ndx, "bacteria_movement"] = min(center_movement, endpoint1_1_movement, endpoint2_2_movement,
                                                        endpoint1_endpoint2_movement, endpoint2_endpoint1_movement)
 
             direction_of_motion = \
                 calculate_trajectory_direction_angle(
-                    np.array([bac1_life_history["AreaShape_Center_X"].values.tolist()[-1],
-                              bac1_life_history["AreaShape_Center_Y"].values.tolist()[-1]]),
-                    np.array([bac2_life_history["AreaShape_Center_X"].values.tolist()[0],
-                              bac2_life_history["AreaShape_Center_Y"].values.tolist()[0]]))
+                    np.array([bac1_life_history[center_str + "Center_X"].values.tolist()[-1],
+                              bac1_life_history[center_str + "Center_Y"].values.tolist()[-1]]),
+                    np.array([bac2_life_history[center_str + "Center_X"].values.tolist()[0],
+                              bac2_life_history[center_str + "Center_Y"].values.tolist()[0]]))
 
             direction_of_motion_vector = \
                 calculate_trajectory_direction(
-                    np.array([bac1_life_history["AreaShape_Center_X"].values.tolist()[-1],
-                              bac1_life_history["AreaShape_Center_Y"].values.tolist()[-1]]),
-                    np.array([bac2_life_history["AreaShape_Center_X"].values.tolist()[0],
-                              bac2_life_history["AreaShape_Center_Y"].values.tolist()[0]]))
+                    np.array([bac1_life_history[center_str + "Center_X"].values.tolist()[-1],
+                              bac1_life_history[center_str + "Center_Y"].values.tolist()[-1]]),
+                    np.array([bac2_life_history[center_str + "Center_X"].values.tolist()[0],
+                              bac2_life_history[center_str + "Center_Y"].values.tolist()[0]]))
 
             neighbors_dir_motion = \
                 calc_neighbors_dir_motion(df, df.iloc[bac1_life_history.index.values.tolist()[-1]], neighbor_df)
@@ -488,14 +494,14 @@ def same_bacterium_modification(df, bac1_life_history, bac2_life_history, neighb
                                                             -1]
 
             current_bacterium_endpoints = find_vertex(
-                [bac2_life_history["AreaShape_Center_X"].values.tolist()[0],
-                 bac2_life_history["AreaShape_Center_Y"].values.tolist()[0]],
+                [bac2_life_history[center_str + "Center_X"].values.tolist()[0],
+                 bac2_life_history[center_str + "Center_Y"].values.tolist()[0]],
                 bac2_life_history["AreaShape_MajorAxisLength"].values.tolist()[0],
                 bac2_life_history["AreaShape_Orientation"].values.tolist()[0])
 
             prev_bacterium_endpoints = find_vertex(
-                [bac1_life_history["AreaShape_Center_X"].values.tolist()[-1],
-                 bac1_life_history["AreaShape_Center_Y"].values.tolist()[-1]],
+                [bac1_life_history[center_str + "Center_X"].values.tolist()[-1],
+                 bac1_life_history[center_str + "Center_Y"].values.tolist()[-1]],
                 bac1_life_history["AreaShape_MajorAxisLength"].values.tolist()[-1],
                 bac1_life_history["AreaShape_Orientation"].values.tolist()[-1])
 
