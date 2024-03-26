@@ -394,7 +394,7 @@ def k_nearest_neighbors(target_bacterium, other_bacteria, distance_check=True):
     # calculate distance matrix
     try:
         distance_df = calc_distance_matrix(target_bacterium, other_bacteria, 'Location_Center_X', 'Location_Center_Y')
-    except TypeError:
+    except KeyError:
         distance_df = calc_distance_matrix(target_bacterium, other_bacteria, 'AreaShape_Center_X', 'AreaShape_Center_Y')
 
     distance_df = distance_df.reset_index(drop=True).sort_values(by=0, ascending=True, axis=1)
