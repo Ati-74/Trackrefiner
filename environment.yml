@@ -10,3 +10,5 @@ dependencies:
   - scikit-learn
   - matplotlib
   - opencv-python
+  - setuptools
+  - scikit-image
