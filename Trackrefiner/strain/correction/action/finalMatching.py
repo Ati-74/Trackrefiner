@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
+from Trackrefiner.strain.correction.action.bacteriaModification import bacteria_modification
+from Trackrefiner.strain.correction.action.findOutlier import find_final_bac_change_length_ratio_outliers
+from Trackrefiner.strain.correction.action.compareBacteria import final_division_detection_cost
 
-from CellProfilerAnalysis.strain.correction.action.bacteriaModification import bacteria_modification
-from CellProfilerAnalysis.strain.correction.action.findOutlier import find_final_bac_change_length_ratio_outliers
-from CellProfilerAnalysis.strain.correction.action.compareBacteria import final_division_detection_cost
 
-
-def assign_new_link(df, neighbors_df, source_bac_index, source_bac, division_cost_df, all_bac_in_target_time_step):
+def assign_new_link(df, neighbors_df, source_bac_index, source_bac, division_cost_df, all_bac_in_target_time_step,
+                    parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns):
 
     source_bac_division_cost = division_cost_df.loc[division_cost_df['without parent index'] == source_bac_index]
 
@@ -18,18 +18,19 @@ def assign_new_link(df, neighbors_df, source_bac_index, source_bac, division_cos
             new_daughter_life_history = df.loc[df['id'] == new_daughter['id']]
 
             df = bacteria_modification(df, source_bac, new_daughter_life_history, all_bac_in_target_time_step,
-                                           neighbors_df)
+                                       neighbors_df, parent_image_number_col, parent_object_number_col, label_col,
+                                       center_coordinate_columns)
 
     return df
 
 
-def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time, sorted_npy_files_list, logs_df):
+def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time, sorted_npy_files_list,
+                   parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns, logs_df):
 
     num_incorrect_same_links = None
     prev_bacteria_with_wrong_same_link = None
     n_iterate = 0
 
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
     # min life history of bacteria
     min_life_history_of_bacteria_time_step = np.round_(min_life_history_of_bacteria / interval_time)
 
@@ -95,12 +96,14 @@ def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time
                                                                  min_life_history_of_bacteria_time_step,
                                                                  target_incorrect_same_link,
                                                                  all_bac_in_target_time_step, neighbors_bacteria_info,
-                                                                 neighbors_indx_dict)
+                                                                 neighbors_indx_dict, center_coordinate_columns,
+                                                                 parent_object_number_col)
 
                 # try to modify the links
                 for source_bac_index, source_bac in source_incorrect_same_link.iterrows():
                     df = assign_new_link(df, neighbors_df, source_bac_index, source_bac, division_cost_df,
-                                         all_bac_in_target_time_step)
+                                         all_bac_in_target_time_step, parent_image_number_col, parent_object_number_col,
+                                         label_col, center_coordinate_columns)
                     logs_df = pd.concat([logs_df, df.iloc[source_bac_index].to_frame().transpose()],
                                         ignore_index=True)
 

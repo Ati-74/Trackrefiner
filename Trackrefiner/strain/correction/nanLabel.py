@@ -1,10 +1,6 @@
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import find_related_bacteria
+from Trackrefiner.strain.correction.action.helperFunctions import find_related_bacteria
 
-
-def modify_nan_labels(df):
-
-    # column name
-    label_col = [col for col in df.columns if 'TrackObjects_Label_' in col][0]
+def modify_nan_labels(df, label_col):
 
     # Correct the labels of bacteria whose labels are nan.
     nan_label_bacteria = df.loc[df[label_col].isnull()]

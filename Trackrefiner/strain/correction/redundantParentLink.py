@@ -1,16 +1,17 @@
 import numpy as np
 import pandas as pd
-
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import distance_normalization, \
+from Trackrefiner.strain.correction.action.helperFunctions import distance_normalization, \
     calculate_trajectory_direction, calc_neighbors_dir_motion
-from CellProfilerAnalysis.strain.correction.action.compareBacteria import (make_initial_distance_matrix,
-                                                                           receive_new_link_cost, optimize_assignment)
-from CellProfilerAnalysis.strain.correction.action.findOutlier import find_daughter_len_to_mother_ratio_outliers, \
+from Trackrefiner.strain.correction.action.compareBacteria import (make_initial_distance_matrix,
+                                                                   receive_new_link_cost, optimize_assignment)
+from Trackrefiner.strain.correction.action.findOutlier import find_daughter_len_to_mother_ratio_outliers, \
     find_bac_len_to_bac_ratio_boundary
-from CellProfilerAnalysis.strain.correction.action.bacteriaModification import remove_redundant_link
+from Trackrefiner.strain.correction.action.bacteriaModification import remove_redundant_link
 
 
-def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_files_list, logs_df):
+def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_files_list,
+                                            parent_image_number_col, parent_object_number_col, label_col,
+                                            center_coordinate_columns, logs_df):
 
     num_redundant_links = None
 
@@ -33,11 +34,6 @@ def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_f
                           ]
 
         num_redundant_links = bacteria_with_redundant_parent_link_error.shape[0]
-
-        # print("number of redundant parent link error: ")
-        # print(bacteria_with_redundant_parent_link_error.shape[0])
-        # print("more information: ")
-        # print(bacteria_with_redundant_parent_link_error)
 
         bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(dataframe)
 
@@ -76,7 +72,8 @@ def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_f
                 overlap_df, distance_df = make_initial_distance_matrix(sorted_npy_files_list, bacteria_in_current_time_step,
                                                                        parent_with_redundant_link.to_frame().transpose(),
                                                                        bacteria_in_next_time_step,
-                                                                       daughters_at_first_time_step_of_life_history)
+                                                                       daughters_at_first_time_step_of_life_history,
+                                                                       center_coordinate_columns)
 
                 normalized_distance_df = distance_normalization(dataframe, distance_df)
 
@@ -100,7 +97,8 @@ def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_f
                 else:
                     parent_increase_length_ratio_avg = 1
 
-                neighbors_dir_motion = calc_neighbors_dir_motion(dataframe, parent_with_redundant_link, neighbor_df)
+                neighbors_dir_motion = calc_neighbors_dir_motion(dataframe, parent_with_redundant_link, neighbor_df,
+                                                                 center_coordinate_columns)
 
                 daughter_neighbor_changes = (
                     max(candidate_daughters_at_first_time_step_of_life_history['difference_neighbors'].values.tolist()))
@@ -114,10 +112,10 @@ def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_f
 
                     direction_of_motion = \
                         calculate_trajectory_direction(
-                            np.array([dataframe.iloc[parent_indx]["AreaShape_Center_X"],
-                                      dataframe.iloc[parent_indx]["AreaShape_Center_Y"]]),
-                            np.array([dataframe.iloc[daughter_bac_ndx]["AreaShape_Center_X"],
-                                      dataframe.iloc[daughter_bac_ndx]["AreaShape_Center_Y"]]))
+                            np.array([dataframe.iloc[parent_indx][center_coordinate_columns['x']],
+                                      dataframe.iloc[parent_indx][center_coordinate_columns['y']]]),
+                            np.array([dataframe.iloc[daughter_bac_ndx][center_coordinate_columns['x']],
+                                      dataframe.iloc[daughter_bac_ndx][center_coordinate_columns['y']]]))
 
                     if str(neighbors_dir_motion[0]) != 'nan':
                         diff_direction_motion = np.sqrt(np.power(direction_of_motion[0] - neighbors_dir_motion[0], 2) +
@@ -159,7 +157,8 @@ def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_f
                 new_link_cost_df = receive_new_link_cost(dataframe, neighbor_df, sorted_npy_files_list, neighbors_bacteria_info,
                                                          bacteria_in_current_time_step,
                                                          candidate_daughters_at_first_time_step_of_life_history,
-                                                         bacteria_in_next_time_step)
+                                                         bacteria_in_next_time_step, center_coordinate_columns,
+                                                         parent_image_number_col)
 
                 final_cost = pd.concat([cost_df, new_link_cost_df])
                 result_df = optimize_assignment(final_cost)
@@ -179,7 +178,10 @@ def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_f
                                                             incorrect_daughters_at_first_time_step_of_life_history[
                                                                 'id'].values.tolist()[0]]
 
-            dataframe = remove_redundant_link(dataframe, wrong_daughter_life_history, neighbor_df)
+            dataframe = remove_redundant_link(dataframe, wrong_daughter_life_history, neighbor_df,
+                                              parent_image_number_col, parent_object_number_col, label_col,
+                                              center_coordinate_columns)
+
             logs_df = pd.concat([logs_df, wrong_daughter_life_history.iloc[0].to_frame().transpose()],
                                 ignore_index=True)
     return dataframe, logs_df

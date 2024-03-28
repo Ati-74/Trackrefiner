@@ -32,7 +32,7 @@ def calculate_growth_rate(df_life_history, interval_time, growth_rate_method):
         if growth_rate_method == "Average":
             t = life_history_length * interval_time
             elongation_rate = calculate_average_growth_rate(division_length, birth_length, t)
-        if growth_rate_method == "Linear Regression":
+        elif growth_rate_method == "Linear Regression":
             # linear regression
             time = df_life_history["ImageNumber"].values * interval_time
             length = df_life_history["AreaShape_MajorAxisLength"].values

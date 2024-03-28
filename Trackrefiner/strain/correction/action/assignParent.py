@@ -1,5 +1,5 @@
 import numpy as np
-from CellProfilerAnalysis.strain.correction.action.bacteriaModification import bacteria_modification, remove_redundant_link
+from Trackrefiner.strain.correction.action.bacteriaModification import bacteria_modification, remove_redundant_link
 
 
 def find_candidate_parents(without_source_bac_index, optimized_cost_df_list, redundant_link_dict_list):
@@ -40,7 +40,8 @@ def find_candidate_parents(without_source_bac_index, optimized_cost_df_list, red
     return correct_link_bac_indx, redundant_bac_ndx, lowest_cost
 
 
-def assign_parent(df, without_source_bac_index, optimized_cost_df_list, redundant_link_dict_list, neighbors_df):
+def assign_parent(df, without_source_bac_index, optimized_cost_df_list, redundant_link_dict_list, neighbors_df,
+                  parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns):
     """
     we should find the nearest candidate bacterium in the previous time steps that has:
     similar Intensity_MeanIntensity pattern (if exist)
@@ -64,7 +65,8 @@ def assign_parent(df, without_source_bac_index, optimized_cost_df_list, redundan
                 wrong_daughter_life_history = df.loc[(df['id'] == df.iloc[redundant_bac_ndx]['id']) &
                                                      (df['ImageNumber'] >= df.iloc[without_source_bac_index]['ImageNumber'])]
 
-                df = remove_redundant_link(df, wrong_daughter_life_history, neighbors_df)
+                df = remove_redundant_link(df, wrong_daughter_life_history, neighbors_df, parent_image_number_col,
+                          parent_object_number_col, label_col, center_coordinate_columns)
 
         # find related bacteria to this transition bacterium
         correct_source_bacterium = df.iloc[correct_source_link_bac_indx]
@@ -74,7 +76,10 @@ def assign_parent(df, without_source_bac_index, optimized_cost_df_list, redundan
         all_bac_in_without_source_bac_time_step = df.loc[df['ImageNumber'] == without_source_bacterium['ImageNumber']]
 
         df = bacteria_modification(df, correct_source_bacterium, without_source_bacterium_life_history,
-                                   all_bac_in_without_source_bac_time_step, neighbor_df=neighbors_df)
+                                   all_bac_in_without_source_bac_time_step, neighbor_df=neighbors_df,
+                                   parent_image_number_col=parent_image_number_col,
+                                   parent_object_number_col=parent_object_number_col, label_col=label_col,
+                                   center_coordinate_columns=center_coordinate_columns)
 
         assign_new_link_flag = True
 

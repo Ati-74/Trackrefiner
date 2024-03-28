@@ -1,7 +1,5 @@
 import numpy as np
-
-from CellProfilerAnalysis.strain.correction.action.findOutlier import find_bac_change_length_ratio_outliers, \
-    find_daughter_len_to_mother_ratio_outliers, find_max_daughter_len_to_mother_ratio_boundary
+from Trackrefiner.strain.correction.action.findOutlier import  find_daughter_len_to_mother_ratio_outliers
 
 
 def does_it_cause_error(df, bac1, bac2):

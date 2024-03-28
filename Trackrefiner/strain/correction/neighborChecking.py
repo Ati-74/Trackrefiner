@@ -1,7 +1,4 @@
-def neighbor_checking(df, neighbor_df):
-    # columns name
-    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+def neighbor_checking(df, neighbor_df, parent_image_number_col, parent_object_number_col):
 
     for bac_id in df['id'].unique():
         bac_life_history = df.loc[df['id'] == bac_id]
@@ -81,12 +78,9 @@ def neighbor_checking(df, neighbor_df):
     return df
 
 
-def check_num_neighbors(df, neighbor_df, bac1, bac2, return_common_elements=False):
+def check_num_neighbors(df, neighbor_df, bac1, bac2, parent_image_number_col, return_common_elements=False):
 
-    # bac2 is after bac1
-
-    # columns name
-    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
+    # Note: bac2 is after bac1
 
     neighbor_bac1_id_list = []
     parent_bac1_id_list = []

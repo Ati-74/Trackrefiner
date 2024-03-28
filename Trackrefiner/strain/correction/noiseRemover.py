@@ -1,7 +1,6 @@
 import pandas as pd
-from CellProfilerAnalysis.strain.correction.action.findOutlier import find_bac_len_boundary
-from CellProfilerAnalysis.strain.correction.action.bacteriaModification import remove_bac
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import remove_rows
+from Trackrefiner.strain.correction.action.findOutlier import find_bac_len_boundary
+from Trackrefiner.strain.correction.action.bacteriaModification import remove_bac
 
 
 def remove_from_neighbors_df(neighbors_df, bad_obj):
@@ -27,7 +26,8 @@ def remove_from_neighbors_df(neighbors_df, bad_obj):
     return neighbors_df
 
 
-def noise_remover(df, neighbors_df, logs_df):
+def noise_remover(df, neighbors_df, parent_image_number_col, parent_object_number_col, label_col,
+                  center_coordinate_columns, logs_df):
 
     num_noise_obj = None
 
@@ -41,17 +41,16 @@ def noise_remover(df, neighbors_df, logs_df):
         num_noise_obj = noise_objects_df.shape[0]
 
         if noise_objects_df.shape[0] > 0:
-            noise_objects_log = ["The objects listed below are identified as noise and have been removed.: " \
+            noise_objects_log = ["The objects listed below are identified as noise and have been removed.: "
                                  "\n ImageNumber\tObjectNumber"]
         else:
             noise_objects_log = ['']
 
-        # print("number of noise objects: ")
-        # print(noise_objects_df.shape[0])
-
         for noise_bac_ndx, noise_bac in noise_objects_df.iterrows():
 
-            df = remove_bac(df, noise_bac_ndx, noise_bac, neighbors_df)
+            df = remove_bac(df, noise_bac_ndx, noise_bac, neighbors_df, parent_image_number_col,
+                            parent_object_number_col, label_col, center_coordinate_columns)
+
             df.at[noise_bac_ndx, 'noise_bac'] = True
 
             logs_df = pd.concat([logs_df, df.iloc[noise_bac_ndx].to_frame().transpose()], ignore_index=True)

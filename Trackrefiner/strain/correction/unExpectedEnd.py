@@ -1,13 +1,14 @@
 import pandas as pd
-
-from CellProfilerAnalysis.strain.correction.action.compareBacteria import adding_new_link_to_unexpected
-from CellProfilerAnalysis.strain.correction.action.compareBacteria import optimize_assignment
-from CellProfilerAnalysis.strain.correction.action.bacteriaModification import bacteria_modification
 import numpy as np
+from Trackrefiner.strain.correction.action.compareBacteria import adding_new_link_to_unexpected
+from Trackrefiner.strain.correction.action.compareBacteria import optimize_assignment
+from Trackrefiner.strain.correction.action.bacteriaModification import bacteria_modification
 
 
 def adding_new_link(df, neighbors_df, unexpected_end_bac_index, unexpected_end_bac_bac, new_link_result_df,
-                    optimized_daughter_cost):
+                    optimized_daughter_cost, parent_image_number_col, parent_object_number_col, label_col,
+                    center_coordinate_columns):
+
     new_link_cost = new_link_result_df.loc[new_link_result_df['without parent index'] == unexpected_end_bac_index]
 
     if new_link_cost.shape[0] > 0:
@@ -34,9 +35,12 @@ def adding_new_link(df, neighbors_df, unexpected_end_bac_index, unexpected_end_b
                     all_bac_in_target_time_step = df.loc[df['ImageNumber'] == target_bac['ImageNumber']]
 
                     df = bacteria_modification(df, unexpected_end_bac_bac, target_bac_life_history,
-                                               all_bac_in_target_time_step, neighbors_df)
+                                               all_bac_in_target_time_step, neighbors_df, parent_image_number_col,
+                                               parent_object_number_col, label_col, center_coordinate_columns)
+
                     df = bacteria_modification(df, unexpected_end_bac_bac, another_target_bac_life_history,
-                                               all_bac_in_target_time_step, neighbors_df)
+                                               all_bac_in_target_time_step, neighbors_df, parent_image_number_col,
+                                               parent_object_number_col, label_col, center_coordinate_columns)
                 else:
                     target_bac = df.iloc[
                         new_link_cost['Candida bacteria index in previous time step'].values.tolist()[0]]
@@ -44,7 +48,8 @@ def adding_new_link(df, neighbors_df, unexpected_end_bac_index, unexpected_end_b
                     all_bac_in_target_time_step = df.loc[df['ImageNumber'] == target_bac['ImageNumber']]
 
                     df = bacteria_modification(df, unexpected_end_bac_bac, target_bac_life_history,
-                                               all_bac_in_target_time_step, neighbors_df)
+                                               all_bac_in_target_time_step, neighbors_df, parent_image_number_col,
+                                               parent_object_number_col, label_col, center_coordinate_columns)
 
             else:
                 target_bac = df.iloc[new_link_cost['Candida bacteria index in previous time step'].values.tolist()[0]]
@@ -52,13 +57,14 @@ def adding_new_link(df, neighbors_df, unexpected_end_bac_index, unexpected_end_b
                 all_bac_in_target_time_step = df.loc[df['ImageNumber'] == target_bac['ImageNumber']]
 
                 df = bacteria_modification(df, unexpected_end_bac_bac, target_bac_life_history,
-                                           all_bac_in_target_time_step,
-                                           neighbors_df)
+                                           all_bac_in_target_time_step, neighbors_df, parent_image_number_col,
+                                           parent_object_number_col, label_col, center_coordinate_columns)
 
     return df
 
 
 def unexpected_end_bacteria(df, neighbors_df, sorted_npy_files_list, min_life_history_of_bacteria, interval_time,
+                            parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                             logs_df):
 
     num_incorrect_same_links = None
@@ -66,24 +72,25 @@ def unexpected_end_bacteria(df, neighbors_df, sorted_npy_files_list, min_life_hi
     n_iterate = 0
 
     # min life history of bacteria
-    min_life_history_of_bacteria_time_step = np.round_(min_life_history_of_bacteria / interval_time)
+    # min_life_history_of_bacteria_time_step = np.round_(min_life_history_of_bacteria / interval_time)
 
     while num_incorrect_same_links != 0:
-        unexpected_end_bacteria = df.loc[(df['unexpected_end'] == True) & (df['noise_bac'] == False)]
+
+        df_unexpected_end_bacteria = df.loc[(df['unexpected_end'] == True) & (df['noise_bac'] == False)]
 
         if n_iterate > 0:
-            if prev_bacteria_with_wrong_same_link.values.all() == unexpected_end_bacteria.values.all():
+            if prev_bacteria_with_wrong_same_link.values.all() == df_unexpected_end_bacteria.values.all():
                 num_incorrect_same_links = 0
             else:
-                num_incorrect_same_links = unexpected_end_bacteria.shape[0]
+                num_incorrect_same_links = df_unexpected_end_bacteria.shape[0]
 
-        prev_bacteria_with_wrong_same_link = unexpected_end_bacteria
+        prev_bacteria_with_wrong_same_link = df_unexpected_end_bacteria
 
-        if unexpected_end_bacteria.shape[0] > 0:
-            for unexpected_end_bacteria_time_step in unexpected_end_bacteria['ImageNumber'].unique():
+        if df_unexpected_end_bacteria.shape[0] > 0:
+            for unexpected_end_bacteria_time_step in df_unexpected_end_bacteria['ImageNumber'].unique():
                 unexpected_end_bac_in_current_time_step_df = \
-                    unexpected_end_bacteria.loc[
-                        unexpected_end_bacteria['ImageNumber'] == unexpected_end_bacteria_time_step]
+                    df_unexpected_end_bacteria.loc[
+                        df_unexpected_end_bacteria['ImageNumber'] == unexpected_end_bacteria_time_step]
 
                 all_bac_in_current_time_step = df.loc[df['ImageNumber'] == unexpected_end_bacteria_time_step]
                 all_bac_in_next_time_step = df.loc[df['ImageNumber'] == unexpected_end_bacteria_time_step + 1]
@@ -92,7 +99,8 @@ def unexpected_end_bacteria(df, neighbors_df, sorted_npy_files_list, min_life_hi
                     adding_new_link_to_unexpected(df, neighbors_df, sorted_npy_files_list,
                                                   unexpected_end_bac_in_current_time_step_df,
                                                   all_bac_in_current_time_step, all_bac_in_next_time_step,
-                                                  min_life_history_of_bacteria_time_step)
+                                                  center_coordinate_columns, parent_image_number_col,
+                                                  parent_object_number_col)
 
                 if len(candidate_new_bac_daughter_list_id.keys()) > 0:
                     daughter_ndx = [item for sublist in list(candidate_new_bac_daughter_list_id.values()) for item in
@@ -122,12 +130,11 @@ def unexpected_end_bacteria(df, neighbors_df, sorted_npy_files_list, min_life_hi
                     unexpected_bac = df.iloc[unexpected_end_bac_index]
 
                     df = adding_new_link(df, neighbors_df, unexpected_end_bac_index, unexpected_bac,
-                                         new_link_result_df, optimized_daughter_cost)
+                                         new_link_result_df, optimized_daughter_cost, parent_image_number_col,
+                                         parent_object_number_col, label_col, center_coordinate_columns)
 
                     logs_df = pd.concat([logs_df, df.iloc[unexpected_end_bac_index].to_frame().transpose()],
                                         ignore_index=True)
-
-                    # df.to_csv(str(unexpected_end_bac_index) + '.csv')
 
         n_iterate += 1
     return df, logs_df

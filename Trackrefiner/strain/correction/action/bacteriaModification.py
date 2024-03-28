@@ -1,16 +1,13 @@
 import numpy as np
 import pandas as pd
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import find_vertex, calculate_slope_intercept, \
+from Trackrefiner.strain.correction.action.helperFunctions import find_vertex, calculate_slope_intercept, \
     calculate_orientation_angle, calculate_trajectory_direction_angle, find_related_bacteria, calc_neighbors_dir_motion,\
     calculate_trajectory_direction, calc_normalized_angle_between_motion
-from CellProfilerAnalysis.strain.correction.neighborChecking import check_num_neighbors
+from Trackrefiner.strain.correction.neighborChecking import check_num_neighbors
 
 
-def new_transition_bacteria(df, fake_daughter_life_history):
-    # columns name
-    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
-    label_col = [col for col in df.columns if 'TrackObjects_Label_' in col][0]
+def new_transition_bacteria(df, fake_daughter_life_history, parent_image_number_col, parent_object_number_col,
+                            label_col):
 
     fake_daughter_life_history_before_this_time = \
         df.loc[(df['id'] == fake_daughter_life_history['id'].values.tolist()[0]) &
@@ -101,7 +98,8 @@ def new_transition_bacteria(df, fake_daughter_life_history):
 
 
 def new_parent_with_two_daughters(df, parent_life_history_before_current_time_step, old_daughter_current_time_step,
-                                  new_daughter_current_time_step):
+                                  new_daughter_current_time_step, center_coordinate_columns):
+
     for parent_bac_indx, parent_bac in parent_life_history_before_current_time_step.iterrows():
         df.at[parent_bac_indx, "divideFlag"] = True
         df.at[parent_bac_indx, "daughters_index"] = [old_daughter_current_time_step.index.values.tolist()[0],
@@ -125,14 +123,14 @@ def new_parent_with_two_daughters(df, parent_life_history_before_current_time_st
 
             # angle between daughters
             daughter1_endpoints = (
-                find_vertex([old_daughter_current_time_step["AreaShape_Center_X"].values.tolist()[0],
-                             old_daughter_current_time_step["AreaShape_Center_Y"].values.tolist()[0]],
+                find_vertex([old_daughter_current_time_step[center_coordinate_columns['x']].values.tolist()[0],
+                             old_daughter_current_time_step[center_coordinate_columns['y']].values.tolist()[0]],
                             old_daughter_current_time_step["AreaShape_MajorAxisLength"].values.tolist()[0],
                             old_daughter_current_time_step["AreaShape_Orientation"].values.tolist()[0]))
 
             daughter2_endpoints = (
-                find_vertex([new_daughter_current_time_step["AreaShape_Center_X"].values.tolist()[0],
-                             new_daughter_current_time_step["AreaShape_Center_Y"].values.tolist()[0]],
+                find_vertex([new_daughter_current_time_step[center_coordinate_columns['x']].values.tolist()[0],
+                             new_daughter_current_time_step[center_coordinate_columns['y']].values.tolist()[0]],
                             new_daughter_current_time_step["AreaShape_MajorAxisLength"].values.tolist()[0],
                             new_daughter_current_time_step["AreaShape_Orientation"].values.tolist()[0]))
 
@@ -156,11 +154,8 @@ def new_parent_with_two_daughters(df, parent_life_history_before_current_time_st
     return df
 
 
-def new_daughter_modification(df, parent, daughter_life_history, neighbor_df, assign_new_id=True):
-    # columns name
-    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
-    label_col = [col for col in df.columns if 'TrackObjects_Label_' in col][0]
+def new_daughter_modification(df, parent, daughter_life_history, neighbor_df, parent_image_number_col,
+                              parent_object_number_col, label_col, center_coordinate_columns, assign_new_id=True):
 
     daughter_index_first_time_step_life_history = daughter_life_history.index.values.tolist()[0]
     daughter_first_time_step_life_history = df.iloc[daughter_index_first_time_step_life_history]
@@ -190,7 +185,8 @@ def new_daughter_modification(df, parent, daughter_life_history, neighbor_df, as
         if daughter_ndx == daughter_life_history.index[0]:
             df.at[daughter_ndx, "transition"] = False
             df.at[daughter_ndx, "difference_neighbors"] = check_num_neighbors(df, neighbor_df, parent,
-                                                                              daughter_bacterium)
+                                                                              daughter_bacterium,
+                                                                              parent_image_number_col)
             df.at[daughter_ndx, "bac_length_to_back"] = ''
             df.at[daughter_ndx, "bacteria_movement"] = ''
             df.at[daughter_ndx, "bac_length_to_back_orientation_changes"] = ''
@@ -199,19 +195,19 @@ def new_daughter_modification(df, parent, daughter_life_history, neighbor_df, as
 
             direction_of_motion = \
                 calculate_trajectory_direction_angle(
-                    np.array([parent["AreaShape_Center_X"], parent["AreaShape_Center_Y"]]),
-                    np.array([df.iloc[daughter_ndx]["AreaShape_Center_X"],
-                              df.iloc[daughter_ndx]["AreaShape_Center_Y"]]))
+                    np.array([parent[center_coordinate_columns['x']], parent[center_coordinate_columns['y']]]),
+                    np.array([df.iloc[daughter_ndx][center_coordinate_columns['x']],
+                              df.iloc[daughter_ndx][center_coordinate_columns['y']]]))
 
             direction_of_motion_vector = \
                 calculate_trajectory_direction(
-                    np.array([parent["AreaShape_Center_X"], parent["AreaShape_Center_Y"]]),
-                    np.array([df.iloc[daughter_ndx]["AreaShape_Center_X"],
-                              df.iloc[daughter_ndx]["AreaShape_Center_Y"]]))
+                    np.array([parent[center_coordinate_columns['x']], parent[center_coordinate_columns['y']]]),
+                    np.array([df.iloc[daughter_ndx][center_coordinate_columns['x']],
+                              df.iloc[daughter_ndx][center_coordinate_columns['y']]]))
 
             df.at[daughter_ndx, "direction_of_motion"] = direction_of_motion
 
-            neighbors_dir_motion = calc_neighbors_dir_motion(df, parent, neighbor_df)
+            neighbors_dir_motion = calc_neighbors_dir_motion(df, parent, neighbor_df, center_coordinate_columns)
             if str(neighbors_dir_motion[0]) != 'nan':
                 angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion,
                                                                             direction_of_motion_vector)
@@ -259,11 +255,8 @@ def new_daughter_modification(df, parent, daughter_life_history, neighbor_df, as
     return df
 
 
-def parent_modification(df, parent_life_history, daughters, neighbor_df):
-
-    # columns name
-    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+def parent_modification(df, parent_life_history, daughters, neighbor_df, parent_image_number_col,
+                        parent_object_number_col, center_coordinate_columns):
 
     grand_parent = df.loc[(df['ImageNumber'] == parent_life_history[parent_image_number_col].values.tolist()[0]) &
                           (df['ObjectNumber'] == parent_life_history[parent_object_number_col].values.tolist()[0])]
@@ -287,20 +280,21 @@ def parent_modification(df, parent_life_history, daughters, neighbor_df):
             else:
                 direction_of_motion = \
                     calculate_trajectory_direction_angle(
-                        np.array([df.iloc[grand_parent.index.values.tolist()[0]]["AreaShape_Center_X"],
-                                  df.iloc[grand_parent.index.values.tolist()[0]]["AreaShape_Center_Y"]]),
-                        np.array([df.iloc[parent_indx]["AreaShape_Center_X"],
-                                  df.iloc[parent_indx]["AreaShape_Center_Y"]]))
+                        np.array([df.iloc[grand_parent.index.values.tolist()[0]][center_coordinate_columns['x']],
+                                  df.iloc[grand_parent.index.values.tolist()[0]][center_coordinate_columns['y']]]),
+                        np.array([df.iloc[parent_indx][center_coordinate_columns['x']],
+                                  df.iloc[parent_indx][center_coordinate_columns['y']]]))
 
                 direction_of_motion_vector = \
                     calculate_trajectory_direction(
-                        np.array([df.iloc[grand_parent.index.values.tolist()[0]]["AreaShape_Center_X"],
-                                  df.iloc[grand_parent.index.values.tolist()[0]]["AreaShape_Center_Y"]]),
-                        np.array([df.iloc[parent_indx]["AreaShape_Center_X"],
-                                  df.iloc[parent_indx]["AreaShape_Center_Y"]]))
+                        np.array([df.iloc[grand_parent.index.values.tolist()[0]][center_coordinate_columns['x']],
+                                  df.iloc[grand_parent.index.values.tolist()[0]][center_coordinate_columns['y']]]),
+                        np.array([df.iloc[parent_indx][center_coordinate_columns['x']],
+                                  df.iloc[parent_indx][center_coordinate_columns['y']]]))
 
                 neighbors_dir_motion = \
-                    calc_neighbors_dir_motion(df, df.iloc[grand_parent.index.values.tolist()[0]], neighbor_df)
+                    calc_neighbors_dir_motion(df, df.iloc[grand_parent.index.values.tolist()[0]], neighbor_df,
+                                              center_coordinate_columns)
 
                 if str(neighbors_dir_motion[0]) != 'nan':
                     angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion,
@@ -335,13 +329,13 @@ def parent_modification(df, parent_life_history, daughters, neighbor_df):
                 max(division_frame_df["AreaShape_MajorAxisLength"].values.tolist()) / \
                 parent_bac["AreaShape_MajorAxisLength"]
 
-            daughter1_endpoints = find_vertex([division_frame_df["AreaShape_Center_X"].values.tolist()[0],
-                                               division_frame_df["AreaShape_Center_Y"].values.tolist()[0]],
+            daughter1_endpoints = find_vertex([division_frame_df[center_coordinate_columns['x']].values.tolist()[0],
+                                               division_frame_df[center_coordinate_columns['y']].values.tolist()[0]],
                                               division_frame_df["AreaShape_MajorAxisLength"].values.tolist()[0],
                                               division_frame_df["AreaShape_Orientation"].values.tolist()[0])
 
-            daughter2_endpoints = find_vertex([division_frame_df["AreaShape_Center_X"].values.tolist()[1],
-                                               division_frame_df["AreaShape_Center_Y"].values.tolist()[1]],
+            daughter2_endpoints = find_vertex([division_frame_df[center_coordinate_columns['x']].values.tolist()[1],
+                                               division_frame_df[center_coordinate_columns['y']].values.tolist()[1]],
                                               division_frame_df["AreaShape_MajorAxisLength"].values.tolist()[1],
                                               division_frame_df["AreaShape_Orientation"].values.tolist()[1])
 
@@ -358,13 +352,9 @@ def parent_modification(df, parent_life_history, daughters, neighbor_df):
     return df
 
 
-def same_bacterium_modification(df, bac1_life_history, bac2_life_history, neighbor_df):
-    # bac2 is after bac1
-
-    # columns name
-    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
-    label_col = [col for col in df.columns if 'TrackObjects_Label_' in col][0]
+def same_bacterium_modification(df, bac1_life_history, bac2_life_history, neighbor_df, parent_image_number_col,
+                                parent_object_number_col, label_col, center_coordinate_columns):
+    # Note: bac2 is after bac1
 
     bac2_next_gen_life_history = df.loc[df['parent_id'] == bac2_life_history['id'].values.tolist()[0]]
 
@@ -420,7 +410,8 @@ def same_bacterium_modification(df, bac1_life_history, bac2_life_history, neighb
             df.at[bac2_ndx, parent_image_number_col] = bac1_life_history["ImageNumber"].values.tolist()[-1]
             df.at[bac2_ndx, parent_object_number_col] = bac1_life_history["ObjectNumber"].values.tolist()[-1]
 
-            df.at[bac2_ndx, "difference_neighbors"] = check_num_neighbors(df, neighbor_df, bacterium1, bacterium2)
+            df.at[bac2_ndx, "difference_neighbors"] = check_num_neighbors(df, neighbor_df, bacterium1, bacterium2,
+                                                                          parent_image_number_col)
 
             endpoint1_1_movement = \
                 np.sqrt((bac2_life_history["endppoint1_X"].values.tolist()[0] -
@@ -447,30 +438,31 @@ def same_bacterium_modification(df, bac1_life_history, bac2_life_history, neighb
                          bac1_life_history["endppoint1_Y"].values.tolist()[-1]) ** 2)
 
             center_movement = \
-                np.sqrt((bac2_life_history["AreaShape_Center_X"].values.tolist()[0] -
-                         bac1_life_history["AreaShape_Center_X"].values.tolist()[-1]) ** 2 +
-                        (bac2_life_history["AreaShape_Center_Y"].values.tolist()[0] -
-                         bac1_life_history["AreaShape_Center_Y"].values.tolist()[-1]) ** 2)
+                np.sqrt((bac2_life_history[center_coordinate_columns['x']].values.tolist()[0] -
+                         bac1_life_history[center_coordinate_columns['x']].values.tolist()[-1]) ** 2 +
+                        (bac2_life_history[center_coordinate_columns['y']].values.tolist()[0] -
+                         bac1_life_history[center_coordinate_columns['y']].values.tolist()[-1]) ** 2)
 
             df.at[bac2_ndx, "bacteria_movement"] = min(center_movement, endpoint1_1_movement, endpoint2_2_movement,
                                                        endpoint1_endpoint2_movement, endpoint2_endpoint1_movement)
 
             direction_of_motion = \
                 calculate_trajectory_direction_angle(
-                    np.array([bac1_life_history["AreaShape_Center_X"].values.tolist()[-1],
-                              bac1_life_history["AreaShape_Center_Y"].values.tolist()[-1]]),
-                    np.array([bac2_life_history["AreaShape_Center_X"].values.tolist()[0],
-                              bac2_life_history["AreaShape_Center_Y"].values.tolist()[0]]))
+                    np.array([bac1_life_history[center_coordinate_columns['x']].values.tolist()[-1],
+                              bac1_life_history[center_coordinate_columns['y']].values.tolist()[-1]]),
+                    np.array([bac2_life_history[center_coordinate_columns['x']].values.tolist()[0],
+                              bac2_life_history[center_coordinate_columns['y']].values.tolist()[0]]))
 
             direction_of_motion_vector = \
                 calculate_trajectory_direction(
-                    np.array([bac1_life_history["AreaShape_Center_X"].values.tolist()[-1],
-                              bac1_life_history["AreaShape_Center_Y"].values.tolist()[-1]]),
-                    np.array([bac2_life_history["AreaShape_Center_X"].values.tolist()[0],
-                              bac2_life_history["AreaShape_Center_Y"].values.tolist()[0]]))
+                    np.array([bac1_life_history[center_coordinate_columns['x']].values.tolist()[-1],
+                              bac1_life_history[center_coordinate_columns['y']].values.tolist()[-1]]),
+                    np.array([bac2_life_history[center_coordinate_columns['x']].values.tolist()[0],
+                              bac2_life_history[center_coordinate_columns['y']].values.tolist()[0]]))
 
             neighbors_dir_motion = \
-                calc_neighbors_dir_motion(df, df.iloc[bac1_life_history.index.values.tolist()[-1]], neighbor_df)
+                calc_neighbors_dir_motion(df, df.iloc[bac1_life_history.index.values.tolist()[-1]], neighbor_df,
+                                          center_coordinate_columns)
 
             if str(neighbors_dir_motion[0]) != 'nan':
                 angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion,
@@ -488,14 +480,14 @@ def same_bacterium_modification(df, bac1_life_history, bac2_life_history, neighb
                                                             -1]
 
             current_bacterium_endpoints = find_vertex(
-                [bac2_life_history["AreaShape_Center_X"].values.tolist()[0],
-                 bac2_life_history["AreaShape_Center_Y"].values.tolist()[0]],
+                [bac2_life_history[center_coordinate_columns['x']].values.tolist()[0],
+                 bac2_life_history[center_coordinate_columns['y']].values.tolist()[0]],
                 bac2_life_history["AreaShape_MajorAxisLength"].values.tolist()[0],
                 bac2_life_history["AreaShape_Orientation"].values.tolist()[0])
 
             prev_bacterium_endpoints = find_vertex(
-                [bac1_life_history["AreaShape_Center_X"].values.tolist()[-1],
-                 bac1_life_history["AreaShape_Center_Y"].values.tolist()[-1]],
+                [bac1_life_history[center_coordinate_columns['x']].values.tolist()[-1],
+                 bac1_life_history[center_coordinate_columns['y']].values.tolist()[-1]],
                 bac1_life_history["AreaShape_MajorAxisLength"].values.tolist()[-1],
                 bac1_life_history["AreaShape_Orientation"].values.tolist()[-1])
 
@@ -521,17 +513,21 @@ def same_bacterium_modification(df, bac1_life_history, bac2_life_history, neighb
 
 
 def modify_fake_relation(df, bac2_fake_parent_life_history, another_daughter_life_history_from_fake_parent, neighbor_df,
+                         parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                          check_daughter=False):
 
     if check_daughter:
         if len(another_daughter_life_history_from_fake_parent['id'].unique()) > 1:
             df = parent_modification(df, bac2_fake_parent_life_history, another_daughter_life_history_from_fake_parent,
-                                     neighbor_df)
+                                     neighbor_df, parent_image_number_col, parent_object_number_col,
+                                     center_coordinate_columns)
 
         elif len(another_daughter_life_history_from_fake_parent['id'].unique()) == 1:
             # it means that daughter & parent are same
             df = same_bacterium_modification(df, bac2_fake_parent_life_history,
-                                             another_daughter_life_history_from_fake_parent, neighbor_df)
+                                             another_daughter_life_history_from_fake_parent, neighbor_df,
+                                             parent_image_number_col, parent_object_number_col, label_col,
+                                             center_coordinate_columns)
 
         else:
             for bac_ndx, bacterium in bac2_fake_parent_life_history.iterrows():
@@ -583,7 +579,9 @@ def modify_fake_relation(df, bac2_fake_parent_life_history, another_daughter_lif
     return df
 
 
-def bacteria_modification(df, bac1, bac2_life_history, all_bac_undergo_phase_change, neighbor_df):
+def bacteria_modification(df, bac1, bac2_life_history, all_bac_undergo_phase_change, neighbor_df,
+                          parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns):
+
     # I want to assign bac2 to bac1
     # bac1 is parent
 
@@ -618,18 +616,25 @@ def bacteria_modification(df, bac1, bac2_life_history, all_bac_undergo_phase_cha
         if bac1_next_gen_after_bac2_time_step.shape[0] > 0:
 
             df = new_parent_with_two_daughters(df, same_bac1_before_bac2_time_step, same_bac1_in_bac2_time_step,
-                                               bac2_in_current_time_step)
+                                               bac2_in_current_time_step, center_coordinate_columns)
+
             df = new_daughter_modification(df, bac1, bac1_next_gen_after_bac2_time_step, neighbor_df,
-                                           assign_new_id=True)
-            df = new_daughter_modification(df, bac1, bac2_after_current_time_step, neighbor_df, assign_new_id=False)
+                                           parent_image_number_col, parent_object_number_col, label_col,
+                                           center_coordinate_columns, assign_new_id=True)
+
+            df = new_daughter_modification(df, bac1, bac2_after_current_time_step, neighbor_df, parent_image_number_col,
+                              parent_object_number_col, label_col, center_coordinate_columns, assign_new_id=False)
 
         else:
             df = same_bacterium_modification(df, same_bac1_before_bac2_time_step, bac2_after_current_time_step,
-                                             neighbor_df)
+                                             neighbor_df, parent_image_number_col, parent_object_number_col, label_col,
+                                             center_coordinate_columns)
 
         if bac2_before_current_time_step.shape[0] > 0:
             df = modify_fake_relation(df, bac2_before_current_time_step, None,
-                                      neighbor_df=neighbor_df, check_daughter=False)
+                                      neighbor_df=neighbor_df, parent_image_number_col=parent_image_number_col,
+                                      parent_object_number_col=parent_object_number_col, label_col=label_col,
+                                      center_coordinate_columns=center_coordinate_columns, check_daughter=False)
 
         else:
             bac2_fake_parent_life_history = df.loc[
@@ -650,7 +655,9 @@ def bacteria_modification(df, bac1, bac2_life_history, all_bac_undergo_phase_cha
 
                 df = modify_fake_relation(df, bac2_fake_parent_life_history,
                                           another_daughter_life_history_from_fake_parent, neighbor_df=neighbor_df,
-                                          check_daughter=True)
+                                          parent_image_number_col=parent_image_number_col,
+                                          parent_object_number_col=parent_object_number_col, label_col=label_col,
+                                          center_coordinate_columns=center_coordinate_columns, check_daughter=True)
     else:
         # transition
         bac2_fake_parent_life_history = df.loc[df['id'] == bac2_life_history['parent_id'].values.tolist()[0]]
@@ -673,26 +680,31 @@ def bacteria_modification(df, bac1, bac2_life_history, all_bac_undergo_phase_cha
         else:
             another_daughter_life_history_from_fake_parent = pd.DataFrame(columns=df.columns)
 
-        df = new_transition_bacteria(df, bac2_life_history)
+        df = new_transition_bacteria(df, bac2_life_history, parent_image_number_col, parent_object_number_col,
+                                     label_col)
 
         df = modify_fake_relation(df, bac2_fake_parent_life_history,
                                   another_daughter_life_history_from_fake_parent, neighbor_df=neighbor_df,
-                                  check_daughter=True)
+                                  parent_image_number_col=parent_image_number_col,
+                                  parent_object_number_col=parent_object_number_col, label_col=label_col,
+                                  center_coordinate_columns=center_coordinate_columns, check_daughter=True)
 
     return df
 
 
-def remove_redundant_link(dataframe, wrong_daughter_life_history, neighbor_df):
+def remove_redundant_link(dataframe, wrong_daughter_life_history, neighbor_df, parent_image_number_col,
+                          parent_object_number_col, label_col, center_coordinate_columns):
+
     dataframe = bacteria_modification(dataframe, None, wrong_daughter_life_history, None,
-                                      neighbor_df=neighbor_df)
+                                      neighbor_df=neighbor_df, parent_image_number_col=parent_image_number_col,
+                                      parent_object_number_col=parent_object_number_col, label_col=label_col,
+                                      center_coordinate_columns=center_coordinate_columns)
 
     return dataframe
 
 
-def remove_bac(dataframe, noise_bac_ndx, noise_obj, neighbor_df):
-    parent_image_number_col = [col for col in dataframe.columns if 'TrackObjects_ParentImageNumber_' in col][0]
-    parent_object_number_col = [col for col in dataframe.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
-    label_col = [col for col in dataframe.columns if 'TrackObjects_Label_' in col][0]
+def remove_bac(dataframe, noise_bac_ndx, noise_obj, neighbor_df, parent_image_number_col, parent_object_number_col,
+               label_col, center_coordinate_columns):
 
     life_history_before_noise = dataframe.loc[(dataframe['id'] == noise_obj['id']) &
                                               (dataframe['ImageNumber'] < noise_obj['ImageNumber'])]
@@ -725,18 +737,22 @@ def remove_bac(dataframe, noise_bac_ndx, noise_obj, neighbor_df):
                 dataframe.at[bac_before_ndx, 'unexpected_end'] = True
 
     if life_history_after_noise.shape[0] > 0:
-        dataframe = new_transition_bacteria(dataframe, life_history_after_noise)
+        dataframe = new_transition_bacteria(dataframe, life_history_after_noise, parent_image_number_col,
+                                            parent_object_number_col, label_col)
 
     elif daughters_of_noise_obj.shape[0] > 0:
         for daughter_ndx, daughter_bac in daughters_of_noise_obj.iterrows():
             daughter_life_history = dataframe.loc[dataframe['id'] == daughter_bac['id']]
-            dataframe = new_transition_bacteria(dataframe, daughter_life_history)
+            dataframe = new_transition_bacteria(dataframe, daughter_life_history, parent_image_number_col,
+                                                parent_object_number_col, label_col)
 
     if parent_of_noise_obj.shape[0] > 0:
         another_daughter_life_history_from_parent = \
             dataframe.loc[(dataframe['parent_id'] == noise_obj['parent_id']) & (dataframe['id'] != noise_obj['id'])]
 
         dataframe = modify_fake_relation(dataframe, parent_of_noise_obj, another_daughter_life_history_from_parent,
-                                         neighbor_df=neighbor_df, check_daughter=True)
+                                         neighbor_df=neighbor_df, parent_image_number_col=parent_image_number_col,
+                                         parent_object_number_col=parent_object_number_col, label_col=label_col,
+                                         center_coordinate_columns=center_coordinate_columns, check_daughter=True)
 
     return dataframe

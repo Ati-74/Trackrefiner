@@ -1,13 +1,14 @@
 import pandas as pd
-
-from CellProfilerAnalysis.strain.correction.action.bacteriaModification import remove_redundant_link
-from CellProfilerAnalysis.strain.correction.action.compareBacteria import make_initial_distance_matrix
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import distance_normalization
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import calculate_orientation_angle
 import numpy as np
+from Trackrefiner.strain.correction.action.bacteriaModification import remove_redundant_link
+from Trackrefiner.strain.correction.action.compareBacteria import make_initial_distance_matrix
+from Trackrefiner.strain.correction.action.helperFunctions import distance_normalization
+from Trackrefiner.strain.correction.action.helperFunctions import calculate_orientation_angle
 
 
-def detect_remove_bad_daughters_to_mother_link(df, neighbor_df, sorted_npy_files_list, logs_df):
+
+def detect_remove_bad_daughters_to_mother_link(df, neighbor_df, sorted_npy_files_list, parent_image_number_col,
+                                               parent_object_number_col, label_col, center_coordinate_columns, logs_df):
     """
         goal: modification of bad daughters (try to assign bad daughters to new parent)
         @param df    dataframe   bacteria dataframe
@@ -17,13 +18,6 @@ def detect_remove_bad_daughters_to_mother_link(df, neighbor_df, sorted_npy_files
     """
 
     bad_daughters_list = df.loc[(df['bad_division_flag'] == True) & (df['noise_bac'] == False)]['daughters_index'].drop_duplicates()
-
-    # print("number of bad daughters: ")
-    # print(bad_daughters_list.shape[0])
-
-    # if bad_daughters_list.shape[0] > 0:
-    #     print('more information: ')
-    #    print(bad_daughters_list)
 
     for bad_daughters_index_list in bad_daughters_list:
 
@@ -39,7 +33,7 @@ def detect_remove_bad_daughters_to_mother_link(df, neighbor_df, sorted_npy_files
         # check the cost of daughters to mother
         overlap_df, distance_df = make_initial_distance_matrix(sorted_npy_files_list, bacteria_in_mother_last_time_step,
                                                                mother_last_time_step, bacteria_in_daughter_time_step,
-                                                               daughters_df)
+                                                               daughters_df, center_coordinate_columns)
 
         normalized_distance_df = distance_normalization(df, distance_df)
 
@@ -58,7 +52,8 @@ def detect_remove_bad_daughters_to_mother_link(df, neighbor_df, sorted_npy_files
 
             wrong_daughter_life_history = df.loc[df['id'] == df.iloc[wrong_daughter_index]['id']]
 
-            df = remove_redundant_link(df, wrong_daughter_life_history, neighbor_df)
+            df = remove_redundant_link(df, wrong_daughter_life_history, neighbor_df, parent_image_number_col,
+                          parent_object_number_col, label_col, center_coordinate_columns)
             logs_df = pd.concat([logs_df, wrong_daughter_life_history.iloc[0].to_frame().transpose()],
                                 ignore_index=True)
 

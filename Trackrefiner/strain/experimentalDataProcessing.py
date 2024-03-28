@@ -1,10 +1,11 @@
 import numpy as np
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import find_vertex, bacteria_features
-from CellProfilerAnalysis.strain.correction.action.calcGrowthRate import calculate_growth_rate
-from CellProfilerAnalysis.strain.correction.action.fluorescenceIntensity import final_cell_type
+from Trackrefiner.strain.correction.action.helperFunctions import find_vertex, bacteria_features
+from Trackrefiner.strain.correction.action.calcGrowthRate import calculate_growth_rate
+from Trackrefiner.strain.correction.action.fluorescenceIntensity import final_cell_type
 
 
-def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assigning_cell_type):
+def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assigning_cell_type, label_col,
+                           center_coordinate_columns):
     """
     goal: assign
     """
@@ -62,7 +63,8 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
                 strain_rate_rolling = np.mean(strain_rate_list)
             data_frame.at[idx, "strainRate_rolling"] = strain_rate_rolling
 
-            bacterium_features = bacteria_features(bacterium)
+            bacterium_features = bacteria_features(bacterium, center_coordinate_columns)
+
             bacterium_center_position = [bacterium_features['center_x'], bacterium_features['center_y']]
             data_frame.at[idx, "pos"] = bacterium_center_position
 
@@ -83,11 +85,9 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
 
     if assigning_cell_type:
         # determine final cell type of each bacterium
-        data_frame = final_cell_type(data_frame)
+        data_frame = final_cell_type(data_frame, center_coordinate_columns, label_col)
 
     # rename some columns
-    # column name
-    label_col = [col for col in data_frame.columns if 'TrackObjects_Label_' in col][0]
     data_frame.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length',
                                label_col: 'label'}, inplace=True)
     if assigning_cell_type:

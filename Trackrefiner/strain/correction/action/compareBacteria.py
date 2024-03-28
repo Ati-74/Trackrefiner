@@ -1,16 +1,16 @@
-from CellProfilerAnalysis.strain.correction.action.findOutlier import find_sum_daughter_len_to_mother_ratio_boundary, \
+from Trackrefiner.strain.correction.action.findOutlier import find_sum_daughter_len_to_mother_ratio_boundary, \
     find_max_daughter_len_to_mother_ratio_boundary, find_bac_len_to_bac_ratio_boundary
-from CellProfilerAnalysis.strain.correction.action.fluorescenceIntensity import check_fluorescent_intensity
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import (find_vertex, calculate_slope_intercept,
-                                                                           calculate_orientation_angle,
-                                                                           calc_normalized_angle_between_motion,
-                                                                           calculate_trajectory_direction,
-                                                                           find_neighbors_info, calc_distance_matrix,
-                                                                           distance_normalization)
-from CellProfilerAnalysis.strain.correction.neighborChecking import check_num_neighbors
-from CellProfilerAnalysis.strain.correction.action.costFinder import (adding_new_terms_to_cost_matrix,
-                                                                      make_initial_distance_matrix)
-from CellProfilerAnalysis.strain.correction.action.helperFunctions import calc_neighbors_dir_motion
+from Trackrefiner.strain.correction.action.fluorescenceIntensity import check_fluorescent_intensity
+from Trackrefiner.strain.correction.action.helperFunctions import (find_vertex, calculate_slope_intercept,
+                                                                   calculate_orientation_angle,
+                                                                   calc_normalized_angle_between_motion,
+                                                                   calculate_trajectory_direction,
+                                                                   find_neighbors_info, calc_distance_matrix,
+                                                                   distance_normalization)
+from Trackrefiner.strain.correction.neighborChecking import check_num_neighbors
+from Trackrefiner.strain.correction.action.costFinder import (adding_new_terms_to_cost_matrix,
+                                                              make_initial_distance_matrix)
+from Trackrefiner.strain.correction.action.helperFunctions import calc_neighbors_dir_motion
 from scipy.optimize import linear_sum_assignment
 import pandas as pd
 import numpy as np
@@ -60,8 +60,9 @@ def compare_daughters_bacteria(daughter1, daughter2):
 
 
 def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_step_df, without_source_bacteria,
-                                 all_bacteria_in_prev_time_step, check_cellType, neighbors_df,
-                                 min_life_history_of_bacteria):
+                                 all_bacteria_in_prev_time_step, check_cell_type, neighbors_df,
+                                 min_life_history_of_bacteria, parent_image_number_col, parent_object_number_col,
+                                 center_coordinate_columns):
 
     # note: check_fluorescent_intensity(transition_bac, candidate_parent_bacterium)
 
@@ -74,16 +75,14 @@ def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_
     sum_daughter_len_to_mother_ratio_boundary = find_sum_daughter_len_to_mother_ratio_boundary(df)
     redundant_link_dict = {}
 
-    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
-
     all_bac_in_prev_time_step_without_noise_bac = \
         all_bacteria_in_prev_time_step.loc[all_bacteria_in_prev_time_step['noise_bac'] == False]
 
     overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_without_source_time_step_df,
                                                            without_source_bacteria,
                                                            all_bacteria_in_prev_time_step,
-                                                           all_bac_in_prev_time_step_without_noise_bac)
+                                                           all_bac_in_prev_time_step_without_noise_bac,
+                                                           center_coordinate_columns)
 
     normalized_distance_df = distance_normalization(df, distance_df)
 
@@ -124,9 +123,9 @@ def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_
 
     # now check the cost of maintaining the link
     maintenance_cost_df = calc_maintenance_cost(df, masks_dict, all_bacteria_in_prev_time_step,
-                                                bac_under_invest_prev_time_step,
-                                                all_bac_in_without_source_time_step_df, neighbors_df,
-                                                receiver_of_bac_under_invest_link, F=True)
+                                                bac_under_invest_prev_time_step, all_bac_in_without_source_time_step_df,
+                                                neighbors_df, receiver_of_bac_under_invest_link,
+                                                center_coordinate_columns)
 
     # prev_maintenance_cost_df = calc_maintenance_cost(raw_df, masks_dict, all_bacteria_in_prev_time_step,
     #                                                 all_bacteria_in_prev_time_step,
@@ -147,7 +146,8 @@ def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_
                                                 sum_daughter_len_to_mother_ratio_boundary,
                                                 max_daughter_len_to_mother_ratio_boundary,
                                                 min_life_history_of_bacteria, all_bacteria_in_prev_time_step,
-                                                all_bac_in_without_source_time_step_df)
+                                                all_bac_in_without_source_time_step_df, center_coordinate_columns,
+                                                parent_image_number_col)
 
     # Run the optimization
     result_df = optimize_assignment(cost_df)
@@ -157,16 +157,16 @@ def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_
 
 def division_detection_cost(df, masks_dict, source_incorrect_same_link, all_bac_in_source_time_step,
                             min_life_history_of_bacteria_time_step, target_incorrect_same_link,
-                            all_bac_in_target_time_step, neighbors_bacteria_info, neighbors_indx_dict):
-
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+                            all_bac_in_target_time_step, neighbors_bacteria_info, neighbors_indx_dict,
+                            center_coordinate_columns, parent_object_number_col):
 
     max_daughter_len_to_mother_ratio_boundary = find_max_daughter_len_to_mother_ratio_boundary(df)
     sum_daughter_len_to_mother_ratio_boundary = find_sum_daughter_len_to_mother_ratio_boundary(df)
 
     overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step,
                                                            source_incorrect_same_link, all_bac_in_target_time_step,
-                                                           neighbors_bacteria_info, daughter_flag=True)
+                                                           neighbors_bacteria_info, center_coordinate_columns,
+                                                           daughter_flag=True)
 
     normalized_distance_df = distance_normalization(df, distance_df)
 
@@ -221,14 +221,13 @@ def division_detection_cost(df, masks_dict, source_incorrect_same_link, all_bac_
 
 def final_division_detection_cost(df, masks_dict, source_incorrect_same_link, all_bac_in_source_time_step,
                             min_life_history_of_bacteria_time_step, target_incorrect_same_link,
-                            all_bac_in_target_time_step, neighbors_bacteria_info, neighbors_indx_dict):
-
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+                            all_bac_in_target_time_step, neighbors_bacteria_info, neighbors_indx_dict,
+                                  center_coordinate_columns, parent_object_number_col):
 
     overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step,
                                                            source_incorrect_same_link,
                                                            all_bac_in_target_time_step, neighbors_bacteria_info,
-                                                           daughter_flag=True)
+                                                           center_coordinate_columns, daughter_flag=True)
 
     normalized_distance_df = distance_normalization(df, distance_df)
 
@@ -261,15 +260,14 @@ def final_division_detection_cost(df, masks_dict, source_incorrect_same_link, al
                         cost_df.at[source_bac_ndx, col] = 999
 
     # Run the optimization
-    print(cost_df)
-    print('vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv')
     result_df = optimize_assignment(cost_df)
 
     return result_df
 
 
 def receive_new_link_cost(df, neighbors_df, masks_dict, neighbors_bacteria_info, all_bac_in_source_time_step,
-                          target_incorrect_link, all_bac_in_target_time_step):
+                          target_incorrect_link, all_bac_in_target_time_step, center_coordinate_columns,
+                          parent_image_number_col):
 
     df_for_max_neighbors = df.loc[df['noise_bac'] == False]
     neighbor_changes = df_for_max_neighbors['difference_neighbors'].values.tolist()
@@ -280,7 +278,7 @@ def receive_new_link_cost(df, neighbors_df, masks_dict, neighbors_bacteria_info,
 
     overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step,
                                                            neighbors_bacteria_info, all_bac_in_target_time_step,
-                                                           target_incorrect_link)
+                                                           target_incorrect_link, center_coordinate_columns)
 
     normalized_distance_df = distance_normalization(df, distance_df)
 
@@ -303,7 +301,8 @@ def receive_new_link_cost(df, neighbors_df, masks_dict, neighbors_bacteria_info,
                 bac_to_bac_length_ratio = df.iloc[col]['AreaShape_MajorAxisLength'] / \
                                           neighbors_bac['AreaShape_MajorAxisLength']
 
-                neighbors_changes = check_num_neighbors(df, neighbors_df, df.iloc[col], neighbors_bac)
+                neighbors_changes = check_num_neighbors(df, neighbors_df, df.iloc[col], neighbors_bac,
+                                                        parent_image_number_col)
 
                 cost_df.at[neighbors_bac_ndx, col] = np.sqrt(np.power(cost_df.loc[neighbors_bac_ndx][col], 2) +
                                                              np.power(neighbors_changes / max_neighbor_changes, 2))
@@ -319,9 +318,8 @@ def receive_new_link_cost(df, neighbors_df, masks_dict, neighbors_bacteria_info,
 
 def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_link, all_bac_in_source_time_step,
                          target_incorrect_same_link,  all_bac_in_target_time_step, neighbors_bacteria_info,
-                         neighbors_indx_dict):
-
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
+                         neighbors_indx_dict, center_coordinate_columns, parent_image_number_col,
+                         parent_object_number_col):
 
     neighbor_changes = df['difference_neighbors'].values.tolist()
     neighbor_changes = [v for v in neighbor_changes if v != '']
@@ -331,7 +329,8 @@ def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_lin
 
     overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step,
                                                            source_incorrect_same_link,
-                                                           all_bac_in_target_time_step, neighbors_bacteria_info)
+                                                           all_bac_in_target_time_step, neighbors_bacteria_info,
+                                                           center_coordinate_columns)
 
     normalized_distance_df = distance_normalization(df, distance_df)
 
@@ -350,13 +349,13 @@ def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_lin
                 bac_to_bac_length_ratio = df.iloc[col]['AreaShape_MajorAxisLength'] / \
                                           source_bac['AreaShape_MajorAxisLength']
 
-                next_bac_endpoints = find_vertex([df.iloc[col]["AreaShape_Center_X"],
-                                                  df.iloc[col]["AreaShape_Center_Y"]],
+                next_bac_endpoints = find_vertex([df.iloc[col][center_coordinate_columns['x']],
+                                                  df.iloc[col][center_coordinate_columns['y']]],
                                                  df.iloc[col]["AreaShape_MajorAxisLength"],
                                                  df.iloc[col]["AreaShape_Orientation"])
 
-                source_bac_endpoints = find_vertex([source_bac["AreaShape_Center_X"],
-                                                    source_bac["AreaShape_Center_Y"]],
+                source_bac_endpoints = find_vertex([source_bac[center_coordinate_columns['x']],
+                                                    source_bac[center_coordinate_columns['y']]],
                                                    source_bac["AreaShape_MajorAxisLength"],
                                                    source_bac["AreaShape_Orientation"])
 
@@ -368,7 +367,8 @@ def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_lin
 
                 angle_between_daughters = calculate_orientation_angle(slope_next_bac, slope_source_bac)
 
-                neighbors_changes = check_num_neighbors(df, neighbors_df, df.iloc[col], source_bac)
+                neighbors_changes = check_num_neighbors(df, neighbors_df, df.iloc[col], source_bac,
+                                                        parent_image_number_col)
 
                 cost_df.at[source_bac_ndx, col] = np.sqrt(np.power(cost_df.loc[source_bac_ndx][col], 2) +
                                                           np.power(angle_between_daughters, 2) +
@@ -385,14 +385,16 @@ def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_lin
 
 
 def calc_maintenance_cost(df, masks_dict, all_bac_in_source_time_step, sel_source_bacteria_info,
-                          all_bac_in_target_time_step, neighbor_df, sel_target_bacteria_info, F=False):
+                          all_bac_in_target_time_step, neighbor_df, sel_target_bacteria_info,
+                          center_coordinate_columns):
 
     if sel_target_bacteria_info.shape[0] > 0 and sel_source_bacteria_info.shape[0] > 0:
         bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
 
         neighbors_overlap_df, neighbors_distance_df = \
             make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step, sel_source_bacteria_info,
-                                         all_bac_in_target_time_step, sel_target_bacteria_info, maintain=True)
+                                         all_bac_in_target_time_step, sel_target_bacteria_info,
+                                         center_coordinate_columns, maintain=True)
 
         neighbor_changes = df['difference_neighbors'].values.tolist()
         neighbor_changes = [v for v in neighbor_changes if v != '']
@@ -407,13 +409,15 @@ def calc_maintenance_cost(df, masks_dict, all_bac_in_source_time_step, sel_sourc
                 num_daughters = df.loc[(df['ImageNumber'] == sel_target_bacteria_info['ImageNumber'].values.tolist()[0]) &
                                        (df['parent_id'] == df.iloc[row_indx]['id'])]
 
-                neighbors_dir_motion = calc_neighbors_dir_motion(df, df.iloc[row_indx], neighbor_df)
+                neighbors_dir_motion = calc_neighbors_dir_motion(df, df.iloc[row_indx], neighbor_df,
+                                                                 center_coordinate_columns)
+
                 direction_of_motion = \
                     calculate_trajectory_direction(
-                        np.array([df.iloc[row_indx]["AreaShape_Center_X"],
-                                  df.iloc[row_indx]["AreaShape_Center_Y"]]),
-                        np.array([df.iloc[col]["AreaShape_Center_X"],
-                                  df.iloc[col]["AreaShape_Center_Y"]]))
+                        np.array([df.iloc[row_indx][center_coordinate_columns['x']],
+                                  df.iloc[row_indx][center_coordinate_columns['y']]]),
+                        np.array([df.iloc[col][center_coordinate_columns['x']],
+                                  df.iloc[col][center_coordinate_columns['y']]]))
 
                 if str(neighbors_dir_motion[0]) != 'nan':
                     angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion, direction_of_motion)
@@ -468,8 +472,8 @@ def calc_maintenance_cost(df, masks_dict, all_bac_in_source_time_step, sel_sourc
 
 
 def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_bac_in_current_time_step,
-                                  all_bac_in_current_time_step, all_bac_in_next_time_step,
-                                  min_life_history_of_bacteria_time_step):
+                                  all_bac_in_current_time_step, all_bac_in_next_time_step, center_coordinate_columns,
+                                  parent_image_number_col, parent_object_number_col):
 
     neighbor_changes = df['difference_neighbors'].values.tolist()
     neighbor_changes = [v for v in neighbor_changes if v != '']
@@ -477,15 +481,14 @@ def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_b
 
     bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
 
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
-
     all_bac_in_next_time_step_without_noise_bac = \
         all_bac_in_next_time_step.loc[all_bac_in_next_time_step['noise_bac'] == False]
 
     overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_current_time_step,
                                                            unexpected_end_bac_in_current_time_step,
                                                            all_bac_in_next_time_step,
-                                                           all_bac_in_next_time_step_without_noise_bac)
+                                                           all_bac_in_next_time_step_without_noise_bac,
+                                                           center_coordinate_columns)
 
     normalized_distance_df = distance_normalization(df, distance_df)
 
@@ -525,8 +528,8 @@ def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_b
 
     # now check the cost of maintaining the link
     maintenance_cost_df = calc_maintenance_cost(df, masks_dict, all_bac_in_current_time_step,
-                                                    source_of_bac_under_invest_link,
-                                                    all_bac_in_next_time_step, neighbors_df, bac_under_invest, F=True)
+                                                source_of_bac_under_invest_link, all_bac_in_next_time_step,
+                                                neighbors_df, bac_under_invest, center_coordinate_columns)
 
     candidate_new_bac_daughter_list_id = {}
 
@@ -549,13 +552,14 @@ def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_b
                 length_ratio = df.iloc[col]['AreaShape_MajorAxisLength'] / \
                                df.iloc[unexpected_ndx]['AreaShape_MajorAxisLength']
 
-                neighbors_dir_motion = calc_neighbors_dir_motion(df, unexpected_bac, neighbors_df)
+                neighbors_dir_motion = calc_neighbors_dir_motion(df, unexpected_bac, neighbors_df,
+                                                                 center_coordinate_columns)
 
                 direction_of_motion = \
-                    calculate_trajectory_direction(np.array([df.iloc[unexpected_ndx]["AreaShape_Center_X"],
-                                                             df.iloc[unexpected_ndx]["AreaShape_Center_Y"]]),
-                                                   np.array([df.iloc[col]["AreaShape_Center_X"],
-                                                             df.iloc[col]["AreaShape_Center_Y"]]))
+                    calculate_trajectory_direction(np.array([df.iloc[unexpected_ndx][center_coordinate_columns['x']],
+                                                             df.iloc[unexpected_ndx][center_coordinate_columns['y']]]),
+                                                   np.array([df.iloc[col][center_coordinate_columns['x']],
+                                                             df.iloc[col][center_coordinate_columns['y']]]))
 
                 if str(neighbors_dir_motion[0]) != 'nan':
                     angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion,
@@ -565,7 +569,8 @@ def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_b
 
                 # check neighbors
                 difference_neighbors, common_neighbors = check_num_neighbors(df, neighbors_df, df.iloc[unexpected_ndx],
-                                                                             df.iloc[col], return_common_elements=True)
+                                                                             df.iloc[col], parent_image_number_col,
+                                                                             return_common_elements=True)
 
                 if difference_neighbors > common_neighbors:
                     cost_df.at[unexpected_ndx, col] = 999
@@ -587,7 +592,8 @@ def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_b
                                                                            2))
                 else:
                     candidate_daughter_ndx = neighboring_cost(df, neighbors_df, cost_df, maintenance_cost_df,
-                                                              unexpected_bac, unexpected_ndx, df.iloc[col])
+                                                              unexpected_bac, unexpected_ndx, df.iloc[col],
+                                                              parent_image_number_col, parent_object_number_col)
 
                     if len(candidate_daughter_ndx) > 0:
                         candidate_new_bac_daughter_list_id[col] = candidate_daughter_ndx
@@ -625,13 +631,12 @@ def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_b
     return result_df, candidate_new_bac_daughter_list_id, cost_before_compare_with_maintenance_df, maintenance_cost_df
 
 
-def neighboring_cost(df, neighbors_df, cost_df, maintenance_cost_df, source_bac, source_bac_ndx, target_bac):
+def neighboring_cost(df, neighbors_df, cost_df, maintenance_cost_df, source_bac, source_bac_ndx, target_bac,
+                     parent_image_number_col, parent_object_number_col):
+
     target_bac_neighbors_df = find_neighbors_info(df, neighbors_df, target_bac)
     max_daughter_len_boundary = find_max_daughter_len_to_mother_ratio_boundary(df)
     sum_daughter_len_boundary = find_sum_daughter_len_to_mother_ratio_boundary(df)
-
-    parent_image_number_col = [col for col in df.columns if 'TrackObjects_ParentImageNumber_' in col][0]
-    parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
 
     candidate_daughter_ndx = []
 
