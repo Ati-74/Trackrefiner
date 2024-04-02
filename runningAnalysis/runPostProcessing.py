@@ -40,8 +40,9 @@ if __name__ == '__main__':
                                                                         "This parameter is related to assigning the"
                                                                         " cell type. Default value: 0.1")
 
-    parser.add_argument('-w', '--warn', default=True, help="You will see all warnings if you set "
-                                                           "it to True. Default value: True")
+    parser.add_argument('-w', '--warn', default='True', help="You will see all warnings if you set "
+                                                           "it to True. Default value: True (Note: "
+                                                           "The value of this argument should be T (or True) or F (or False).)")
 
     # Parse the arguments
     args = parser.parse_args()
@@ -71,6 +72,11 @@ if __name__ == '__main__':
     intensity_threshold = float(args.intensityThreshold)
 
     warn = args.warn
+
+    if warn in ['T' , 'True']:
+        warn = True
+    else:
+        warn = False
 
     # run post-processing
     process_data(input_file=input_file, npy_files_dir=npy_files_dir, neighbors_file=neighbors_file,
