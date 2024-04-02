@@ -7,71 +7,95 @@ from scipy.ndimage import binary_dilation
 import os
 
 
-def find_neighbors_direct_expansion(img_array, object_info):
+def find_neighbors_direct_expansion(img_array, object_info, neighbors_df, img_number, multi_regions_new_colors,
+                                    obj_number_multi_region):
+
+    # idea: https://github.com/CellProfiler/CellProfiler/blob/ea6a2e6d001b10983301c10994e319abef41e618/src/frontend/cellprofiler/modules/measureobjectneighbors.py#L91
+
+    # we should find the neighbors of multi region objects
+    neighbors_multi_region_obj = neighbors_df.loc[(neighbors_df['First Image Number'] == img_number) &
+                                                  (neighbors_df['First Object Number'].isin(obj_number_multi_region))]
+
+    neighbors_color = \
+        [color for color in object_info.keys() if object_info[color][1] in
+         neighbors_multi_region_obj['Second Object Number'].values.tolist()]
+
     # Extract unique colors (excluding the background)
-    rgb_values = img_array.reshape(-1, 3)
-    unique_colors = set(map(tuple, rgb_values))
-    unique_colors.discard((0, 0, 0))  # Remove background color
+    unique_colors = list(object_info.keys())
 
     # Initialize an empty array for the expanded objects
     expanded_img_array = np.zeros_like(img_array)
 
     # Create a binary mask for each unique color and calculate its distance transform
-    distance_maps = {}
-    for color in unique_colors:
-        mask = np.all(img_array == np.array(color).reshape(1, 1, 3), axis=2)
-        distance_maps[color] = distance_transform_edt(~mask)
+    color_arrays = {color: np.array(color).reshape(1, 1, 3) for color in unique_colors}
+
+    masks = {color: np.all(img_array == color_arrays[color], axis=2) for color in unique_colors}
+
+    # Compute distance maps once
+    distance_maps = {color: distance_transform_edt(~masks[color]) for color in masks.keys()}
 
     # Determine the minimum distance to another object for each pixel
     all_distances = np.stack(list(distance_maps.values()), axis=0)
+
     min_distance_to_other = np.min(all_distances, axis=0)
 
     # Expand each object based on the calculated minimum distances
     for color, distance_map in distance_maps.items():
         # Find pixels where the object's distance map is less than or equal to the minimum distance to another object
         # This identifies the maximum expansion for each object without intersecting another object
-        mask = np.all(img_array == np.array(color).reshape(1, 1, 3), axis=2)
+        # mask = np.all(img_array == np.array(color).reshape(1, 1, 3), axis=2)
         expansion_mask = distance_map <= min_distance_to_other
 
         # Apply the expansion mask to the expanded image array
-        expanded_img_array[expansion_mask] = np.array(color).reshape(1, 1, 3)
+        expanded_img_array[expansion_mask] = color_arrays[color]
+
+    expanded_masks = {color: np.all(expanded_img_array == color, axis=2) for color in unique_colors}
+    # Create a dilated mask for the current color to detect neighbors
+    dilated_masks = {color:  binary_dilation(expanded_masks[color]) for color in unique_colors}
 
     # Identify neighbors based on the expanded regions
-    neighbors = {object_info[color]: set() for color in unique_colors}
-    for color in unique_colors:
-        # Create a dilated mask for the current color to detect neighbors
-        current_mask = np.all(expanded_img_array == np.array(color).reshape(1, 1, 3), axis=2)
-        dilated_mask = binary_dilation(current_mask)
+    neighbors_new_bac_multi_regions = {object_info[color]: set() for color in multi_regions_new_colors}
+    new_neighbors_multi_regions_neighbors = {object_info[color]: set() for color in neighbors_color}
 
-        for other_color in unique_colors:
-            if other_color == color:
-                continue
+    for color in multi_regions_new_colors:
+        for other_color in neighbors_color:
+            if np.any(dilated_masks[color] & expanded_masks[other_color]):
+                neighbors_new_bac_multi_regions[object_info[color]].add(object_info[other_color])
 
-            other_mask = np.all(expanded_img_array == np.array(other_color).reshape(1, 1, 3), axis=2)
-            if np.any(dilated_mask & other_mask):
-                neighbors[object_info[color]].add(object_info[other_color])
 
-    return neighbors
+    for color in multi_regions_new_colors:
+        for other_color in multi_regions_new_colors:
+            if color != other_color and np.any(dilated_masks[color] & expanded_masks[other_color]):
+                neighbors_new_bac_multi_regions[object_info[color]].add(object_info[other_color])
 
+    for color in neighbors_color:
+        for other_color in multi_regions_new_colors:
+            if np.any(dilated_masks[color] & expanded_masks[other_color]):
+                new_neighbors_multi_regions_neighbors[object_info[color]].add(object_info[other_color])
+
+    return neighbors_new_bac_multi_regions, new_neighbors_multi_regions_neighbors
 
 def generate_new_color(existing_colors, seed=None):
     """Generate a new color not in existing_colors."""
     np.random.seed(seed)  # Optional: for reproducible colors
     while True:
-        new_color = tuple(np.random.randint(0, 256, size=3) / 256)
-        if new_color not in existing_colors:
+        new_color = np.random.randint(0, 256, size=3) / 256
+        # Use broadcasting and np.all to efficiently compare the new_color against all existing_colors
+        if not np.any(np.all(np.isclose(existing_colors, new_color), axis=1)):
             return new_color
 
 
 def multi_region_correction(df, img_npy_file_list, neighbors_df, um_per_pixel, center_coordinate_columns,
                             all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, warn):
-    # idea: https://github.com/CellProfiler/CellProfiler/blob/ea6a2e6d001b10983301c10994e319abef41e618/src/frontend/cellprofiler/modules/measureobjectneighbors.py#L91
 
     for img_ndx, img_npy_file in enumerate(img_npy_file_list):
 
-        object_info = {}
+        current_time_step_objects_info = {}
 
         current_df = df.loc[df['ImageNumber'] == img_ndx + 1]
+
+        obj_number_multi_region = []
+        multi_regions_new_colors = []
 
         neighbor_current_df = neighbors_df.loc[neighbors_df['First Image Number'] == img_ndx + 1]
         modified_flag = False
@@ -85,29 +109,22 @@ def multi_region_correction(df, img_npy_file_list, neighbors_df, um_per_pixel, c
         # Flatten the image to get a list of RGB values
         rgb_values = img_array.reshape(-1, 3)
 
-        # Convert RGB values to tuples
-        tuple_rgb_values = [tuple(row) for row in rgb_values]
-
-        # Convert to set to get unique RGB values
-        unique_colors = set(tuple_rgb_values)
+        unique_colors, indices = np.unique(rgb_values, axis=0, return_index=True)
 
         all_colors = unique_colors.copy()
 
         # Exclude the background color (0,0,0)
-        if (0, 0, 0) in unique_colors:
-            unique_colors.remove((0, 0, 0))
+        unique_colors = np.delete(unique_colors, 0, axis=0)
 
         for color in unique_colors:
-
             # Create a mask for the current color
-            mask = np.all(img_array == np.array(color).reshape(1, 1, 3), axis=2)
+            mask = np.all(img_array == color.reshape(1, 1, 3), axis=2)
 
             # Label the regions
             labeled_mask = label(mask)
             regions = regionprops(labeled_mask)
 
             if len(regions) > 1:
-
                 if warn:
                     print('===========================================================================================')
                     print(img_npy_file)
@@ -116,18 +133,15 @@ def multi_region_correction(df, img_npy_file_list, neighbors_df, um_per_pixel, c
 
                 labeled_mask_cp = labeled_mask.copy()
 
-                for label_val in np.unique(labeled_mask):
-                    if label_val not in [0, 1]:
-                        labeled_mask_cp[labeled_mask_cp == label_val] = 1
+                labeled_mask_cp[labeled_mask_cp > 1] = 1
                 regions_cp = regionprops(labeled_mask_cp)
 
                 y0_cp, x0_cp = regions_cp[0].centroid
 
                 distances = ((current_df[center_coordinate_columns['x']] - (x0_cp * um_per_pixel)) ** 2 +
-                            (current_df[center_coordinate_columns['y']] - (y0_cp * um_per_pixel)) ** 2) ** 0.5
+                             (current_df[center_coordinate_columns['y']] - (y0_cp * um_per_pixel)) ** 2) ** 0.5
 
-                distance_list = distances.tolist()
-                closest_index = np.argmin(distance_list)
+                closest_index = np.argmin(distances.values)
 
                 # Separate regions
                 for region_ndx, region in enumerate(regions):
@@ -140,56 +154,60 @@ def multi_region_correction(df, img_npy_file_list, neighbors_df, um_per_pixel, c
                     minor_length = region.minor_axis_length
 
                     distances_sub_reg = ((current_df[center_coordinate_columns['x']] - (x0 * um_per_pixel)) ** 2 +
-                                        (current_df[center_coordinate_columns['y']] - (y0 * um_per_pixel)) ** 2) ** 0.5
+                                         (current_df[center_coordinate_columns['y']] - (y0 * um_per_pixel)) ** 2) ** 0.5
 
-                    distances_sub_reg_list = distances_sub_reg.tolist()
-
-                    if np.min(distances_sub_reg_list) < 1e-3:
+                    if np.min(distances_sub_reg.values) < 1e-3:
 
                         if warn:
                             print('Warning repeate!!!!!')
-                        closest_reg_index = np.argmin(distances_sub_reg_list)
-                        bac_reg_ndx = current_df.index.values.tolist()[closest_reg_index]
+                        closest_reg_index = np.argmin(distances_sub_reg.values)
+                        bac_reg_ndx = current_df.index[closest_reg_index]
 
                         # Generate a new color that's not already in unique_colors
                         new_color = generate_new_color(all_colors)
-                        all_colors.add(new_color)
+                        all_colors = np.append(all_colors, [new_color], axis=0)
 
                         # Update the img_array with the new color for this region
-                        for coord in region.coords:
-                            img_array[coord[0], coord[1]] = new_color
+                        img_array[tuple(zip(*region.coords))] = new_color
 
-                        df.at[bac_reg_ndx, 'color_mask'] = new_color
+                        df.at[bac_reg_ndx, 'color_mask'] = tuple(new_color)
+                        multi_regions_new_colors.append(tuple(new_color))
 
-                        object_info[new_color] = (current_df['ImageNumber'].values.tolist()[closest_reg_index],
-                                              current_df['ObjectNumber'].values.tolist()[closest_reg_index])
+                        current_time_step_objects_info[tuple(new_color)] = (img_number,
+                                                  current_df['ObjectNumber'].values[closest_reg_index])
 
                     elif region_ndx == 0:
 
                         modified_flag = True
-                        bac_ndx = current_df.index.values.tolist()[closest_index]
+                        bac_ndx = current_df.index.values[closest_index]
 
                         # Generate a new color that's not already in unique_colors
                         new_color = generate_new_color(all_colors)
-                        all_colors.add(new_color)
+                        all_colors = np.append(all_colors, [new_color], axis=0)
+
+                        multi_regions_new_colors.append(tuple(new_color))
 
                         # Update the img_array with the new color for this region
-                        for coord in region.coords:
-                            img_array[coord[0], coord[1]] = new_color
+                        img_array[tuple(zip(*region.coords))] = new_color
 
                         # update dataframe
-                        df.at[bac_ndx, 'color_mask'] = new_color
-                        for x_center_col in all_center_coordinate_columns['x']:
-                            df.at[bac_ndx, x_center_col] = x0 * um_per_pixel
-                        for y_center_col in all_center_coordinate_columns['y']:
-                            df.at[bac_ndx, y_center_col] = y0 * um_per_pixel
-                        df.at[bac_ndx, "AreaShape_MajorAxisLength"] = major_length * um_per_pixel
-                        df.at[bac_ndx, "AreaShape_MinorAxisLength"] = minor_length * um_per_pixel
-                        df.at[bac_ndx, "AreaShape_Orientation"] = -(orientation + 90) * np.pi / 180
-                        df.at[bac_ndx, parent_image_number_col] = 0
-                        df.at[bac_ndx, parent_object_number_col] = 0
+                        updates = {
+                            'color_mask': tuple(new_color),
+                            **{x_center_col: x0 * um_per_pixel for x_center_col in all_center_coordinate_columns['x']},
+                            **{y_center_col: y0 * um_per_pixel for y_center_col in all_center_coordinate_columns['y']},
+                            "AreaShape_MajorAxisLength": major_length * um_per_pixel,
+                            "AreaShape_MinorAxisLength": minor_length * um_per_pixel,
+                            "AreaShape_Orientation": -(orientation + 90) * np.pi / 180,
+                            parent_image_number_col: 0,
+                            parent_object_number_col: 0
+                        }
 
-                        object_info[new_color] = (df.loc[bac_ndx]["ImageNumber"], df.loc[bac_ndx]["ObjectNumber"])
+                        # Update the DataFrame for the given index (bac_ndx) with all updates
+                        df.loc[bac_ndx, updates.keys()] = updates.values()
+
+                        obj_number_multi_region.append(df.loc[bac_ndx]["ObjectNumber"])
+
+                        current_time_step_objects_info[tuple(new_color)] = img_number, df.loc[bac_ndx]["ObjectNumber"]
 
                     else:
                         modified_flag = True
@@ -197,26 +215,26 @@ def multi_region_correction(df, img_npy_file_list, neighbors_df, um_per_pixel, c
 
                         # Generate a new color that's not already in unique_colors
                         new_color = generate_new_color(all_colors)
-                        all_colors.add(new_color)
+                        all_colors = np.append(all_colors, [new_color], axis=0)
+
+                        multi_regions_new_colors.append(tuple(new_color))
 
                         # Update the img_array with the new color for this region
-                        for coord in region.coords:
-                            img_array[coord[0], coord[1]] = new_color
+                        img_array[tuple(zip(*region.coords))] = new_color
 
                         # now update dataframe
                         new_row = {"ImageNumber": img_number, "ObjectNumber": last_obj_number,
+                                   **{x_center_col: x0 * um_per_pixel for x_center_col in
+                                      all_center_coordinate_columns['x']},
+                                   **{y_center_col: y0 * um_per_pixel for y_center_col in
+                                      all_center_coordinate_columns['y']},
                                    "AreaShape_MajorAxisLength": major_length * um_per_pixel,
                                    "AreaShape_MinorAxisLength": minor_length * um_per_pixel,
                                    "AreaShape_Orientation": -(orientation + 90) * np.pi / 180,
                                    parent_image_number_col: 0, parent_object_number_col: 0,
-                                   'color_mask': new_color}
+                                   'color_mask': tuple(new_color)}
 
-                        for x_center_col in all_center_coordinate_columns['x']:
-                            new_row[x_center_col] = x0 * um_per_pixel
-                        for y_center_col in all_center_coordinate_columns['y']:
-                            new_row[y_center_col] = y0 * um_per_pixel
-
-                        object_info[new_color] = (img_number, last_obj_number)
+                        current_time_step_objects_info[tuple(new_color)] = (img_number, last_obj_number)
 
                         # Convert the dictionary to a DataFrame before concatenating
                         new_row_df = pd.DataFrame([new_row])
@@ -227,34 +245,47 @@ def multi_region_correction(df, img_npy_file_list, neighbors_df, um_per_pixel, c
             else:
                 y0, x0 = regions[0].centroid
                 distances = ((current_df[center_coordinate_columns['x']] - x0 * um_per_pixel) ** 2 +
-                            (current_df[center_coordinate_columns['y']] - y0 * um_per_pixel) ** 2) ** 0.5
+                             (current_df[center_coordinate_columns['y']] - y0 * um_per_pixel) ** 2) ** 0.5
 
-                # Convert the Series to a list
-                distance_list = distances.tolist()
-                closest_index = np.argmin(distance_list)
+                closest_index = np.argmin(distances.values)
 
-                bac_ndx = current_df.index.values.tolist()[closest_index]
+                bac_ndx = current_df.index.values[closest_index]
 
-                object_info[color] = (current_df['ImageNumber'].values.tolist()[closest_index],
-                                      current_df['ObjectNumber'].values.tolist()[closest_index])
+                current_time_step_objects_info[tuple(color)] = \
+                    (img_number, current_df['ObjectNumber'].values[closest_index])
 
-                df.at[bac_ndx, 'color_mask'] = color
+                df.at[bac_ndx, 'color_mask'] = tuple(color)
 
-        # print(img_npy_file)
-        # neighbors = find_neighbors_direct_expansion(img_array, object_info)
-
-        # Display the image
-        # plt.figure(figsize=(10, 10))
-        # plt.imshow(img_array)
-        # plt.axis('off')  # Remove axis ticks and labels for clarity
-        # plt.show()
+            # Display the image
+            # plt.figure(figsize=(10, 10))
+            # plt.imshow(mask)
+            # plt.axis('off')  # Remove axis ticks and labels for clarity
+            # plt.show()
 
         if modified_flag:
-            neighbors = find_neighbors_direct_expansion(img_array, object_info)
-            neighbors_df = neighbors_df.loc[~neighbors_df.index.isin(neighbor_current_df.index.values.tolist())]
+            neighbors_new_bac_multi_regions, new_neighbors_multi_regions_neighbors = \
+                find_neighbors_direct_expansion(img_array, current_time_step_objects_info, neighbors_df,
+                                                img_number, multi_regions_new_colors, obj_number_multi_region)
 
-            for key_val in neighbors.keys():
-                for real_neighbor in neighbors[key_val]:
+            neighbor_current_df_delete = \
+                neighbor_current_df.loc[(neighbor_current_df['First Object Number'].isin(obj_number_multi_region)) |
+                                        (neighbor_current_df['Second Object Number'].isin(obj_number_multi_region))]
+
+            neighbors_df = neighbors_df.loc[~neighbors_df.index.isin(neighbor_current_df_delete.index.values.tolist())]
+
+            for key_val in neighbors_new_bac_multi_regions.keys():
+                for real_neighbor in neighbors_new_bac_multi_regions[key_val]:
+                    new_row = {'Module': 'MeasureObjectNeighbors', 'Relationship': 'Neighbors',
+                               'First Object Name': 'FilterObjects', 'First Image Number': key_val[0],
+                               'First Object Number': key_val[1], 'Second Object Name': 'FilterObjects',
+                               'Second Image Number': real_neighbor[0], 'Second Object Number': real_neighbor[1]}
+
+                    new_row_df = pd.DataFrame([new_row])
+                    neighbors_df = pd.concat([neighbors_df, new_row_df], ignore_index=True)
+
+
+            for key_val in new_neighbors_multi_regions_neighbors.keys():
+                for real_neighbor in new_neighbors_multi_regions_neighbors[key_val]:
                     new_row = {'Module': 'MeasureObjectNeighbors', 'Relationship': 'Neighbors',
                                'First Object Name': 'FilterObjects', 'First Image Number': key_val[0],
                                'First Object Number': key_val[1], 'Second Object Name': 'FilterObjects',
