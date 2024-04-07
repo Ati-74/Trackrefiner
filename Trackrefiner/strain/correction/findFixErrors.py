@@ -14,7 +14,7 @@ from Trackrefiner.strain.correction.noiseRemover import noise_remover
 from Trackrefiner.strain.correction.neighborChecking import neighbor_checking
 from Trackrefiner.strain.correction.incorrectSameLink import incorrect_same_link
 from Trackrefiner.strain.correction.unExpectedEnd import unexpected_end_bacteria
-from Trackrefiner.strain.correction.action.multiRegionsCorrection import multi_region_correction
+from Trackrefiner.strain.correction.action.multiRegionsDetection import multi_region_detection
 from Trackrefiner.strain.correction.action.finalMatching import final_matching
 
 
@@ -192,9 +192,9 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
     dataframe = data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns)
 
     # correction of multi regions
-    dataframe, neighbors_df = multi_region_correction(dataframe, sorted_npy_files_list, neighbors_df, um_per_pixel,
-                                                      center_coordinate_columns, all_center_coordinate_columns,
-                                                      parent_image_number_col, parent_object_number_col, warn)
+    dataframe = multi_region_detection(dataframe, sorted_npy_files_list, um_per_pixel, center_coordinate_columns,
+                                       all_center_coordinate_columns, parent_image_number_col,
+                                       parent_object_number_col, warn)
 
     print_progress_bar(1, prefix='Progress:', suffix='Complete', length=50)
 
