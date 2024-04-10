@@ -11,6 +11,7 @@ def modify_existing_object(df, regions_color, faulty_row, img_array, regions_coo
     img_array[tuple(zip(*regions_coordinates[faulty_row['row indx par']]))] = this_region_color
 
     df.at[faulty_row['cp index'], 'color_mask'] = tuple(this_region_color)
+    df.at[faulty_row['cp index'], 'coordinate'] = regions_coordinates[faulty_row['row indx par']]
 
     return df, img_array
 
@@ -37,11 +38,12 @@ def updating_records(df, faulty_row, img_array, regions_coordinates, regions_col
         "AreaShape_Orientation":
             -(regions_features[faulty_row['row indx par']]['orientation'] + 90) * np.pi / 180,
         parent_image_number_col: 0,
-        parent_object_number_col: 0
+        parent_object_number_col: 0,
+        'coordinate' : regions_coordinates[faulty_row['row indx par']]
     }
 
     this_bac_ndx = faulty_row['cp index']
-    
+
     # Update the DataFrame for the given index (bac_ndx) with all updates
     df.loc[this_bac_ndx, updates.keys()] = updates.values()
 
@@ -58,7 +60,7 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
         # two same regions from multi regions
         if rows_with_duplicates.any():
             print("two same regions from multi regions")
-            print('time step: ' + img_number)
+            print('time step: ' + str(img_number))
             breakpoint()
 
         else:
@@ -123,7 +125,7 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
                                              parent_image_number_col, parent_object_number_col)
 
                 elif faulty_row['Cost par'] == faulty_row['Cost prev']:
-                            breakpoint()
+                    breakpoint()
 
                 for par_ndx in par_not_in_min_df:
                     # Update the img_array with the background color (0, 0, 0) for this region
@@ -133,6 +135,7 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
                     bac_ndx = correct_bac_row['cp index']
                     this_region_color = regions_color[correct_bac_row['row indx par']]
                     df.at[bac_ndx, 'color_mask'] = tuple(this_region_color)
+                    df.at[bac_ndx, 'coordinate'] = regions_coordinates[correct_bac_row['row indx par']]
 
             # Save the modified img_array to a new .npy file
             new_file_name = os.path.splitext(img_npy_file)[0] + '_modified.npy'

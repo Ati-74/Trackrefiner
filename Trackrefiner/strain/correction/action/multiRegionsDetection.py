@@ -3,6 +3,8 @@ import pandas as pd
 from skimage.measure import label, regionprops
 from scipy.spatial import distance_matrix
 from Trackrefiner.strain.correction.action.multiRegionsCorrection import multi_region_correction
+import matplotlib.pyplot as plt
+import cv2
 
 
 def generate_new_color(existing_colors, seed=None):
@@ -94,6 +96,7 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
 
                     regions_color.append(new_color)
                     regions_coordinates.append(region.coords)
+
             else:
                 y0, x0 = regions[0].centroid
                 orientation = regions[0].orientation
@@ -112,6 +115,7 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
 
                 regions_color.append(color)
                 regions_coordinates.append(regions[0].coords)
+
 
         # check objects
         df_centers_raw_objects = pd.DataFrame(regions_center_raw_objects, columns=['center_x', 'center_y'])
@@ -165,5 +169,6 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
                 bac_ndx = correct_bac_row['cp index']
                 this_region_color = regions_color[correct_bac_row['row indx prev']]
                 df.at[bac_ndx, 'color_mask'] = tuple(this_region_color)
+                df.at[bac_ndx, 'coordinate'] = regions_coordinates[correct_bac_row['row indx prev']]
 
     return df
