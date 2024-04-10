@@ -96,7 +96,7 @@ def adding_features_related_to_division(dataframe, bac_ndx, bacterium_status):
 
 
 def adding_features_to_each_timestep_except_first(dataframe, bac_indx_in_list, bac_indx_in_df, bacterium_status,
-                                                  neighbor_df, center_coordinate_columns):
+                                                  neighbor_df, center_coordinate_columns, without_tracking_correction):
     index_prev_stage_life = bac_indx_in_list - 1
 
     dataframe.at[bac_indx_in_df, "bac_length_to_back"] = \
@@ -119,18 +119,21 @@ def adding_features_to_each_timestep_except_first(dataframe, bac_indx_in_list, b
             np.array([dataframe.iloc[bac_indx_in_df][center_coordinate_columns['x']],
                       dataframe.iloc[bac_indx_in_df][center_coordinate_columns['y']]]))
 
-    neighbors_dir_motion = \
-        calc_neighbors_dir_motion(dataframe,
-                                  dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]],
-                                  neighbor_df, center_coordinate_columns)
 
-    if str(neighbors_dir_motion[0]) != 'nan':
-        angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion, direction_of_motion_vector)
-    else:
-        angle_between_motion = 0
+    if not without_tracking_correction:
+        neighbors_dir_motion = \
+            calc_neighbors_dir_motion(dataframe,
+                                      dataframe.iloc[bacterium_status['lifeHistoryIndex'][index_prev_stage_life]],
+                                      neighbor_df, center_coordinate_columns)
+
+        if str(neighbors_dir_motion[0]) != 'nan':
+            angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion, direction_of_motion_vector)
+        else:
+            angle_between_motion = 0
+
+        dataframe.at[bac_indx_in_df, "angle_between_neighbor_motion_bac_motion"] = angle_between_motion
 
     dataframe.at[bac_indx_in_df, "direction_of_motion"] = direction_of_motion
-    dataframe.at[bac_indx_in_df, "angle_between_neighbor_motion_bac_motion"] = angle_between_motion
 
     center_movement = \
         np.sqrt((dataframe.iloc[bac_indx_in_df][center_coordinate_columns['x']] -
@@ -692,11 +695,9 @@ def convert_to_pixel(length, radius, ends, pos, um_per_pixel=0.144):
 def convert_to_um(data_frame, um_per_pixel, all_center_coordinate_columns):
     # Convert distances to um (0.144 um/pixel on 63X objective)
 
-    for selected_col in all_center_coordinate_columns['x']:
-        data_frame[selected_col] = data_frame[selected_col] * um_per_pixel
+    data_frame[all_center_coordinate_columns['x']] *= um_per_pixel
 
-    for selected_col in all_center_coordinate_columns['y']:
-        data_frame[selected_col] = data_frame[selected_col] * um_per_pixel
+    data_frame[all_center_coordinate_columns['y']] *= um_per_pixel
 
     return data_frame
 

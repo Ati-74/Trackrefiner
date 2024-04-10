@@ -44,6 +44,11 @@ if __name__ == '__main__':
                                                            "it to True. Default value: True (Note: "
                                                            "The value of this argument should be T (or True) or F (or False).)")
 
+    parser.add_argument('-wi', '--withoutTrackingCorrection', default='False',
+                        help="If you want the outputs without correction of tracking, set it to true. "
+                             "Default value: False "
+                             "(Note: The value of this argument should be T (or True) or F (or False).)")
+
     # Parse the arguments
     args = parser.parse_args()
 
@@ -72,15 +77,22 @@ if __name__ == '__main__':
     intensity_threshold = float(args.intensityThreshold)
 
     warn = args.warn
+    without_tracking_correction = args.withoutTrackingCorrection
 
     if warn in ['T' , 'True']:
         warn = True
     else:
         warn = False
 
+    if without_tracking_correction in ['T' , 'True']:
+        without_tracking_correction = True
+    else:
+        without_tracking_correction = False
+
+
     # run post-processing
     process_data(input_file=input_file, npy_files_dir=npy_files_dir, neighbors_file=neighbors_file,
                  output_directory=output_directory, interval_time=interval_time, growth_rate_method=growth_rate_method,
                  number_of_gap=number_of_gap, um_per_pixel=um_per_pixel, intensity_threshold=intensity_threshold,
                  assigning_cell_type=assigning_cell_type, min_life_history_of_bacteria=min_life_history_of_bacteria,
-                 warn=warn)
+                 warn=warn, without_tracking_correction=without_tracking_correction)

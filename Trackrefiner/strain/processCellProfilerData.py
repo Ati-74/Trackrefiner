@@ -11,7 +11,7 @@ from Trackrefiner.strain.correction.action.helperFunctions import checking_colum
 
 def process_data(input_file, npy_files_dir, neighbors_file, output_directory, interval_time, growth_rate_method,
                  number_of_gap, um_per_pixel, intensity_threshold, assigning_cell_type, min_life_history_of_bacteria,
-                 warn):
+                 warn, without_tracking_correction):
     """
     The main function that processes CellProfiler data.
     .pickle Files are exported to the same directory as input_file.
@@ -35,9 +35,12 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
     # Initial call to print 0% progress
     print_progress_bar(0, prefix='Progress:', suffix='Complete', length=50)
 
-    # Parsing CellProfiler output
-    if npy_files_dir is not None:
-        sorted_npy_files_list = sorted(glob.glob(npy_files_dir + '/*.npy'))
+    if not without_tracking_correction:
+        # Parsing CellProfiler output
+        if npy_files_dir is not None:
+            sorted_npy_files_list = sorted(glob.glob(npy_files_dir + '/*.npy'))
+        else:
+            sorted_npy_files_list = []
     else:
         sorted_npy_files_list = []
 
@@ -46,10 +49,13 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
     (center_coordinate_columns, all_center_coordinate_columns, parent_image_number_col, parent_object_number_col,
      label_col) = checking_columns(data_frame)
 
-    neighbors_df = pd.read_csv(neighbors_file)
-    neighbors_df = neighbors_df.loc[neighbors_df['Relationship'] == 'Neighbors']
+    if not without_tracking_correction:
+        neighbors_df = pd.read_csv(neighbors_file)
+        neighbors_df = neighbors_df.loc[neighbors_df['Relationship'] == 'Neighbors']
+    else:
+        neighbors_df = pd.DataFrame()
 
-    if len(sorted_npy_files_list) > 0 and neighbors_df.shape[0] > 0:
+    if (len(sorted_npy_files_list) > 0 and neighbors_df.shape[0] > 0) or without_tracking_correction:
 
         data_frame, find_fix_errors_log, logs_df, neighbors_df = \
             find_fix_errors(data_frame, sorted_npy_files_list, neighbors_df, center_coordinate_columns,
@@ -57,7 +63,7 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
                             number_of_gap=number_of_gap, um_per_pixel=um_per_pixel,
                             intensity_threshold=intensity_threshold, check_cell_type=assigning_cell_type,
                             interval_time=interval_time, min_life_history_of_bacteria=min_life_history_of_bacteria,
-                            warn=warn)
+                            warn=warn, without_tracking_correction=without_tracking_correction)
 
         log_list.extend(find_fix_errors_log)
 
@@ -108,7 +114,8 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
         # write to csv
         processed_df.to_csv(path + '.csv', index=False)
         logs_df.to_csv(path_logs + '.csv', index=False)
-        neighbors_df.to_csv(path_neighbors + '.csv', index=False)
+        if  without_tracking_correction:
+            neighbors_df.to_csv(path_neighbors + '.csv', index=False)
 
         output_log = "The outputs are written in the " + output_directory + " directory."
         print(output_log)
