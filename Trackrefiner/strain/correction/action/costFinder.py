@@ -7,12 +7,12 @@ from Trackrefiner.strain.correction.neighborChecking import check_num_neighbors
 import pandas as pd
 
 
-def make_initial_distance_matrix(masks_dict, source_time_step_df, sel_source_bacteria, bacteria_in_target_time_step,
+def make_initial_distance_matrix(source_time_step_df, sel_source_bacteria, bacteria_in_target_time_step,
                                  sel_target_bacteria, center_coordinate_columns, daughter_flag=False, maintain=False):
 
     if sel_target_bacteria.shape[0] > 0 and sel_source_bacteria.shape[0] > 0:
 
-        overlap_df = find_overlap_object_to_next_frame(masks_dict, source_time_step_df, sel_source_bacteria,
+        overlap_df = find_overlap_object_to_next_frame(source_time_step_df, sel_source_bacteria,
                                                        bacteria_in_target_time_step, sel_target_bacteria, daughter_flag,
                                                        maintain)
 
@@ -243,7 +243,7 @@ def replacing_new_link_to_inappropriate_daughter(new_conditions, maintenance_cos
     return adding_new_daughter_cost, redundant_link_dict
 
 
-def replacing_new_link_to_one_of_daughters(df, masks_dict, new_conditions, target_bac_ndx,
+def replacing_new_link_to_one_of_daughters(df, new_conditions, target_bac_ndx,
                                            source_bac_ndx, source_bac, new_daughter_cost, redundant_link_dict,
                                            all_bacteria_in_source_time_step, all_bac_in_target_time_step_df,
                                            center_coordinate_columns):
@@ -255,7 +255,7 @@ def replacing_new_link_to_one_of_daughters(df, masks_dict, new_conditions, targe
     daughters_df = df.loc[df.index.isin(candidate_daughters_ndx)]
 
     daughters_overlap_df, daughters_distance_df = \
-        make_initial_distance_matrix(masks_dict, all_bacteria_in_source_time_step,
+        make_initial_distance_matrix(all_bacteria_in_source_time_step,
                                      source_bac.to_frame().transpose(), all_bac_in_target_time_step_df, daughters_df,
                                      center_coordinate_columns)
 
@@ -282,7 +282,7 @@ def replacing_new_link_to_one_of_daughters(df, masks_dict, new_conditions, targe
     return adding_new_daughter_cost, redundant_link_dict
 
 
-def replacing_new_link_to_division(df, masks_dict, cost_df, maintenance_cost_df,
+def replacing_new_link_to_division(df, cost_df, maintenance_cost_df,
                                    source_bac_ndx, source_bac, target_bac_ndx, target_bac, target_bac_len_to_source,
                                    new_daughter_cost, candidate_source_bac_daughters,
                                    max_daughter_len_to_mother_ratio_boundary,
@@ -326,7 +326,7 @@ def replacing_new_link_to_division(df, masks_dict, cost_df, maintenance_cost_df,
                                                              target_bac_ndx, source_bac_ndx, redundant_link_dict)
         else:
             adding_new_daughter_cost, redundant_link_dict = \
-                replacing_new_link_to_one_of_daughters(df, masks_dict, new_conditions,
+                replacing_new_link_to_one_of_daughters(df, new_conditions,
                                                        target_bac_ndx, source_bac_ndx, source_bac, new_daughter_cost,
                                                        redundant_link_dict, all_bacteria_in_source_time_step,
                                                        all_bac_in_target_time_step_df, center_coordinate_columns)
@@ -339,7 +339,7 @@ def replacing_new_link_to_division(df, masks_dict, cost_df, maintenance_cost_df,
     return new_link_cost, adding_new_daughter_cost, redundant_link_dict, maintenance_cost_daughters_link
 
 
-def link_to_source_with_two_links(df, masks_dict, cost_df, maintenance_cost_df,
+def link_to_source_with_two_links(df, cost_df, maintenance_cost_df,
                                   source_bac_ndx,
                                   source_bac, target_bac_ndx, target_bac, redundant_link_dict,
                                   target_bac_len_to_source, angle_between_motion, difference_neighbors,
@@ -354,7 +354,7 @@ def link_to_source_with_two_links(df, masks_dict, cost_df, maintenance_cost_df,
         np.power(difference_neighbors / max_neighbor_changes, 2))
 
     new_link_instead_daughters_cost, adding_new_daughter_cost, redundant_link_dict, maintenance_cost_daughters_link = \
-        replacing_new_link_to_division(df, masks_dict, cost_df, maintenance_cost_df,
+        replacing_new_link_to_division(df, cost_df, maintenance_cost_df,
                                        source_bac_ndx, source_bac, target_bac_ndx, target_bac, target_bac_len_to_source,
                                        new_daughter_cost, candidate_source_bac_daughters,
                                        max_daughter_len_to_mother_ratio_boundary,
@@ -376,7 +376,7 @@ def link_to_source_with_two_links(df, masks_dict, cost_df, maintenance_cost_df,
     return cost_df, redundant_link_dict
 
 
-def adding_new_terms_to_cost_matrix(df, masks_dict, cost_df, maintenance_cost_df,
+def adding_new_terms_to_cost_matrix(df, cost_df, maintenance_cost_df,
                                     source_bac_ndx, source_bac, target_bac_ndx, target_bac, neighbors_df,
                                     redundant_link_dict, max_neighbor_changes, bac_len_to_bac_ratio_boundary,
                                     sum_daughter_len_to_mother_ratio_boundary,
@@ -440,7 +440,7 @@ def adding_new_terms_to_cost_matrix(df, masks_dict, cost_df, maintenance_cost_df
     elif candidate_source_bac_daughters.shape[0] > 0:
         # my idea: at least one of a daughter-mother links can be wrong
         cost_df, redundant_link_dict = \
-            link_to_source_with_two_links(df, masks_dict, cost_df, maintenance_cost_df,
+            link_to_source_with_two_links(df, cost_df, maintenance_cost_df,
                                           source_bac_ndx, source_bac, target_bac_ndx, target_bac, redundant_link_dict,
                                           target_bac_len_to_source, angle_between_motion, difference_neighbors,
                                           max_neighbor_changes, candidate_source_bac_daughters,

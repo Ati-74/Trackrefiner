@@ -114,7 +114,7 @@ def assign_new_link(df, neighbors_df, source_bac_index, source_bac, division_cos
     return df
 
 
-def incorrect_same_link(df, neighbors_df, sorted_npy_files_list, min_life_history_of_bacteria, interval_time,
+def incorrect_same_link(df, neighbors_df, min_life_history_of_bacteria, interval_time,
                         parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                         logs_df):
 
@@ -187,7 +187,7 @@ def incorrect_same_link(df, neighbors_df, sorted_npy_files_list, min_life_histor
                 all_bac_in_target_time_step = df.loc[df['ImageNumber'] == incorrect_same_link_bacteria_time_step]
 
                 # try to detect division
-                division_cost_df = division_detection_cost(df, sorted_npy_files_list, source_incorrect_same_link,
+                division_cost_df = division_detection_cost(df, source_incorrect_same_link,
                                                            all_bac_in_source_time_step,
                                                            min_life_history_of_bacteria_time_step,
                                                            target_incorrect_same_link,
@@ -195,13 +195,13 @@ def incorrect_same_link(df, neighbors_df, sorted_npy_files_list, min_life_histor
                                                            neighbors_indx_dict, center_coordinate_columns,
                                                            parent_object_number_col)
 
-                new_link_cost_df = adding_new_link_cost(df, neighbors_df, sorted_npy_files_list, source_incorrect_same_link,
+                new_link_cost_df = adding_new_link_cost(df, neighbors_df, source_incorrect_same_link,
                                                         all_bac_in_source_time_step, target_incorrect_same_link,
                                                         all_bac_in_target_time_step, neighbors_bacteria_info,
                                                         neighbors_indx_dict, center_coordinate_columns,
                                                         parent_image_number_col, parent_object_number_col)
 
-                maintenance_cost_df = calc_maintenance_cost(df, sorted_npy_files_list, all_bac_in_source_time_step,
+                maintenance_cost_df = calc_maintenance_cost(df, all_bac_in_source_time_step,
                                                             parent_of_neighbors_info,
                                                             all_bac_in_target_time_step, neighbors_df,
                                                             neighbors_bacteria_info, center_coordinate_columns)

@@ -63,7 +63,7 @@ def adding_new_link(df, neighbors_df, unexpected_end_bac_index, unexpected_end_b
     return df
 
 
-def unexpected_end_bacteria(df, neighbors_df, sorted_npy_files_list, min_life_history_of_bacteria, interval_time,
+def unexpected_end_bacteria(df, neighbors_df, min_life_history_of_bacteria, interval_time,
                             parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                             logs_df):
 
@@ -96,7 +96,7 @@ def unexpected_end_bacteria(df, neighbors_df, sorted_npy_files_list, min_life_hi
                 all_bac_in_next_time_step = df.loc[df['ImageNumber'] == unexpected_end_bacteria_time_step + 1]
 
                 new_link_result_df, candidate_new_bac_daughter_list_id, cost_df, maintenance_cost_df = \
-                    adding_new_link_to_unexpected(df, neighbors_df, sorted_npy_files_list,
+                    adding_new_link_to_unexpected(df, neighbors_df,
                                                   unexpected_end_bac_in_current_time_step_df,
                                                   all_bac_in_current_time_step, all_bac_in_next_time_step,
                                                   center_coordinate_columns, parent_image_number_col,

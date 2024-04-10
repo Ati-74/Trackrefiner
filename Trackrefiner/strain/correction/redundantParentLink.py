@@ -9,7 +9,7 @@ from Trackrefiner.strain.correction.action.findOutlier import find_daughter_len_
 from Trackrefiner.strain.correction.action.bacteriaModification import remove_redundant_link
 
 
-def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_files_list,
+def detect_and_remove_redundant_parent_link(dataframe, neighbor_df,
                                             parent_image_number_col, parent_object_number_col, label_col,
                                             center_coordinate_columns, logs_df):
 
@@ -69,7 +69,7 @@ def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_f
                                                            parent_with_redundant_link['ImageNumber'] + 1]
 
                 # check the cost of daughters to mother
-                overlap_df, distance_df = make_initial_distance_matrix(sorted_npy_files_list, bacteria_in_current_time_step,
+                overlap_df, distance_df = make_initial_distance_matrix(bacteria_in_current_time_step,
                                                                        parent_with_redundant_link.to_frame().transpose(),
                                                                        bacteria_in_next_time_step,
                                                                        daughters_at_first_time_step_of_life_history,
@@ -154,13 +154,14 @@ def detect_and_remove_redundant_parent_link(dataframe, neighbor_df, sorted_npy_f
                                         np.power(daughter_bac['difference_neighbors'] / max_neighbor_changes, 2)
                                         )
 
-                new_link_cost_df = receive_new_link_cost(dataframe, neighbor_df, sorted_npy_files_list, neighbors_bacteria_info,
+                new_link_cost_df = receive_new_link_cost(dataframe, neighbor_df, neighbors_bacteria_info,
                                                          bacteria_in_current_time_step,
                                                          candidate_daughters_at_first_time_step_of_life_history,
                                                          bacteria_in_next_time_step, center_coordinate_columns,
                                                          parent_image_number_col)
 
                 final_cost = pd.concat([cost_df, new_link_cost_df])
+
                 result_df = optimize_assignment(final_cost)
 
                 if parent_indx in result_df['without parent index'].values.tolist():

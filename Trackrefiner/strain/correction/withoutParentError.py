@@ -5,7 +5,7 @@ from Trackrefiner.strain.correction.action.assignParent import assign_parent
 from Trackrefiner.strain.correction.action.compareBacteria import optimization_transition_cost
 
 
-def correction_without_parent(df, neighbors_df, sorted_npy_files_list, number_of_gap, check_cell_type, interval_time,
+def correction_without_parent(df, neighbors_df, number_of_gap, check_cell_type, interval_time,
                               min_life_history_of_bacteria, parent_image_number_col, parent_object_number_col,
                               label_col, center_coordinate_columns, logs_df):
 
@@ -48,7 +48,7 @@ def correction_without_parent(df, neighbors_df, sorted_npy_files_list, number_of
             # optimized cost dataframe
             # (rows: next time step sudden bacteria, columns: consider time step bacteria)
             optimized_cost_df, redundant_link_dict = \
-                optimization_transition_cost(df, sorted_npy_files_list, all_bac_in_without_source_time_step,
+                optimization_transition_cost(df, all_bac_in_without_source_time_step,
                                              without_link_to_source_bac, all_bac_in_source_time_step, check_cell_type,
                                              neighbors_df, min_life_history_of_bacteria_time_step,
                                              parent_image_number_col, parent_object_number_col,

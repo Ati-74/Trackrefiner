@@ -24,7 +24,7 @@ def assign_new_link(df, neighbors_df, source_bac_index, source_bac, division_cos
     return df
 
 
-def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time, sorted_npy_files_list,
+def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time,
                    parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns, logs_df):
 
     num_incorrect_same_links = None
@@ -91,7 +91,7 @@ def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time
                 all_bac_in_target_time_step = df.loc[df['ImageNumber'] == incorrect_same_link_bacteria_time_step]
 
                 # try to detect division
-                division_cost_df = final_division_detection_cost(df, sorted_npy_files_list, source_incorrect_same_link,
+                division_cost_df = final_division_detection_cost(df, source_incorrect_same_link,
                                                                  all_bac_in_source_time_step,
                                                                  min_life_history_of_bacteria_time_step,
                                                                  target_incorrect_same_link,

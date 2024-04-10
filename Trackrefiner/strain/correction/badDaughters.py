@@ -7,8 +7,8 @@ from Trackrefiner.strain.correction.action.helperFunctions import calculate_orie
 
 
 
-def detect_remove_bad_daughters_to_mother_link(df, neighbor_df, sorted_npy_files_list, parent_image_number_col,
-                                               parent_object_number_col, label_col, center_coordinate_columns, logs_df):
+def detect_remove_bad_daughters_to_mother_link(df, neighbor_df, parent_image_number_col, parent_object_number_col,
+                                               label_col, center_coordinate_columns, logs_df):
     """
         goal: modification of bad daughters (try to assign bad daughters to new parent)
         @param df    dataframe   bacteria dataframe
@@ -31,7 +31,7 @@ def detect_remove_bad_daughters_to_mother_link(df, neighbor_df, sorted_npy_files
         bacteria_in_daughter_time_step = df.loc[df['ImageNumber'] == daughters_df['ImageNumber'].values.tolist()[0]]
 
         # check the cost of daughters to mother
-        overlap_df, distance_df = make_initial_distance_matrix(sorted_npy_files_list, bacteria_in_mother_last_time_step,
+        overlap_df, distance_df = make_initial_distance_matrix(bacteria_in_mother_last_time_step,
                                                                mother_last_time_step, bacteria_in_daughter_time_step,
                                                                daughters_df, center_coordinate_columns)
 

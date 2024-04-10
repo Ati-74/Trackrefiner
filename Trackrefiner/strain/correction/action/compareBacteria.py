@@ -59,7 +59,7 @@ def compare_daughters_bacteria(daughter1, daughter2):
     return distance_df
 
 
-def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_step_df, without_source_bacteria,
+def optimization_transition_cost(df, all_bac_in_without_source_time_step_df, without_source_bacteria,
                                  all_bacteria_in_prev_time_step, check_cell_type, neighbors_df,
                                  min_life_history_of_bacteria, parent_image_number_col, parent_object_number_col,
                                  center_coordinate_columns):
@@ -78,7 +78,7 @@ def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_
     all_bac_in_prev_time_step_without_noise_bac = \
         all_bacteria_in_prev_time_step.loc[all_bacteria_in_prev_time_step['noise_bac'] == False]
 
-    overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_without_source_time_step_df,
+    overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_without_source_time_step_df,
                                                            without_source_bacteria,
                                                            all_bacteria_in_prev_time_step,
                                                            all_bac_in_prev_time_step_without_noise_bac,
@@ -122,7 +122,7 @@ def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_
     cost_df = cost_df[bac_under_invest_prev_time_step.index.values.tolist()]
 
     # now check the cost of maintaining the link
-    maintenance_cost_df = calc_maintenance_cost(df, masks_dict, all_bacteria_in_prev_time_step,
+    maintenance_cost_df = calc_maintenance_cost(df, all_bacteria_in_prev_time_step,
                                                 bac_under_invest_prev_time_step, all_bac_in_without_source_time_step_df,
                                                 neighbors_df, receiver_of_bac_under_invest_link,
                                                 center_coordinate_columns)
@@ -138,7 +138,7 @@ def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_
             candidate_source_bac = df.loc[candidate_source_bac_ndx]
 
             cost_df, redundant_link_dict = \
-                adding_new_terms_to_cost_matrix(df, masks_dict, cost_df, maintenance_cost_df,
+                adding_new_terms_to_cost_matrix(df, cost_df, maintenance_cost_df,
                                                 candidate_source_bac_ndx,
                                                 candidate_source_bac,  without_source_link_bac_ndx,
                                                 without_source_link_bac, neighbors_df, redundant_link_dict,
@@ -155,7 +155,7 @@ def optimization_transition_cost(df, masks_dict, all_bac_in_without_source_time_
     return result_df, redundant_link_dict
 
 
-def division_detection_cost(df, masks_dict, source_incorrect_same_link, all_bac_in_source_time_step,
+def division_detection_cost(df, source_incorrect_same_link, all_bac_in_source_time_step,
                             min_life_history_of_bacteria_time_step, target_incorrect_same_link,
                             all_bac_in_target_time_step, neighbors_bacteria_info, neighbors_indx_dict,
                             center_coordinate_columns, parent_object_number_col):
@@ -163,7 +163,7 @@ def division_detection_cost(df, masks_dict, source_incorrect_same_link, all_bac_
     max_daughter_len_to_mother_ratio_boundary = find_max_daughter_len_to_mother_ratio_boundary(df)
     sum_daughter_len_to_mother_ratio_boundary = find_sum_daughter_len_to_mother_ratio_boundary(df)
 
-    overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step,
+    overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_source_time_step,
                                                            source_incorrect_same_link, all_bac_in_target_time_step,
                                                            neighbors_bacteria_info, center_coordinate_columns,
                                                            daughter_flag=True)
@@ -219,12 +219,12 @@ def division_detection_cost(df, masks_dict, source_incorrect_same_link, all_bac_
     return result_df
 
 
-def final_division_detection_cost(df, masks_dict, source_incorrect_same_link, all_bac_in_source_time_step,
+def final_division_detection_cost(df, source_incorrect_same_link, all_bac_in_source_time_step,
                             min_life_history_of_bacteria_time_step, target_incorrect_same_link,
                             all_bac_in_target_time_step, neighbors_bacteria_info, neighbors_indx_dict,
                                   center_coordinate_columns, parent_object_number_col):
 
-    overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step,
+    overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_source_time_step,
                                                            source_incorrect_same_link,
                                                            all_bac_in_target_time_step, neighbors_bacteria_info,
                                                            center_coordinate_columns, daughter_flag=True)
@@ -265,7 +265,7 @@ def final_division_detection_cost(df, masks_dict, source_incorrect_same_link, al
     return result_df
 
 
-def receive_new_link_cost(df, neighbors_df, masks_dict, neighbors_bacteria_info, all_bac_in_source_time_step,
+def receive_new_link_cost(df, neighbors_df, neighbors_bacteria_info, all_bac_in_source_time_step,
                           target_incorrect_link, all_bac_in_target_time_step, center_coordinate_columns,
                           parent_image_number_col):
 
@@ -276,7 +276,7 @@ def receive_new_link_cost(df, neighbors_df, masks_dict, neighbors_bacteria_info,
 
     bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
 
-    overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step,
+    overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_source_time_step,
                                                            neighbors_bacteria_info, all_bac_in_target_time_step,
                                                            target_incorrect_link, center_coordinate_columns)
 
@@ -312,11 +312,12 @@ def receive_new_link_cost(df, neighbors_df, masks_dict, neighbors_bacteria_info,
                     cost_df.at[neighbors_bac_ndx, col] = 999
 
     cost_df = cost_df[~(cost_df == 999).all(axis=1)]
+    cost_df.columns = [col[0] if isinstance(col, tuple) else col for col in cost_df.columns]
 
     return cost_df
 
 
-def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_link, all_bac_in_source_time_step,
+def adding_new_link_cost(df, neighbors_df, source_incorrect_same_link, all_bac_in_source_time_step,
                          target_incorrect_same_link,  all_bac_in_target_time_step, neighbors_bacteria_info,
                          neighbors_indx_dict, center_coordinate_columns, parent_image_number_col,
                          parent_object_number_col):
@@ -327,7 +328,7 @@ def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_lin
 
     bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
 
-    overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step,
+    overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_source_time_step,
                                                            source_incorrect_same_link,
                                                            all_bac_in_target_time_step, neighbors_bacteria_info,
                                                            center_coordinate_columns)
@@ -384,7 +385,7 @@ def adding_new_link_cost(df, neighbors_df, masks_dict, source_incorrect_same_lin
     return result_df
 
 
-def calc_maintenance_cost(df, masks_dict, all_bac_in_source_time_step, sel_source_bacteria_info,
+def calc_maintenance_cost(df, all_bac_in_source_time_step, sel_source_bacteria_info,
                           all_bac_in_target_time_step, neighbor_df, sel_target_bacteria_info,
                           center_coordinate_columns):
 
@@ -392,7 +393,7 @@ def calc_maintenance_cost(df, masks_dict, all_bac_in_source_time_step, sel_sourc
         bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
 
         neighbors_overlap_df, neighbors_distance_df = \
-            make_initial_distance_matrix(masks_dict, all_bac_in_source_time_step, sel_source_bacteria_info,
+            make_initial_distance_matrix(all_bac_in_source_time_step, sel_source_bacteria_info,
                                          all_bac_in_target_time_step, sel_target_bacteria_info,
                                          center_coordinate_columns, maintain=True)
 
@@ -471,7 +472,7 @@ def calc_maintenance_cost(df, masks_dict, all_bac_in_source_time_step, sel_sourc
     return maintenance_cost
 
 
-def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_bac_in_current_time_step,
+def adding_new_link_to_unexpected(df, neighbors_df, unexpected_end_bac_in_current_time_step,
                                   all_bac_in_current_time_step, all_bac_in_next_time_step, center_coordinate_columns,
                                   parent_image_number_col, parent_object_number_col):
 
@@ -484,7 +485,7 @@ def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_b
     all_bac_in_next_time_step_without_noise_bac = \
         all_bac_in_next_time_step.loc[all_bac_in_next_time_step['noise_bac'] == False]
 
-    overlap_df, distance_df = make_initial_distance_matrix(masks_dict, all_bac_in_current_time_step,
+    overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_current_time_step,
                                                            unexpected_end_bac_in_current_time_step,
                                                            all_bac_in_next_time_step,
                                                            all_bac_in_next_time_step_without_noise_bac,
@@ -527,7 +528,7 @@ def adding_new_link_to_unexpected(df, neighbors_df, masks_dict, unexpected_end_b
     cost_df = cost_df[bac_under_invest.index.values.tolist()]
 
     # now check the cost of maintaining the link
-    maintenance_cost_df = calc_maintenance_cost(df, masks_dict, all_bac_in_current_time_step,
+    maintenance_cost_df = calc_maintenance_cost(df, all_bac_in_current_time_step,
                                                 source_of_bac_under_invest_link, all_bac_in_next_time_step,
                                                 neighbors_df, bac_under_invest, center_coordinate_columns)
 
