@@ -742,7 +742,7 @@ def remove_bac(dataframe, noise_bac_ndx, noise_obj, neighbor_df, parent_image_nu
 
     elif daughters_of_noise_obj.shape[0] > 0:
         for daughter_ndx, daughter_bac in daughters_of_noise_obj.iterrows():
-            daughter_life_history = dataframe.loc[dataframe['id'] == daughter_bac['id']]
+            daughter_life_history = dataframe.loc[dataframe['id'] == dataframe.loc[daughter_ndx]['id']]
             dataframe = new_transition_bacteria(dataframe, daughter_life_history, parent_image_number_col,
                                                 parent_object_number_col, label_col)
 
