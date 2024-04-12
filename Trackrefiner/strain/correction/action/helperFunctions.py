@@ -699,6 +699,9 @@ def convert_to_um(data_frame, um_per_pixel, all_center_coordinate_columns):
 
     data_frame[all_center_coordinate_columns['y']] *= um_per_pixel
 
+    data_frame['AreaShape_MajorAxisLength'] *= um_per_pixel
+    data_frame['AreaShape_MinorAxisLength'] *= um_per_pixel
+
     return data_frame
 
 
