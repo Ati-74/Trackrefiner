@@ -1,73 +1,178 @@
-import os.path
-import numpy as np
 import pandas as pd
-from skimage.measure import label, regionprops
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import cv2
 
 
-def func_calculate_iou(coords1, coords2, daughter_flag):
+def calculate_intersections_and_unions(df, col1, col2):
 
-    df_coords1 = pd.DataFrame(coords1, columns=['row', 'col'])
-    df_coords2 = pd.DataFrame(coords2, columns=['row', 'col'])
+    df['intersection'] = df[col1].values & df[col2].values
+    df['union'] = df[col1].values | df[col2].values
 
-    # Calculate intersections and unions in a vectorized manner
-    intersections = pd.merge(df_coords1, df_coords2, how='inner', on=['row', 'col']).shape[0]
-    unions = pd.concat([df_coords1, df_coords1]).drop_duplicates().shape[0]
+    df['intersection'] = df['intersection'].map(len)
+    df['union'] = df['union'].map(len)
 
-    # Calculate unique areas for conditional logic
-    unique_masks1 = df_coords1.shape[0] - intersections
-    unique_masks2 = df_coords2.shape[0] - intersections
+    df['intersection'] = df['intersection'].astype('int64')
+    df['union'] = df['union'].astype('int64')
 
+    df['iou'] = df['intersection'] / df['union']
+
+    return df
+
+
+def calculate_intersections_and_unions_division(df, col1, col2):
+
+    df['intersection'] = df[col1].values & df[col2].values
+    df['intersection'] = df['intersection'].map(len)
+
+    # Calculate unique areas for mask 2 (daughter)
+    df['unique_masks2'] = df[col2] - df[col1]
+    df['unique_masks2'] = df['unique_masks2'].map(len)
+
+    df['intersection'] = df['intersection'].astype('int64')
+    df['unique_masks2'] = df['unique_masks2'].astype('int64')
 
     # Calculate IoU based on daughter_flag
-    if daughter_flag:
-            iou_val = intersections / (intersections + unique_masks2)
-    else:
-            iou_val = intersections / unions
+    df['iou'] = df['intersection'] / (df['intersection'] + df['unique_masks2'])
 
-    return iou_val
+    return df
+
+
+def find_overlap_mother_bad_daughters(mother_bad_daughters_df):
+    # Calculate intersection by merging on coordinates
+    mother_bad_daughters_df = \
+        calculate_intersections_and_unions(mother_bad_daughters_df, 'coordinate_mother',
+                                           'coordinate_daughter')
+
+    # Pivot this DataFrame to get the desired structure
+    overlap_df = \
+        mother_bad_daughters_df[['index_mother', 'index_daughter', 'iou']].pivot(index='index_mother',
+                                                                                 columns='index_daughter',
+                                                                                 values='iou')
+    overlap_df.columns.name = None
+    overlap_df.index.name = None
+    overlap_df = overlap_df.astype(float)
+
+    return overlap_df
+
+
+def find_overlap_object_for_division_chance(source_with_candidate_neighbors, center_coordinate_columns, col1, col2,
+                                            daughter_flag=False):
+    if daughter_flag:
+        # Calculate intersection by merging on coordinates
+        source_with_candidate_neighbors = \
+            calculate_intersections_and_unions_division(source_with_candidate_neighbors,
+                                                        'coordinate' + col1, 'coordinate' + col2)
+    else:
+        # Calculate intersection by merging on coordinates
+        source_with_candidate_neighbors = \
+            calculate_intersections_and_unions(source_with_candidate_neighbors,
+                                               'coordinate' + col1, 'coordinate' + col2)
+
+    # Pivot this DataFrame to get the desired structure
+    overlap_df = \
+        source_with_candidate_neighbors[['index' + col1, 'index' + col2,
+                                         'iou']].pivot(index='index' + col1, columns='index' + col2, values='iou')
+
+    overlap_df.columns.name = None
+    overlap_df.index.name = None
+    overlap_df = overlap_df.astype(float)
+
+    return overlap_df
 
 
 def find_overlap_object_to_next_frame(current_df, selected_objects, next_df, selected_objects_in_next_time_step,
-                                      daughter_flag=False, maintain=False):
-
-    overlap_results = []
+                                      center_coordinate_columns, daughter_flag=False):
 
     if len(current_df['color_mask'].values.tolist()) != len(set(current_df['color_mask'].values.tolist())):
-
         print(current_df['ImageNumber'].values[0])
         breakpoint()
 
     if len(next_df['color_mask'].values.tolist()) != len(set(next_df['color_mask'].values.tolist())):
-
         print(next_df['ImageNumber'].values[0])
         breakpoint()
 
+    product_df = pd.merge(
+        selected_objects.reset_index(),
+        selected_objects_in_next_time_step.reset_index(),
+        how='cross',
+        suffixes=('_current', '_next')
+    )
+    product_df[['index_current', 'index_next']] = product_df[['index_current', 'index_next']].astype('int64')
+    product_df[[center_coordinate_columns['x'] + '_current',
+                center_coordinate_columns['y'] + '_current',
+                center_coordinate_columns['x'] + '_next',
+                center_coordinate_columns['y'] + '_next',
+                'endpoint1_X_current', 'endpoint1_Y_current',
+                'endpoint2_X_current', 'endpoint2_Y_current',
+                'endpoint1_X_next', 'endpoint1_Y_next',
+                'endpoint2_X_next', 'endpoint2_Y_next']] = (
+        product_df[[center_coordinate_columns['x'] + '_current', center_coordinate_columns['y'] + '_current',
+                    center_coordinate_columns['x'] + '_next', center_coordinate_columns['y'] + '_next',
+                    'endpoint1_X_current', 'endpoint1_Y_current',
+                    'endpoint2_X_current', 'endpoint2_Y_current',
+                    'endpoint1_X_next', 'endpoint1_Y_next',
+                    'endpoint2_X_next', 'endpoint2_Y_next'
+                    ]].astype('float64'))
 
-    for source_obj_ndx, target_obj_ndx in [(source_obj_ndx, target_obj_ndx) for source_obj_ndx in selected_objects.index
-                                           for target_obj_ndx in selected_objects_in_next_time_step.index]:
-
-        selected_object1_coord = selected_objects.loc[source_obj_ndx]['coordinate']
-        selected_object2_coord = selected_objects_in_next_time_step.loc[target_obj_ndx]['coordinate']
-
-        if maintain and next_df.loc[target_obj_ndx]['parent_id'] == current_df.loc[source_obj_ndx]['id']:
-            final_daughter_flags = True
-        else:
-            final_daughter_flags = daughter_flag
-
-        # Calculate IoU values in batch
-        iou_value = func_calculate_iou(selected_object1_coord, selected_object2_coord, final_daughter_flags)
-
-        overlap_results.append({'source': source_obj_ndx, 'target': target_obj_ndx, 'IoU': iou_value})
-
-    # Create DataFrame from results
-    initial_df = pd.DataFrame(overlap_results)
+    if daughter_flag:
+        # Calculate intersection by merging on coordinates
+        product_df = \
+            calculate_intersections_and_unions_division(product_df, 'coordinate_current', 'coordinate_next')
+    else:
+        # Calculate intersection by merging on coordinates
+        product_df = calculate_intersections_and_unions(product_df, 'coordinate_current', 'coordinate_next')
 
     # Pivot this DataFrame to get the desired structure
-    overlap_df = initial_df.pivot(index='source', columns='target', values='IoU')
+    overlap_df = \
+        product_df[['index_current', 'index_next', 'iou']].pivot(index='index_current', columns='index_next',
+                                                                 values='iou')
+
     overlap_df.columns.name = None
     overlap_df.index.name = None
+    overlap_df = overlap_df.astype(float)
+
+    return overlap_df, product_df
+
+
+def find_overlap_object_to_next_frame_maintain(division_df, same_df):
+    if division_df.shape[0] > 0:
+        division_df = calculate_intersections_and_unions_division(division_df, 'coordinate_parent',
+                                                                  'coordinate_daughter')
+
+        # Pivot this DataFrame to get the desired structure
+        division_overlap = division_df[['index_parent', 'index_daughter', 'iou']].pivot(index='index_parent',
+                                                                                        columns='index_daughter',
+                                                                                        values='iou')
+
+    if same_df.shape[0] > 0:
+        same_df = calculate_intersections_and_unions(same_df, 'coordinate_1', 'coordinate_2')
+        same_df_overlap = same_df[['index_1', 'index_2', 'iou']].pivot(index='index_1', columns='index_2', values='iou')
+
+    if division_df.shape[0] > 0 and same_df.shape[0] > 0:
+        overlap_df = pd.concat([division_overlap, same_df_overlap], axis=0)
+    elif division_df.shape[0] > 0:
+        overlap_df = division_overlap
+    elif same_df.shape[0] > 0:
+        overlap_df = same_df_overlap
+    else:
+        breakpoint()
+
+    overlap_df.columns.name = None
+    overlap_df.index.name = None
+    overlap_df = overlap_df.astype(float)
+
+    return overlap_df
+
+
+def find_overlap_object_to_next_frame_unexpected(final_candidate_bac):
+
+    if final_candidate_bac.shape[0] > 0:
+
+        final_candidate_bac = calculate_intersections_and_unions(final_candidate_bac, 'coordinate',
+                                                                 'coordinate_candidate')
+
+    overlap_df = final_candidate_bac[['index', 'index_candidate', 'iou']].pivot(
+        index='index', columns='index_candidate', values='iou')
+    overlap_df.columns.name = None
+    overlap_df.index.name = None
+    overlap_df = overlap_df.astype(float)
 
     return overlap_df

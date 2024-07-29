@@ -1,21 +1,42 @@
 import numpy as np
 import pandas as pd
 import time
-from Trackrefiner.strain.correction.action.helperFunctions import bacteria_life_history, remove_rows, \
-    convert_to_um, find_vertex, angle_convert_to_radian, calculate_slope_intercept, \
-    adding_features_to_each_timestep_except_first, adding_features_only_for_last_time_step, \
-    adding_features_related_to_division, calc_distance_between_daughters, print_progress_bar
+from Trackrefiner.strain.correction.action.helperFunctions import remove_rows, convert_to_um, find_vertex_batch, \
+    angle_convert_to_radian, calculate_slope_intercept_batch, print_progress_bar, \
+    adding_features_to_continues_life_history, calculate_trajectory_direction_daughters_mother, \
+    calculate_orientation_angle_batch
 from Trackrefiner.strain.correction.action.fluorescenceIntensity import assign_cell_type
 from Trackrefiner.strain.correction.nanLabel import modify_nan_labels
-from Trackrefiner.strain.correction.withoutParentError import correction_without_parent
-from Trackrefiner.strain.correction.badDaughters import detect_remove_bad_daughters_to_mother_link
-from Trackrefiner.strain.correction.redundantParentLink import detect_and_remove_redundant_parent_link
+from Trackrefiner.strain.correction.unexpectedBeginning import correction_unexpected_beginning
+from Trackrefiner.strain.correction.overAssignedDaughters import remove_over_assigned_daughters_link
+from Trackrefiner.strain.correction.redundantParentLink import (detect_redundant_parent_link,
+                                                                detect_and_remove_redundant_parent_link)
 from Trackrefiner.strain.correction.noiseRemover import noise_remover
 from Trackrefiner.strain.correction.neighborChecking import neighbor_checking
-from Trackrefiner.strain.correction.incorrectSameLink import incorrect_same_link
+from Trackrefiner.strain.correction.missingConnectivityLink import missing_connectivity_link, detect_missing_connectivity_link
 from Trackrefiner.strain.correction.unExpectedEnd import unexpected_end_bacteria
 from Trackrefiner.strain.correction.action.multiRegionsDetection import multi_region_detection
 from Trackrefiner.strain.correction.action.finalMatching import final_matching
+from Trackrefiner.strain.correction.action.Modeling.trainingModels import training_models
+import warnings
+import logging
+import traceback
+
+# Configure logging to capture warnings
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+# Custom warning handler to include traceback
+def custom_warning_handler(message, category, filename, lineno, file=None, line=None):
+    log_message = f"{message} (File: {filename}, Line: {lineno})"
+    # Capture the current stack trace
+    stack_trace = traceback.format_stack()
+    # Log the warning with the stack trace
+    logging.warning(f"{log_message}\nStack Trace:\n{''.join(stack_trace)}")
+
+
+# Apply the custom warning handler
+warnings.showwarning = custom_warning_handler
 
 
 def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, neighbor_df, center_coordinate_columns,
@@ -29,155 +50,427 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
     """
     dataframe['checked'] = False
 
-    dataframe['endppoint1_X'] = ''
-    dataframe['endppoint1_Y'] = ''
-    dataframe['endppoint2_X'] = ''
-    dataframe['endppoint2_Y'] = ''
-
-    dataframe['noise_bac'] = False
-    dataframe["id"] = ''
     dataframe["divideFlag"] = False
     dataframe['daughters_index'] = ''
     dataframe['bad_division_flag'] = False
+    dataframe['ovd_flag'] = False
+    dataframe['bad_daughters_flag'] = False
+
     dataframe['unexpected_end'] = False
-    dataframe['division_time'] = 0
+    dataframe['division_time'] = np.nan
     dataframe['transition'] = False
-    dataframe["LifeHistory"] = ''
-    dataframe["difference_neighbors"] = 0
-    dataframe["parent_id"] = ''
-    dataframe["daughter_orientation"] = ''
-    dataframe["daughter_length_to_mother"] = ''
-    dataframe["daughters_distance"] = ''
-    dataframe["bac_length_to_back"] = ''
-    dataframe["next_to_first_bac_length_ratio"] = ''
-    dataframe["mother_last_to_first_bac_length_ratio"] = ''
-    dataframe["bac_length_to_back_orientation_changes"] = ''
-    dataframe["max_daughter_len_to_mother"] = ''
-    dataframe["bacteria_movement"] = ''
-    dataframe["bacteria_slope"] = ''
-    dataframe["direction_of_motion"] = 0
-    dataframe["angle_between_neighbor_motion_bac_motion"] = 0
+    dataframe["parent_id"] = np.nan
+    dataframe["bacteria_movement"] = np.nan
 
-    last_time_step = sorted(dataframe['ImageNumber'].unique())[-1]
-    # bacterium id
-    bacterium_id = 1
-    transition = False
+    # find vertex
+    dataframe = find_vertex_batch(dataframe, center_coordinate_columns)
+    dataframe = calculate_slope_intercept_batch(dataframe)
 
-    for row_index, row in dataframe.iterrows():
-        if not dataframe.iloc[row_index]["checked"]:
-            bacterium_status = bacteria_life_history(dataframe, row, row_index, last_time_step)
-            parent_img_num = row[parent_image_number_col]
-            parent_obj_num = row[parent_object_number_col]
-            if parent_img_num != 0 and parent_obj_num != 0:
-                parent = dataframe.loc[(dataframe["ImageNumber"] == parent_img_num) & (dataframe["ObjectNumber"] ==
-                                                                                       parent_obj_num)]
-                parent_id = parent['id'].values.tolist()[0]
-                transition = False
-            else:
-                parent_id = 0
-                if row['ImageNumber'] > 1:
-                    transition = True
+    # transition_bacteria
+    cond1 = dataframe[parent_image_number_col] == 0
+    cond2 = dataframe['ImageNumber'] > 1
+    cond3 = dataframe['ImageNumber'] == 1
 
-            dataframe.at[row_index, 'transition'] = transition
+    dataframe.loc[cond1 & cond2, ['checked', 'transition', 'parent_id', "bacteria_movement"]] = \
+        [
+            True,
+            True,
+            0,
+            np.nan,
+        ]
 
-            for list_indx, indx in enumerate(bacterium_status['lifeHistoryIndex']):
-                dataframe.at[indx, 'checked'] = True
+    dataframe.loc[cond1 & cond3, ['checked', 'transition', 'parent_id', "bacteria_movement"]] = \
+        [
+            True,
+            False,
+            0,
+            np.nan
+        ]
 
-                current_bacterium_endpoints = find_vertex(
-                    [dataframe.iloc[indx]["AreaShape_Center_X"], dataframe.iloc[indx]["AreaShape_Center_Y"]],
-                    dataframe.iloc[indx]["AreaShape_MajorAxisLength"],
-                    dataframe.iloc[indx]["AreaShape_Orientation"])
+    dataframe.loc[cond1, 'id'] = dataframe.loc[cond1, 'index'].values + 1
+    # dataframe.loc[cond1, label_col] = dataframe.loc[cond1, 'index'].values + 1
 
-                # Convert points to vectors
-                # Calculate slopes and intercepts
-                slope1, intercept1 = calculate_slope_intercept(current_bacterium_endpoints[0],
-                                                               current_bacterium_endpoints[1])
+    # check division
+    # _2: bac2, _1: bac1 (source bac)
+    merged_df = dataframe.merge(dataframe, left_on=[parent_image_number_col, parent_object_number_col],
+                                right_on=['ImageNumber', 'ObjectNumber'], how='inner', suffixes=('_2', '_1'))
 
-                dataframe.at[indx, 'endppoint1_X'] = current_bacterium_endpoints[0][0]
-                dataframe.at[indx, 'endppoint1_Y'] = current_bacterium_endpoints[0][1]
-                dataframe.at[indx, 'endppoint2_X'] = current_bacterium_endpoints[1][0]
-                dataframe.at[indx, 'endppoint2_Y'] = current_bacterium_endpoints[1][1]
-                dataframe.at[indx, 'bacteria_slope'] = slope1
+    division = merged_df[merged_df.duplicated(subset='index_1', keep=False)][['ImageNumber_1', 'ObjectNumber_1',
+                                                                              'index_1', 'id_1', 'index_2',
+                                                                              'ImageNumber_2', 'ObjectNumber_2',
+                                                                              'AreaShape_MajorAxisLength_1',
+                                                                              'AreaShape_MajorAxisLength_2',
+                                                                              'bacteria_slope_1', 'bacteria_slope_2',
+                                                                              center_coordinate_columns['x'] + '_1',
+                                                                              center_coordinate_columns['y'] + '_1',
+                                                                              center_coordinate_columns['x'] + '_2',
+                                                                              center_coordinate_columns['y'] + '_2',
+                                                                              parent_object_number_col + '_2',
+                                                                              parent_image_number_col + '_2']].copy()
 
-                dataframe.at[indx, 'id'] = bacterium_id
+    division['daughters_index'] = \
+        division.groupby(['ImageNumber_1', 'ObjectNumber_1'])['index_2'].transform(lambda x: ', '.join(x.astype(str)))
 
-                dataframe.at[indx, 'LifeHistory'] = bacterium_status['life_history']
+    division['daughters_TrajectoryX'] = \
+        (division[center_coordinate_columns['x'] + '_2'] - division[center_coordinate_columns['x'] + '_1'])
 
-                if list_indx > 0:
-                    dataframe = adding_features_to_each_timestep_except_first(dataframe, list_indx, indx,
-                                                                              bacterium_status, neighbor_df,
-                                                                              center_coordinate_columns,
-                                                                              without_tracking_correction)
+    division['daughters_TrajectoryY'] = \
+        (division[center_coordinate_columns['y'] + '_2'] - division[center_coordinate_columns['y'] + '_1'])
 
-                if bacterium_status['division_occ']:
-                    dataframe = adding_features_related_to_division(dataframe, indx, bacterium_status)
+    direction_of_motion = calculate_trajectory_direction_daughters_mother(division, center_coordinate_columns)
 
-                    if indx == bacterium_status['lifeHistoryIndex'][-1] and not bacterium_status["bad_division_occ"]:
-                        dataframe.at[indx, 'daughters_distance'] = \
-                            calc_distance_between_daughters(dataframe, bacterium_status["daughters_index"][0],
-                                                            bacterium_status["daughters_index"][1],
-                                                            center_coordinate_columns)
+    division["direction_of_motion"] = direction_of_motion
 
-                    if list_indx > 0 and indx != bacterium_status['lifeHistoryIndex'][-1]:
-                        dataframe.at[indx, "next_to_first_bac_length_ratio"] = \
-                            dataframe.iloc[indx]["AreaShape_MajorAxisLength"] / \
-                            dataframe.iloc[bacterium_status['lifeHistoryIndex'][0]]["AreaShape_MajorAxisLength"]
+    dataframe.loc[division['index_2'].values, "direction_of_motion"] = division["direction_of_motion"].values
 
-                    elif list_indx > 0:
-                        dataframe.at[indx, "mother_last_to_first_bac_length_ratio"] = \
-                            dataframe.iloc[bacterium_status['lifeHistoryIndex'][-1]][
-                                "AreaShape_MajorAxisLength"] / \
-                            dataframe.iloc[bacterium_status['lifeHistoryIndex'][0]]["AreaShape_MajorAxisLength"]
-                else:
-                    if list_indx > 0:
-                        dataframe.at[indx, "next_to_first_bac_length_ratio"] = \
-                            dataframe.iloc[indx]["AreaShape_MajorAxisLength"] / \
-                            dataframe.iloc[bacterium_status['lifeHistoryIndex'][0]]["AreaShape_MajorAxisLength"]
+    dataframe.loc[division['index_2'].values, "TrajectoryX"] = division['daughters_TrajectoryX'].values
 
-                dataframe.at[indx, 'parent_id'] = parent_id
+    dataframe.loc[division['index_2'].values, "TrajectoryY"] = division["daughters_TrajectoryY"].values
+    dataframe.loc[division['index_2'].values, "parent_index"] = division["index_1"].values
 
-            last_bacterium_in_life_history = bacterium_status['lifeHistoryIndex'][-1]
-            dataframe = adding_features_only_for_last_time_step(dataframe, last_bacterium_in_life_history,
-                                                                bacterium_status, center_coordinate_columns)
+    mothers_df_last_time_step = division.drop_duplicates(subset='index_1', keep='first')
 
-            bacterium_id += 1
+    mothers_with_more_than_two_daughters = \
+        division[division.groupby(['ImageNumber_1', 'ObjectNumber_1'])['ImageNumber_1'].transform('count') > 2]
+
+    mothers_with_two_daughters = \
+        division[division.groupby(['ImageNumber_1', 'ObjectNumber_1'])['ImageNumber_1'].transform('count') == 2].copy()
+
+    dataframe.loc[division['index_1'].unique(), 'daughters_index'] = mothers_df_last_time_step['daughters_index'].values
+    dataframe.loc[division['index_1'].unique(), 'division_time'] = mothers_df_last_time_step['ImageNumber_2'].values
+    dataframe.loc[division['index_1'].unique(), "divideFlag"] = True
+
+    # bad divisions
+    dataframe.loc[mothers_with_more_than_two_daughters['index_1'].unique(), "bad_division_flag"] = True
+    dataframe.loc[mothers_with_more_than_two_daughters['index_1'].unique(), "ovd_flag"] = True
+    dataframe.loc[mothers_with_more_than_two_daughters['index_2'].unique(), "ovd_flag"] = True
+    dataframe.loc[mothers_with_more_than_two_daughters['index_2'].unique(), "bad_daughters_flag"] = True
+
+    ##################################################################################################################
+    mothers_with_two_daughters['daughter_mother_LengthChangeRatio'] = \
+        (mothers_with_two_daughters['AreaShape_MajorAxisLength_2'] /
+         mothers_with_two_daughters['AreaShape_MajorAxisLength_1'])
+
+    mothers_with_two_daughters['daughter_mother_slope'] = \
+        calculate_orientation_angle_batch(mothers_with_two_daughters['bacteria_slope_2'].values,
+                                          mothers_with_two_daughters['bacteria_slope_1'].values)
+
+    dataframe.loc[mothers_with_two_daughters['index_2'].values, 'daughter_mother_LengthChangeRatio'] = \
+        mothers_with_two_daughters['daughter_mother_LengthChangeRatio'].values
+
+    # shuld calc for all bacteria
+    dataframe.loc[mothers_with_two_daughters['index_2'].values, 'slope_bac_bac'] = \
+        mothers_with_two_daughters['daughter_mother_slope'].values
+
+    dataframe.loc[mothers_with_two_daughters['index_2'].values, 'prev_bacteria_slope'] = \
+        mothers_with_two_daughters['bacteria_slope_1'].values
+
+    # correct divisions
+    daugter_to_daughter = mothers_with_two_daughters.merge(mothers_with_two_daughters,
+                                                           on=[parent_image_number_col + '_2',
+                                                               parent_object_number_col + '_2'],
+                                                           suffixes=('_daughter1', '_daughter2'))
+
+    daugter_to_daughter = daugter_to_daughter.loc[daugter_to_daughter['index_2_daughter1'] !=
+                                                  daugter_to_daughter['index_2_daughter2']]
+
+    sum_daughters_len = \
+        mothers_with_two_daughters.groupby(['ImageNumber_1', 'ObjectNumber_1'])['AreaShape_MajorAxisLength_2'].sum()
+
+    max_daughters_len = \
+        mothers_with_two_daughters.groupby(['ImageNumber_1', 'ObjectNumber_1'])['AreaShape_MajorAxisLength_2'].max()
+
+    sum_daughters_len_to_mother = \
+        sum_daughters_len / mothers_with_two_daughters.groupby(['ImageNumber_1',
+                                                                'ObjectNumber_1'])['AreaShape_MajorAxisLength_1'].mean()
+
+    max_daughters_len_to_mother = \
+        max_daughters_len / mothers_with_two_daughters.groupby(['ImageNumber_1',
+                                                                'ObjectNumber_1'])['AreaShape_MajorAxisLength_1'].mean()
+
+    avg_daughters_trajectory_x = \
+        mothers_with_two_daughters.groupby(['ImageNumber_1', 'ObjectNumber_1'])['daughters_TrajectoryX'].mean()
+
+    avg_daughters_trajectory_y = \
+        mothers_with_two_daughters.groupby(['ImageNumber_1', 'ObjectNumber_1'])['daughters_TrajectoryY'].mean()
+
+    # Create a temporary DataFrame from sum_daughters_len_to_mother for easier merging
+    temp_df_sum_daughters = sum_daughters_len_to_mother.reset_index()
+    temp_df_sum_daughters.columns = ['ImageNumber', 'ObjectNumber', 'daughter_length_to_mother']
+
+    temp_df_max_daughters = max_daughters_len_to_mother.reset_index()
+    temp_df_max_daughters.columns = ['ImageNumber', 'ObjectNumber', 'max_daughter_len_to_mother']
+
+    temp_df_avg_daughters_trajectory_x = avg_daughters_trajectory_x.reset_index()
+    temp_df_avg_daughters_trajectory_x.columns = ['ImageNumber', 'ObjectNumber', 'avg_daughters_TrajectoryX']
+
+    temp_df_avg_daughters_trajectory_y = avg_daughters_trajectory_y.reset_index()
+    temp_df_avg_daughters_trajectory_y.columns = ['ImageNumber', 'ObjectNumber', 'avg_daughters_TrajectoryY']
+
+    dataframe = dataframe.merge(temp_df_sum_daughters, on=['ImageNumber', 'ObjectNumber'], how='outer')
+    dataframe = dataframe.merge(temp_df_max_daughters, on=['ImageNumber', 'ObjectNumber'], how='outer')
+    dataframe = dataframe.merge(temp_df_avg_daughters_trajectory_x, on=['ImageNumber', 'ObjectNumber'], how='outer')
+    dataframe = dataframe.merge(temp_df_avg_daughters_trajectory_y, on=['ImageNumber', 'ObjectNumber'], how='outer')
+
+    dataframe.loc[daugter_to_daughter['index_2_daughter1'].values, "other_daughter_index"] = \
+        daugter_to_daughter['index_2_daughter2'].values
+
+    # other bacteria
+    other_bac_df = dataframe.loc[~ dataframe['checked']]
+
+    temp_df = dataframe.copy()
+    temp_df.index = (temp_df['ImageNumber'].astype(str) + '_' + temp_df['ObjectNumber'].astype(str))
+
+    bac_index_dict = temp_df['index'].to_dict()
+
+    id_list = []
+    parent_id_list = []
+    # label_list = []
+
+    same_bac_dict = {}
+
+    last_bac_id = dataframe['id'].max() + 1
+
+    for row_index, row in other_bac_df.iterrows():
+
+        image_number, object_number, parent_img_num, parent_obj_num = \
+            row[['ImageNumber', 'ObjectNumber', parent_image_number_col, parent_object_number_col]]
+
+        if str(int(parent_img_num)) + '_' + str(parent_obj_num) not in same_bac_dict.keys():
+            source_link = dataframe.iloc[bac_index_dict[str(int(parent_img_num)) + '_' + str(parent_obj_num)]]
+
+            # life history continues
+            parent_id = source_link['parent_id']
+            source_bac_id = source_link['id']
+            # this_bac_label = source_link[label_col]
+            division_stat = source_link['divideFlag']
+
+        else:
+            # this_bac_label
+            parent_id, source_bac_id, division_stat = \
+                same_bac_dict[str(int(parent_img_num)) + '_' + str(parent_obj_num)]
+
+        if division_stat:
+            # division occurs
+            new_bac_id = last_bac_id
+            last_bac_id += 1
+            # this_bac_label
+            same_bac_dict[str(int(image_number)) + '_' + str(object_number)] = \
+                [source_bac_id, new_bac_id, row['divideFlag']]
+
+            parent_id_list.append(source_bac_id)
+            id_list.append(new_bac_id)
+            # label_list.append(this_bac_label)
+
+        else:
+            parent_id_list.append(parent_id)
+            id_list.append(source_bac_id)
+            # label_list.append(this_bac_label)
+
+            # same bacteria
+            # this_bac_label
+            same_bac_dict[str(int(image_number)) + '_' + str(object_number)] = \
+                [parent_id, source_bac_id, row['divideFlag']]
+
+    dataframe.loc[other_bac_df.index, 'id'] = id_list
+    dataframe.loc[other_bac_df.index, 'parent_id'] = parent_id_list
+    # dataframe.loc[other_bac_df.index, label_col] = label_list
+
+    dataframe['LifeHistory'] = dataframe.groupby('id')['id'].transform('size')
+
+    mothers_with_more_than_two_daughters = \
+        mothers_with_more_than_two_daughters.merge(dataframe, left_on=['ImageNumber_1', 'ObjectNumber_1'],
+                                                   right_on=['ImageNumber', 'ObjectNumber'], how='inner')
+    division = \
+        division.merge(dataframe, left_on=['ImageNumber_1', 'ObjectNumber_1'],
+                       right_on=['ImageNumber', 'ObjectNumber'], how='inner')
+
+    mothers_id = division['id'].unique()
+    bad_mothers_id = mothers_with_more_than_two_daughters['id'].unique()
+    dataframe.loc[dataframe['id'].isin(mothers_id), "divideFlag"] = True
+    # dataframe.loc[dataframe['id'].isin(bad_mothers_id), "bad_division_flag"] = True
+
+    last_time_step_df = dataframe.loc[dataframe['ImageNumber'] == dataframe['ImageNumber'].max()]
+    bac_without_division = dataframe.loc[~ dataframe["divideFlag"]]
+    bac_without_division = bac_without_division.loc[~ bac_without_division['id'].isin(last_time_step_df['id'].values)]
+    bac_without_division_last_time_step = bac_without_division.drop_duplicates(subset='id', keep='last')
+
+    dataframe.loc[bac_without_division_last_time_step.index, 'unexpected_end'] = True
+
+    dataframe['division_time'] = dataframe.groupby('id')['division_time'].transform(lambda x: x.ffill().bfill())
+    dataframe['daughters_index'] = dataframe.groupby('id')['daughters_index'].transform(lambda x: x.ffill().bfill())
+
+    # bacteria movement
+    dataframe = adding_features_to_continues_life_history(dataframe, neighbor_df, division, center_coordinate_columns,
+                                                          parent_image_number_col, parent_object_number_col,
+                                                          calc_all=True)
+
+    dataframe['checked'] = True
 
     # assign cell type
     if check_cell_type:
         dataframe = assign_cell_type(dataframe, intensity_threshold)
 
+    dataframe['division_time'] = dataframe['division_time'].fillna(0)
+    dataframe['daughters_index'] = dataframe['daughters_index'].fillna('')
+
+    # set age
+    dataframe['age'] = dataframe.groupby('id').cumcount() + 1
+
+    dataframe['AverageLengthChangeRatio'] = dataframe.groupby('id')['LengthChangeRatio'].transform('mean')
+
+    # now we should check bacteria prev slope
+    bac_idx_not_needed_to_update = dataframe.loc[(~ dataframe['prev_bacteria_slope'].isna())]['index'].values
+    temporal_df = dataframe.loc[bac_idx_not_needed_to_update]
+
+    dataframe['prev_bacteria_slope'] = dataframe.groupby('id')['bacteria_slope'].shift(1)
+    dataframe.loc[bac_idx_not_needed_to_update, 'prev_bacteria_slope'] = temporal_df['prev_bacteria_slope'].values
+
+    # now we should cal slope bac to bac
+    bac_need_to_cal_dir_motion = dataframe.loc[(dataframe['slope_bac_bac'].isna()) &
+                                               (dataframe['transition'] == False) &
+                                               (dataframe['ImageNumber'] != 1) &
+                                               (dataframe['bad_daughters_flag'] == False)].copy()
+
+    dataframe.loc[bac_need_to_cal_dir_motion['index'].values, 'slope_bac_bac'] = \
+        calculate_orientation_angle_batch(bac_need_to_cal_dir_motion['bacteria_slope'].values,
+                                          bac_need_to_cal_dir_motion['prev_bacteria_slope'])
+
+    # now add neighbor index list
+    # adding measured features of bacteria to neighbors_df
+    neighbor_df = neighbor_df.merge(dataframe[['ImageNumber', 'ObjectNumber', center_coordinate_columns['x'],
+                                               center_coordinate_columns['y'], 'AreaShape_MajorAxisLength',
+                                               'index', parent_image_number_col, parent_object_number_col]],
+                                    left_on=['Second Image Number', 'Second Object Number'],
+                                    right_on=['ImageNumber', 'ObjectNumber'], how='inner')
+
+    df_bac_with_neighbors = \
+        dataframe.merge(neighbor_df, left_on=['ImageNumber', 'ObjectNumber'],
+                        right_on=['First Image Number', 'First Object Number'], how='left',
+                        suffixes=('', '_neighbor'))
+
+    # list of id daughters for mother
+    idx_neighbors_for_each_bac = df_bac_with_neighbors.groupby(['ImageNumber', 'ObjectNumber']).agg({
+        'index_neighbor': list
+    }).reset_index()
+
+    # Rename the aggregated column for clarity
+    idx_neighbors_for_each_bac.rename(columns={'index_neighbor': 'NeighborIndexList'}, inplace=True)
+
+    # Merge the aggregated data back to the original DataFrame
+    # append the list od daughters id to mother
+    dataframe = dataframe.merge(idx_neighbors_for_each_bac, on=['ImageNumber', 'ObjectNumber'], how='left')
+
+    dataframe['checked'] = True
+
     # dataframe.drop(labels='checked', axis=1, inplace=True)
     return dataframe
 
 
-def data_cleaning(raw_df, label_col):
+def data_cleaning(raw_df, label_col, parent_image_number_col, parent_object_number_col):
     """
     goal:   Correct the labels of bacteria whose labels are nan.
 
     @param raw_df dataframe bacteria features value
     """
 
-    modified_df = modify_nan_labels(raw_df, label_col)
+    modified_df = modify_nan_labels(raw_df, label_col, parent_image_number_col, parent_object_number_col)
 
     return modified_df
 
 
 def data_modification(dataframe, intensity_threshold, check_cell_type, neighbors_df, center_coordinate_columns,
                       parent_image_number_col, parent_object_number_col, label_col, without_tracking_correction):
-
     # Correct the labels of bacteria whose labels are nan.
-    dataframe = data_cleaning(dataframe, label_col)
+    dataframe['index'] = dataframe.index
+
+    # dataframe = data_cleaning(dataframe, label_col, parent_image_number_col, parent_object_number_col)
+
     dataframe = assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, neighbors_df,
-                                           center_coordinate_columns, parent_image_number_col, parent_object_number_col,
+                                           center_coordinate_columns, parent_image_number_col,
+                                           parent_object_number_col,
                                            without_tracking_correction)
 
     return dataframe
 
 
-def data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns):
+def redefine_ids(df, label_col):
+    df['prev_id'] = df['id']
+    df['prev_parent_id'] = df['parent_id']
+    df['prev_label'] = df[label_col]
 
+    # Extract unique sorted values
+    unique_id_sorted_values = pd.Series(df['id'].unique()).reset_index(drop=True)
+    unique_label_sorted_values = pd.Series(df[label_col].unique()).reset_index(drop=True)
+
+    # Create a mapping from each value to its rank
+    id_value_to_rank = pd.Series(data=range(1, len(unique_id_sorted_values) + 1), index=unique_id_sorted_values)
+    id_value_to_rank.loc[0] = 0
+
+    label_value_to_rank = pd.Series(data=range(1, len(unique_label_sorted_values) + 1),
+                                    index=unique_label_sorted_values)
+    label_value_to_rank.loc[0] = 0
+
+    # Map the original column to the new ranks
+    df['id'] = df['prev_id'].map(id_value_to_rank)
+    df['parent_id'] = df['prev_parent_id'].map(id_value_to_rank)
+    df[label_col] = df['prev_label'].map(label_value_to_rank)
+
+    return df
+
+
+def label_correction(df, parent_image_number_col, parent_object_number_col, label_col):
+    df['checked'] = False
+    df[label_col] = np.nan
+    cond1 = df[parent_image_number_col] == 0
+
+    df.loc[cond1, label_col] = df.loc[cond1, 'index'].values + 1
+    df.loc[cond1, 'checked'] = True
+
+    # other bacteria
+    other_bac_df = df.loc[~ df['checked']]
+
+    temp_df = df.copy()
+    temp_df.index = (temp_df['ImageNumber'].astype(str) + '_' + temp_df['ObjectNumber'].astype(str))
+
+    bac_index_dict = temp_df['index'].to_dict()
+
+    label_list = []
+
+    same_bac_dict = {}
+
+    for row_index, row in other_bac_df.iterrows():
+
+        image_number, object_number, parent_img_num, parent_obj_num = \
+            row[['ImageNumber', 'ObjectNumber', parent_image_number_col, parent_object_number_col]]
+
+        if str(int(parent_img_num)) + '_' + str(parent_obj_num) not in same_bac_dict.keys():
+            source_link = df.iloc[bac_index_dict[str(int(parent_img_num)) + '_' + str(parent_obj_num)]]
+
+            this_bac_label = source_link[label_col]
+
+        else:
+
+            this_bac_label = same_bac_dict[str(int(parent_img_num)) + '_' + str(parent_obj_num)]
+
+        label_list.append(this_bac_label)
+
+        # same bacteria
+        same_bac_dict[str(int(image_number)) + '_' + str(object_number)] = this_bac_label
+
+    df.loc[other_bac_df.index, label_col] = label_list
+
+    return df
+
+
+def data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns):
+    dataframe['noise_bac'] = False
     dataframe['color_mask'] = ''
     dataframe['coordinate'] = ''
+    dataframe['mother_rpl'] = False
+    dataframe['daughter_rpl'] = False
+    dataframe['source_mcl'] = False
+    dataframe['target_mcl'] = False
     dataframe = convert_to_um(dataframe, um_per_pixel, all_center_coordinate_columns)
     dataframe = angle_convert_to_radian(dataframe)
 
@@ -185,118 +478,327 @@ def data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns):
 
 
 def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coordinate_columns,
-                    all_center_coordinate_columns, parent_image_number_col,  parent_object_number_col, label_col,
+                    all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, label_col,
                     number_of_gap=0, um_per_pixel=0.144, intensity_threshold=0.1, check_cell_type=True,
-                    interval_time=1, min_life_history_of_bacteria=20, warn=True, without_tracking_correction=False):
-
+                    interval_time=1, min_life_history_of_bacteria=20, warn=True, without_tracking_correction=False,
+                    output_directory=None, clf=None, n_cpu=-1):
     logs_list = []
     logs_df = pd.DataFrame(columns=dataframe.columns)
 
-    dataframe = data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns)
+    df = data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns)
+
+    df['prev_index'] = df.index
+    raw_df = df.copy()
 
     if not without_tracking_correction:
         # correction of multi regions
-        dataframe = multi_region_detection(dataframe, sorted_npy_files_list, um_per_pixel, center_coordinate_columns,
-                                           all_center_coordinate_columns, parent_image_number_col,
-                                           parent_object_number_col, warn)
+        df = multi_region_detection(df, sorted_npy_files_list, um_per_pixel, center_coordinate_columns,
+                                    all_center_coordinate_columns, parent_image_number_col,
+                                    parent_object_number_col, warn)
 
     print_progress_bar(1, prefix='Progress:', suffix='Complete', length=50)
 
-    df = data_modification(dataframe, intensity_threshold, check_cell_type, neighbors_df,
-                                  center_coordinate_columns, parent_image_number_col, parent_object_number_col,
-                                  label_col, without_tracking_correction)
+    end_tracking_errors_correction_time = time.time()
+    end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                            time.localtime(end_tracking_errors_correction_time))
+
+    msg = " At " + end_tracking_errors_correction_time_str
+
+    print(msg)
+    msg = '10.0% Complete' + msg
+    logs_list.append(msg)
+
+    df.to_csv(output_directory + '/10.percent.csv', index=False)
+
+    # remove noise objects
+    df, neighbors_df, noise_objects_log_list, logs_df = noise_remover(df, neighbors_df,
+                                                                      parent_image_number_col,
+                                                                      parent_object_number_col, logs_df)
+    logs_list.extend(noise_objects_log_list)
 
     print_progress_bar(2, prefix='Progress:', suffix='Complete', length=50)
 
+    end_tracking_errors_correction_time = time.time()
+    end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                            time.localtime(end_tracking_errors_correction_time))
+
+    msg = " At " + end_tracking_errors_correction_time_str
+
+    print(msg)
+    msg = '20.0% Complete' + msg
+    logs_list.append(msg)
+
+    df.to_csv(output_directory + '/20.percent.csv', index=False)
+
+    df = data_modification(df, intensity_threshold, check_cell_type, neighbors_df,
+                           center_coordinate_columns, parent_image_number_col, parent_object_number_col,
+                           label_col, without_tracking_correction)
+
+    print_progress_bar(3, prefix='Progress:', suffix='Complete', length=50)
+
+    end_tracking_errors_correction_time = time.time()
+    end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                            time.localtime(end_tracking_errors_correction_time))
+
+    msg = " At " + end_tracking_errors_correction_time_str
+
+    print(msg)
+    msg = '30.0% Complete' + msg
+    logs_list.append(msg)
+
+    df.to_csv(output_directory + '/30.percent.csv', index=False)
+
     data_preparation_time = time.time()
     data_preparation_time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data_preparation_time))
-    data_preparation_log = "At " + data_preparation_time_str + ',data preparation was completed.'
+    data_preparation_log = "At " + data_preparation_time_str + ', data preparation was completed.'
 
     print(data_preparation_log)
     logs_list.append(data_preparation_log)
 
     if not without_tracking_correction:
-
-        start_tracking_errors_correction_time = time.time()
-        start_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
-                                                                  time.localtime(start_tracking_errors_correction_time))
-
-        start_tracking_errors_correction_log = "At " + start_tracking_errors_correction_time_str + \
-                                               ", the correction of the tracking errors commenced."
-        print(start_tracking_errors_correction_log)
-        logs_list.append(start_tracking_errors_correction_log)
-
-        # dataframe = merged_bacteria(dataframe, check_cell_type)
-        # remove noise objects
-        dataframe, neighbors_df, noise_objects_log_list, logs_df = noise_remover(df, neighbors_df,
-                                                                                 parent_image_number_col,
-                                                                                 parent_object_number_col, label_col,
-                                                                                 center_coordinate_columns, logs_df)
-
-        logs_list.extend(noise_objects_log_list)
-
-        print_progress_bar(3, prefix='Progress:', suffix='Complete', length=50)
+        # df = merged_bacteria(df, check_cell_type)
 
         # check neighbors
-        dataframe = neighbor_checking(dataframe, neighbors_df, parent_image_number_col, parent_object_number_col)
-
-        # more than two daughters
-        dataframe, logs_df = detect_remove_bad_daughters_to_mother_link(dataframe, neighbors_df,
-                                                                        parent_image_number_col,
-                                                                        parent_object_number_col, label_col,
-                                                                        center_coordinate_columns, logs_df)
+        df = neighbor_checking(df, neighbors_df, parent_image_number_col, parent_object_number_col)
 
         print_progress_bar(4, prefix='Progress:', suffix='Complete', length=50)
-
-        # redundant links
-        dataframe, logs_df = detect_and_remove_redundant_parent_link(dataframe, neighbors_df,
-                                                                     parent_image_number_col, parent_object_number_col,
-                                                                     label_col, center_coordinate_columns, logs_df)
-        print_progress_bar(5, prefix='Progress:', suffix='Complete', length=50)
-
-        # try to assign new link
-        df, assign_new_link_log, logs_df = correction_without_parent(dataframe, neighbors_df,
-                                                                     number_of_gap, check_cell_type, interval_time,
-                                                                     min_life_history_of_bacteria, parent_image_number_col,
-                                                                     parent_object_number_col, label_col,
-                                                                     center_coordinate_columns,logs_df)
-        logs_list.extend(assign_new_link_log)
-
-        print_progress_bar(6, prefix='Progress:', suffix='Complete', length=50)
-
-        df, logs_df = incorrect_same_link(df, neighbors_df, min_life_history_of_bacteria,
-                                          interval_time, parent_image_number_col, parent_object_number_col, label_col,
-                                          center_coordinate_columns, logs_df)
-
-        print_progress_bar(7, prefix='Progress:', suffix='Complete', length=50)
-
-        df, logs_df = unexpected_end_bacteria(df, neighbors_df, min_life_history_of_bacteria,
-                                              interval_time, parent_image_number_col, parent_object_number_col, label_col,
-                                              center_coordinate_columns, logs_df)
-
-        print_progress_bar(8, prefix='Progress:', suffix='Complete', length=50)
-
-        df, logs_df = final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time,
-                                     parent_image_number_col, parent_object_number_col, label_col,
-                                     center_coordinate_columns, logs_df)
-
-        df = remove_rows(df, 'noise_bac', False)
-
-        print_progress_bar(9, prefix='Progress:', suffix='Complete', length=50)
 
         end_tracking_errors_correction_time = time.time()
         end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
                                                                 time.localtime(end_tracking_errors_correction_time))
 
-        end_tracking_errors_correction_log = "At " + end_tracking_errors_correction_time_str + \
+        msg = " At " + end_tracking_errors_correction_time_str
+
+        print(msg)
+        msg = '40.0% Complete' + msg
+        logs_list.append(msg)
+
+        df.to_csv(output_directory + '/40.percent.csv', index=False)
+
+        # redundant links
+        df = detect_redundant_parent_link(df, neighbors_df, parent_image_number_col,
+                                          parent_object_number_col, label_col, center_coordinate_columns)
+
+        df = detect_missing_connectivity_link(df, parent_image_number_col, parent_object_number_col)
+
+        comparing_divided_non_divided_model, non_divided_bac_model, divided_bac_model = \
+            training_models(df, neighbors_df, center_coordinate_columns, parent_image_number_col,
+                            parent_object_number_col, output_directory, clf, n_cpu)
+
+        # more than two daughters
+        df = remove_over_assigned_daughters_link(df, neighbors_df, parent_image_number_col,
+                                                 parent_object_number_col, label_col, center_coordinate_columns,
+                                                 divided_bac_model)
+
+        df_before_more_detection_and_removing = df.copy()
+
+        print_progress_bar(4.5, prefix='Progress:', suffix='Complete', length=50)
+
+        end_tracking_errors_correction_time = time.time()
+        end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                                time.localtime(end_tracking_errors_correction_time))
+
+        msg = " At " + end_tracking_errors_correction_time_str
+
+        print(msg)
+        msg = '45.0% Complete' + msg
+        logs_list.append(msg)
+
+        df.to_csv(output_directory + '/45.percent.csv', index=False)
+
+        # remove redundant links
+        df = detect_and_remove_redundant_parent_link(df, neighbors_df, parent_image_number_col,
+                                                     parent_object_number_col, label_col, center_coordinate_columns,
+                                                     non_divided_bac_model)
+        print_progress_bar(5, prefix='Progress:', suffix='Complete', length=50)
+
+        end_tracking_errors_correction_time = time.time()
+        end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                                time.localtime(end_tracking_errors_correction_time))
+
+        msg = " At " + end_tracking_errors_correction_time_str
+
+        print(msg)
+        msg = '50.0% Complete' + msg
+        logs_list.append(msg)
+
+        df.to_csv(output_directory + '/50.percent.csv', index=False)
+
+        df = missing_connectivity_link(df, neighbors_df, min_life_history_of_bacteria, interval_time,
+                                       parent_image_number_col, parent_object_number_col, label_col,
+                                       center_coordinate_columns, comparing_divided_non_divided_model,
+                                       non_divided_bac_model, divided_bac_model)
+
+        print_progress_bar(6, prefix='Progress:', suffix='Complete', length=50)
+
+        end_tracking_errors_correction_time = time.time()
+        end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                                time.localtime(end_tracking_errors_correction_time))
+
+        msg = " At " + end_tracking_errors_correction_time_str
+
+        print(msg)
+        msg = '60.0% Complete' + msg
+        logs_list.append(msg)
+
+        df.to_csv(output_directory + '/60.percent.csv', index=False)
+
+        # try to assign new link
+        df = correction_unexpected_beginning(df, neighbors_df, number_of_gap, check_cell_type, interval_time,
+                                             min_life_history_of_bacteria, parent_image_number_col,
+                                             parent_object_number_col, label_col, center_coordinate_columns,
+                                             comparing_divided_non_divided_model, non_divided_bac_model,
+                                             divided_bac_model)
+
+        print_progress_bar(7, prefix='Progress:', suffix='Complete', length=50)
+
+        end_tracking_errors_correction_time = time.time()
+        end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                                time.localtime(end_tracking_errors_correction_time))
+
+        msg = " At " + end_tracking_errors_correction_time_str
+
+        print(msg)
+        msg = '70.0% Complete' + msg
+        logs_list.append(msg)
+
+        df.to_csv(output_directory + '/70.percent.csv', index=False)
+
+        df = unexpected_end_bacteria(df, neighbors_df, min_life_history_of_bacteria, interval_time,
+                                     parent_image_number_col, parent_object_number_col, label_col,
+                                     center_coordinate_columns, comparing_divided_non_divided_model,
+                                     non_divided_bac_model, divided_bac_model)
+
+        print_progress_bar(8, prefix='Progress:', suffix='Complete', length=50)
+
+        end_tracking_errors_correction_time = time.time()
+        end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                                time.localtime(end_tracking_errors_correction_time))
+
+        msg = " At " + end_tracking_errors_correction_time_str
+
+        print(msg)
+        msg = '80.0% Complete' + msg
+        logs_list.append(msg)
+
+        df.to_csv(output_directory + '/80.percent.csv', index=False)
+
+        df = final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time, parent_image_number_col,
+                            parent_object_number_col, label_col, center_coordinate_columns,
+                            df_before_more_detection_and_removing, non_divided_bac_model, divided_bac_model)
+
+        df = remove_rows(df, 'noise_bac', False)
+
+        print_progress_bar(9, prefix='Progress:', suffix='Complete', length=50)
+
+        # label correction
+        df = label_correction(df, parent_image_number_col, parent_object_number_col, label_col)
+
+        end_tracking_errors_correction_time = time.time()
+        end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                                time.localtime(end_tracking_errors_correction_time))
+
+        end_tracking_errors_correction_log = " At " + end_tracking_errors_correction_time_str + \
                                              ", the corrections to the tracking errors were completed."
 
         print(end_tracking_errors_correction_log)
+        end_tracking_errors_correction_log = '90.0% Complete' + end_tracking_errors_correction_log
+        df.to_csv(output_directory + '/90.percent.csv', index=False)
         logs_list.append(end_tracking_errors_correction_log)
 
+        df = redefine_ids(df, label_col)
+
+        # now I want to generate lof file
+        noise_bac_df = raw_df.loc[~ raw_df['prev_index'].isin(df['prev_index'])].copy()
+        noise_bac_df['noise_bac'] = True
+        noise_bac_df['changed'] = False
+        noise_bac_df['unexpected_end'] = False
+        noise_bac_df['transition'] = False
+
+        msg = 'Number of Noise Objects: ' + str(noise_bac_df.shape[0])
+        logs_list.append(msg)
+
+        transition_bac_df = df.loc[df['transition']].copy()
+        transition_bac_df['noise_bac'] = False
+        transition_bac_df['changed'] = False
+        transition_bac_df['unexpected_end'] = False
+
+        msg = 'Number of Transition Bacteria: ' + str(transition_bac_df.shape[0])
+        logs_list.append(msg)
+
+        unexpected_bac_df = df.loc[df['unexpected_end']].copy()
+        unexpected_bac_df['noise_bac'] = False
+        unexpected_bac_df['changed'] = False
+        unexpected_bac_df['transition'] = False
+
+        msg = 'Number of Unexpected end Bacteria: ' + str(unexpected_bac_df.shape[0])
+        logs_list.append(msg)
+
+        # noise_bac	unexpected_end	transition	changed
+        merged_transition_bac_unexpected_bac = \
+            transition_bac_df[
+                ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
+            ].merge(unexpected_bac_df[
+                        ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
+                    ],
+                    on=['ImageNumber', 'ObjectNumber'], how='outer', suffixes=('_transition', '_unexpected'))
+
+        merged_transition_bac_unexpected_bac = \
+            merged_transition_bac_unexpected_bac.map(lambda x: False if str(x) in ['nan', "b''"] else x)
+
+        merged_transition_bac_unexpected_bac['noise_bac'] = \
+            (merged_transition_bac_unexpected_bac['noise_bac_transition'] +
+             merged_transition_bac_unexpected_bac['noise_bac_unexpected'])
+
+        merged_transition_bac_unexpected_bac['unexpected_end'] = \
+            (merged_transition_bac_unexpected_bac['unexpected_end_transition'] +
+             merged_transition_bac_unexpected_bac['unexpected_end_unexpected'])
+
+        merged_transition_bac_unexpected_bac['transition'] = \
+            (merged_transition_bac_unexpected_bac['transition_transition'] +
+             merged_transition_bac_unexpected_bac['transition_unexpected'])
+
+        merged_transition_bac_unexpected_bac['changed'] = \
+            (merged_transition_bac_unexpected_bac['changed_transition'] +
+             merged_transition_bac_unexpected_bac['changed_unexpected'])
+
+        merged_transition_bac_unexpected_bac_noise = \
+            pd.concat([noise_bac_df[
+                           ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
+                       ],
+                       merged_transition_bac_unexpected_bac[
+                           ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
+                       ]
+                       ])
+
+        merged_df = raw_df.merge(df, on='prev_index', how='inner', suffixes=('_raw', ''))
+        bac_with_changes_df = \
+            merged_df.loc[
+                (merged_df[parent_image_number_col + '_raw'] !=
+                 merged_df[parent_image_number_col]) |
+                (merged_df[parent_object_number_col + '_raw'] !=
+                 merged_df[parent_object_number_col])].copy()
+
+        bac_with_changes_df['noise_bac'] = False
+        bac_with_changes_df['changed'] = True
+        bac_with_changes_df['unexpected_end'] = False
+        bac_with_changes_df['transition'] = False
+
+        msg = 'The number of bacteria whose links have changed: ' + str(bac_with_changes_df.shape[0])
+        logs_list.append(msg)
+
+        logs_df = merged_transition_bac_unexpected_bac_noise.merge(
+            bac_with_changes_df[
+                ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
+            ], on=['ImageNumber', 'ObjectNumber'], how='outer', suffixes=('_1', '_2'))
+
+        logs_df = logs_df.map(lambda x: False if str(x) in ['nan', "b''"] else x)
+
+        for col in ['noise_bac', 'unexpected_end', 'transition', 'changed']:
+            logs_df[col] = logs_df[col + '_1'] + logs_df[col + '_2']
+
         logs_df = logs_df.sort_values(by=['ImageNumber', 'ObjectNumber'])
-        logs_df = logs_df.drop_duplicates(subset=['ImageNumber', 'ObjectNumber'], keep='last')
-        logs_df.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length'}, inplace=True)
-        logs_df = logs_df[["stepNum", "ObjectNumber", "length",	"noise_bac", "unexpected_end",	"transition"]]
+        logs_df.rename(columns={'ImageNumber': 'stepNum'}, inplace=True)
+        logs_df = logs_df[["stepNum", "ObjectNumber", "noise_bac", "unexpected_end", "transition", 'changed']]
 
     return df, logs_list, logs_df, neighbors_df

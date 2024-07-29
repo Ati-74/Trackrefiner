@@ -1,457 +1,521 @@
 import numpy as np
-from Trackrefiner.strain.correction.action.helperFunctions import calculate_trajectory_direction, \
-    calc_neighbors_dir_motion, calc_normalized_angle_between_motion, distance_normalization, \
-    calculate_orientation_angle, calc_distance_matrix
-from Trackrefiner.strain.correction.action.findOverlap import find_overlap_object_to_next_frame
+from Trackrefiner.strain.correction.action.helperFunctions import calc_normalized_angle_between_motion, \
+    distance_normalization, calculate_orientation_angle_batch
+from Trackrefiner.strain.correction.action.findOverlap import (find_overlap_object_to_next_frame,
+                                                               find_overlap_object_to_next_frame_maintain,
+                                                               find_overlap_object_to_next_frame_unexpected,
+                                                               find_overlap_mother_bad_daughters,
+                                                               find_overlap_object_for_division_chance)
 from Trackrefiner.strain.correction.neighborChecking import check_num_neighbors
 import pandas as pd
 
 
-def make_initial_distance_matrix(source_time_step_df, sel_source_bacteria, bacteria_in_target_time_step,
-                                 sel_target_bacteria, center_coordinate_columns, daughter_flag=False, maintain=False):
+def dist_for_maintain_same(same_df, center_coordinate_columns):
+    # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
+    same_df['center_distance'] = \
+        np.linalg.norm(same_df[[center_coordinate_columns['x'] + '_1', center_coordinate_columns['y'] + '_1']].values -
+                       same_df[[center_coordinate_columns['x'] + '_2', center_coordinate_columns['y'] + '_2']].values,
+                       axis=1)
 
-    if sel_target_bacteria.shape[0] > 0 and sel_source_bacteria.shape[0] > 0:
+    same_df['endpoint1_1_distance'] = \
+        np.linalg.norm(same_df[['endpoint1_X_1', 'endpoint1_Y_1']].values -
+                       same_df[['endpoint1_X_2', 'endpoint1_Y_2']].values, axis=1)
 
-        overlap_df = find_overlap_object_to_next_frame(source_time_step_df, sel_source_bacteria,
-                                                       bacteria_in_target_time_step, sel_target_bacteria, daughter_flag,
-                                                       maintain)
+    same_df['endpoint2_2_distance'] = \
+        np.linalg.norm(same_df[['endpoint2_X_1', 'endpoint2_Y_1']].values -
+                       same_df[['endpoint2_X_2', 'endpoint2_Y_2']].values, axis=1)
 
-        # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
-        center_distance_df = calc_distance_matrix(sel_source_bacteria, sel_target_bacteria,
-                                                      center_coordinate_columns['x'], center_coordinate_columns['y'])
+    same_df['min_distance'] = same_df[['center_distance', 'endpoint1_1_distance', 'endpoint2_2_distance']].min(axis=1)
 
-        endpoint1_1_distance_df = calc_distance_matrix(sel_source_bacteria, sel_target_bacteria,
-                                                       'endppoint1_X', 'endppoint1_Y')
-        endpoint2_2_distance_df = calc_distance_matrix(sel_source_bacteria, sel_target_bacteria, 'endppoint2_X',
-                                                       'endppoint2_Y')
+    # Pivot this DataFrame to get the desired structure
+    same_df_distance_df = \
+        same_df[['index_1', 'index_2', 'min_distance']].pivot(index='index_1', columns='index_2',
+                                                              values='min_distance')
+    same_df_distance_df.columns.name = None
+    same_df_distance_df.index.name = None
 
-        if daughter_flag:
-            endpoint12_distance_df = calc_distance_matrix(sel_source_bacteria, sel_target_bacteria, 'endppoint1_X',
-                                                          'endppoint1_Y', 'endppoint2_X', 'endppoint2_Y')
-            endpoint21_distance_df = calc_distance_matrix(sel_source_bacteria, sel_target_bacteria,
-                                                          'endppoint2_X', 'endppoint2_Y',
-                                                          'endppoint1_X', 'endppoint1_Y')
+    return same_df_distance_df
 
-            center_endpoint1_distance_df = \
-                calc_distance_matrix(sel_source_bacteria, sel_target_bacteria,
-                                     center_coordinate_columns['x'], center_coordinate_columns['y'],
-                                     'endppoint1_X', 'endppoint1_Y')
-            center_endpoint2_distance_df = \
-                calc_distance_matrix(sel_source_bacteria, sel_target_bacteria, center_coordinate_columns['x'],
-                                     center_coordinate_columns['y'], 'endppoint2_X', 'endppoint2_Y')
 
-            # Concatenate the DataFrames
-            combined_df = pd.concat([center_distance_df, endpoint2_2_distance_df, endpoint1_1_distance_df,
-                                     endpoint12_distance_df, endpoint21_distance_df, center_endpoint1_distance_df,
-                                     center_endpoint2_distance_df])
-        else:
-            # Concatenate the DataFrames
-            combined_df = pd.concat([center_distance_df, endpoint2_2_distance_df, endpoint1_1_distance_df])
+def dist_for_maintain_division(division_df, center_coordinate_columns):
+    # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
+    division_df['center_distance'] = \
+        np.linalg.norm(division_df[[center_coordinate_columns['x'] + '_parent',
+                                    center_coordinate_columns['y'] + '_parent']].values -
+                       division_df[[center_coordinate_columns['x'] + '_daughter',
+                                    center_coordinate_columns['y'] + '_daughter']].values, axis=1)
 
-        # Group by index and find the min value for each cell
-        distance_df = combined_df.groupby(level=0).min()
+    division_df['endpoint1_1_distance'] = \
+        np.linalg.norm(division_df[['endpoint1_X_parent', 'endpoint1_Y_parent']].values -
+                       division_df[['endpoint1_X_daughter', 'endpoint1_Y_daughter']].values, axis=1)
 
-        if maintain:
-            for source_bac_ndx in distance_df.index:
-                for target_bac_ndx in distance_df.columns:
-                    if sel_target_bacteria.loc[target_bac_ndx]['parent_id'] == \
-                            sel_source_bacteria.loc[source_bac_ndx]['id']:
-                        # relation: mother & daughter
-                        this_link_endpoint12_distance = np.sqrt(
-                            (sel_source_bacteria.loc[source_bac_ndx]['endppoint1_X'] -
-                             sel_target_bacteria.loc[target_bac_ndx]['endppoint2_X']) ** 2 + \
-                            (sel_source_bacteria.loc[source_bac_ndx]['endppoint1_Y'] -
-                             sel_target_bacteria.loc[target_bac_ndx]['endppoint2_Y']) ** 2
-                        )
+    division_df['endpoint2_2_distance'] = \
+        np.linalg.norm(division_df[['endpoint2_X_parent', 'endpoint2_Y_parent']].values -
+                       division_df[['endpoint2_X_daughter', 'endpoint2_Y_daughter']].values, axis=1)
 
-                        this_link_endpoint21_distance = np.sqrt(
-                            (sel_source_bacteria.loc[source_bac_ndx]['endppoint2_X'] -
-                             sel_target_bacteria.loc[target_bac_ndx]['endppoint1_X']) ** 2 + \
-                            (sel_source_bacteria.loc[source_bac_ndx]['endppoint2_Y'] -
-                             sel_target_bacteria.loc[target_bac_ndx]['endppoint1_Y']) ** 2
-                        )
+    # relation: mother & daughter
+    division_df['endpoint12_distance'] = \
+        np.linalg.norm(division_df[['endpoint1_X_parent', 'endpoint1_Y_parent']].values -
+                       division_df[['endpoint2_X_daughter', 'endpoint2_Y_daughter']].values, axis=1)
 
-                        this_link_center_endpoint1_distance = np.sqrt(
-                                (sel_source_bacteria.loc[source_bac_ndx][center_coordinate_columns['x']] -
-                                 sel_target_bacteria.loc[target_bac_ndx]['endppoint1_X']) ** 2 + \
-                                (sel_source_bacteria.loc[source_bac_ndx][center_coordinate_columns['y']] -
-                                 sel_target_bacteria.loc[target_bac_ndx]['endppoint1_Y']) ** 2
-                            )
+    division_df['endpoint21_distance'] = \
+        np.linalg.norm(division_df[['endpoint2_X_parent', 'endpoint2_Y_parent']].values -
+                       division_df[['endpoint1_X_daughter', 'endpoint1_Y_daughter']].values, axis=1)
 
-                        this_link_center_endpoint2_distance = np.sqrt(
-                                (sel_source_bacteria.loc[source_bac_ndx][center_coordinate_columns['x']] -
-                                 sel_target_bacteria.loc[target_bac_ndx]['endppoint2_X']) ** 2 + \
-                                (sel_source_bacteria.loc[source_bac_ndx][center_coordinate_columns['y']] -
-                                 sel_target_bacteria.loc[target_bac_ndx]['endppoint2_Y']) ** 2
-                            )
+    division_df['center_endpoint1_distance'] = \
+        np.linalg.norm(division_df[[center_coordinate_columns['x'] + '_parent',
+                                    center_coordinate_columns['y'] + '_parent']].values -
+                       division_df[['endpoint1_X_daughter', 'endpoint1_Y_daughter']].values, axis=1)
 
-                        distance_df.at[source_bac_ndx, target_bac_ndx] = \
-                            min(distance_df.loc[source_bac_ndx][target_bac_ndx], this_link_endpoint12_distance,
-                                this_link_endpoint21_distance, this_link_center_endpoint1_distance,
-                                this_link_center_endpoint2_distance)
+    division_df['center_endpoint2_distance'] = \
+        np.linalg.norm(division_df[[center_coordinate_columns['x'] + '_parent',
+                                    center_coordinate_columns['y'] + '_parent']].values -
+                       division_df[['endpoint2_X_daughter', 'endpoint2_Y_daughter']].values, axis=1)
 
-        # Convert all elements to float, coercing errors to NaN
-        distance_df = distance_df.applymap(lambda x: pd.to_numeric(x, errors='coerce'))
+    division_df['min_distance'] = (
+        division_df)[['center_distance', 'endpoint1_1_distance', 'endpoint2_2_distance', 'endpoint12_distance',
+                      'endpoint21_distance', 'center_endpoint1_distance', 'center_endpoint2_distance']].min(axis=1)
 
-    else:
-        if sel_target_bacteria.shape[0] > 0:
-            overlap_df = pd.DataFrame(columns=[sel_target_bacteria.index],
-                                               index=[0], data=999)
-            distance_df = pd.DataFrame(columns=[sel_target_bacteria.index],
-                                               index=[0], data=999)
-        elif sel_source_bacteria.shape[0] > 0:
-            overlap_df = pd.DataFrame(columns=[0],
-                                      index=sel_source_bacteria.index, data=999)
-            distance_df = pd.DataFrame(columns=[0],
-                                       index=sel_source_bacteria.index, data=999)
+    # Pivot this DataFrame to get the desired structure
+    division_distance_df = \
+        division_df[['index_parent', 'index_daughter', 'min_distance']].pivot(index='index_parent',
+                                                                              columns='index_daughter',
+                                                                              values='min_distance')
+    division_distance_df.columns.name = None
+    division_distance_df.index.name = None
 
+    return division_distance_df
+
+
+def make_initial_distance_matrix_unexpected(final_candidate_bac, center_coordinate_columns):
+
+    overlap_df = \
+        find_overlap_object_to_next_frame_unexpected(final_candidate_bac)
+
+    # distance
+    # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
+    final_candidate_bac['center_distance'] = \
+        np.linalg.norm(final_candidate_bac[[center_coordinate_columns['x'],
+                                            center_coordinate_columns['y']]].values -
+                       final_candidate_bac[[center_coordinate_columns['x'] + '_candidate',
+                                            center_coordinate_columns['y'] + '_candidate']].values, axis=1)
+
+    final_candidate_bac['endpoint1_1_distance'] = \
+        np.linalg.norm(final_candidate_bac[['endpoint1_X', 'endpoint1_Y']].values -
+                       final_candidate_bac[['endpoint1_X_candidate', 'endpoint1_Y_candidate']].values, axis=1)
+
+    final_candidate_bac['endpoint2_2_distance'] = \
+        np.linalg.norm(final_candidate_bac[['endpoint2_X', 'endpoint2_Y']].values -
+                       final_candidate_bac[['endpoint2_X_candidate', 'endpoint2_Y_candidate']].values, axis=1)
+
+    final_candidate_bac['min_distance'] = \
+        final_candidate_bac[['center_distance', 'endpoint1_1_distance', 'endpoint2_2_distance']].min(axis=1)
+
+    # Pivot this DataFrame to get the desired structure
+    unexpected_bac_distance_df = \
+        final_candidate_bac[['index', 'index_candidate', 'min_distance']].pivot(index='index',
+                                                                                columns='index_candidate',
+                                                                                values='min_distance')
+    unexpected_bac_distance_df.columns.name = None
+    unexpected_bac_distance_df.index.name = None
+
+    return unexpected_bac_distance_df, overlap_df
+
+
+def make_initial_distance_matrix_bad_daughters(mother_bad_daughters_df, center_coordinate_columns):
+    overlap_df = find_overlap_mother_bad_daughters(mother_bad_daughters_df)
+
+    # distance
+    # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
+    mother_bad_daughters_df['center_distance'] = \
+        np.linalg.norm(mother_bad_daughters_df[[center_coordinate_columns['x'] + '_mother',
+                                                center_coordinate_columns['y'] + '_mother']].values -
+                       mother_bad_daughters_df[[center_coordinate_columns['x'] + '_daughter',
+                                                center_coordinate_columns['y'] + '_daughter']].values, axis=1)
+
+    mother_bad_daughters_df['endpoint1_1_distance'] = \
+        np.linalg.norm(mother_bad_daughters_df[['endpoint1_X_mother', 'endpoint1_Y_mother']].values -
+                       mother_bad_daughters_df[['endpoint1_X_daughter', 'endpoint1_Y_daughter']].values, axis=1)
+
+    mother_bad_daughters_df['endpoint2_2_distance'] = \
+        np.linalg.norm(mother_bad_daughters_df[['endpoint2_X_mother', 'endpoint2_Y_mother']].values -
+                       mother_bad_daughters_df[['endpoint2_X_daughter', 'endpoint2_Y_daughter']].values, axis=1)
+
+    mother_bad_daughters_df['min_distance'] = \
+        mother_bad_daughters_df[['center_distance', 'endpoint1_1_distance', 'endpoint2_2_distance']].min(axis=1)
+
+    # Pivot this DataFrame to get the desired structure
+    mother_bad_daughters_distance_df = \
+        mother_bad_daughters_df[['index_mother', 'index_daughter', 'min_distance']].pivot(
+            index='index_mother', columns='index_daughter', values='min_distance')
+    mother_bad_daughters_distance_df.columns.name = None
+    mother_bad_daughters_distance_df.index.name = None
+
+    return mother_bad_daughters_distance_df, overlap_df
+
+
+def make_initial_distance_matrix_for_division_chance(source_with_candidate_neighbors, center_coordinate_columns,
+                                                     col1, col2, daughter_flag=True):
+    overlap_df = \
+        find_overlap_object_for_division_chance(source_with_candidate_neighbors, center_coordinate_columns, col1, col2,
+                                                daughter_flag)
+
+    # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
+
+    dis_cols = ['center_distance', 'endpoint1_1_distance', 'endpoint2_2_distance']
+
+    source_with_candidate_neighbors['center_distance'] = \
+        np.linalg.norm(source_with_candidate_neighbors[[center_coordinate_columns['x'] + col1,
+                                                        center_coordinate_columns['y'] + col1]].values -
+                       source_with_candidate_neighbors[[center_coordinate_columns['x'] + col2,
+                                                        center_coordinate_columns['y'] + col2]].values, axis=1)
+
+    source_with_candidate_neighbors['endpoint1_1_distance'] = \
+        np.linalg.norm(source_with_candidate_neighbors[['endpoint1_X' + col1, 'endpoint1_Y' + col1]].values -
+                       source_with_candidate_neighbors[['endpoint1_X' + col2, 'endpoint1_Y' + col2]].values, axis=1)
+
+    source_with_candidate_neighbors['endpoint2_2_distance'] = \
+        np.linalg.norm(source_with_candidate_neighbors[['endpoint2_X' + col1, 'endpoint2_Y' + col1]].values -
+                       source_with_candidate_neighbors[['endpoint2_X' + col2, 'endpoint2_Y' + col2]].values, axis=1)
+
+    if daughter_flag:
+        dis_cols.extend(['endpoint1_2_distance', 'endpoint2_1_distance', 'center_endpoint1_distance',
+                         'center_endpoint2_distance'])
+
+        source_with_candidate_neighbors['endpoint1_2_distance'] = \
+            np.linalg.norm(source_with_candidate_neighbors[['endpoint1_X' + col1, 'endpoint1_Y' + col1]].values -
+                           source_with_candidate_neighbors[['endpoint2_X' + col2, 'endpoint2_Y' + col2]].values,
+                           axis=1)
+
+        source_with_candidate_neighbors['endpoint2_1_distance'] = \
+            np.linalg.norm(source_with_candidate_neighbors[['endpoint2_X' + col1, 'endpoint2_Y' + col1]].values -
+                           source_with_candidate_neighbors[['endpoint1_X' + col2, 'endpoint1_Y' + col2]].values,
+                           axis=1)
+
+        source_with_candidate_neighbors['center_endpoint1_distance'] = \
+            np.linalg.norm(source_with_candidate_neighbors[[center_coordinate_columns['x'] + col1,
+                                                            center_coordinate_columns['y'] + col1]].values -
+                           source_with_candidate_neighbors[['endpoint1_X' + col2, 'endpoint1_Y' + col2]].values,
+                           axis=1)
+
+        source_with_candidate_neighbors['center_endpoint2_distance'] = \
+            np.linalg.norm(source_with_candidate_neighbors[[center_coordinate_columns['x'] + col1,
+                                                            center_coordinate_columns['y'] + col1]].values -
+                           source_with_candidate_neighbors[['endpoint2_X' + col2, 'endpoint2_Y' + col2]].values, axis=1)
+
+    source_with_candidate_neighbors['min_distance'] = source_with_candidate_neighbors[dis_cols].min(axis=1)
+
+    # Pivot this DataFrame to get the desired structure
+    distance_df = \
+        source_with_candidate_neighbors[['index' + col1, 'index' + col2, 'min_distance']].pivot(
+            index='index' + col1, columns='index' + col2, values='min_distance')
+    distance_df.columns.name = None
+    distance_df.index.name = None
 
     return overlap_df, distance_df
 
 
-def cal_division_cost(related_cost, angle_between_motion, difference_neighbors, max_neighbor_changes):
-    division_cost = np.sqrt(
-        np.power(related_cost, 2) +
-        np.power(angle_between_motion, 2) +
-        np.power(difference_neighbors / max_neighbor_changes, 2))
+def make_initial_distance_matrix(source_time_step_df, sel_source_bacteria, bacteria_in_target_time_step,
+                                 sel_target_bacteria, center_coordinate_columns,
+                                 daughter_flag=False, maintain=False):
 
-    return division_cost
+    if sel_target_bacteria.shape[0] > 0 and sel_source_bacteria.shape[0] > 0:
 
+        if maintain:
 
-def create_new_link_cost(target_bac_len_to_source, cost_df, source_bac_ndx, target_bac_ndx, maintenance_cost_this_link,
-                         angle_between_motion, source_bac_bac_length_to_back_avg, difference_neighbors,
-                         max_neighbor_changes, bac_len_to_bac_ratio_boundary):
-    new_link_cost = 999
+            division_df = \
+                sel_source_bacteria.merge(sel_target_bacteria, left_on='id', right_on='parent_id', how='inner',
+                                          suffixes=('_parent', '_daughter'))
+            same_df = sel_source_bacteria.merge(sel_target_bacteria, on='id', how='inner', suffixes=('_1', '_2'))
 
-    if target_bac_len_to_source >= bac_len_to_bac_ratio_boundary['avg'] - \
-            1.96 * bac_len_to_bac_ratio_boundary['std']:
+            division_distance_df = dist_for_maintain_division(division_df, center_coordinate_columns)
+            same_distance_df = dist_for_maintain_same(same_df, center_coordinate_columns)
 
-        if target_bac_len_to_source < 1:
-            new_link_cost = \
-                np.sqrt(
-                    np.power(cost_df.loc[target_bac_ndx][source_bac_ndx], 2) +
-                    np.power(angle_between_motion, 2) +
-                    np.power(source_bac_bac_length_to_back_avg - target_bac_len_to_source, 2) +
-                    np.power(difference_neighbors / max_neighbor_changes, 2))
+            distance_df = pd.concat([division_distance_df, same_distance_df], axis=0)
+            overlap_df = find_overlap_object_to_next_frame_maintain(division_df, same_df)
+
+            distance_df = distance_df.fillna(999)
+            overlap_df = overlap_df.fillna(0)
 
         else:
-            new_link_cost = np.sqrt(
-                np.power(cost_df.loc[target_bac_ndx][source_bac_ndx], 2) +
-                np.power(angle_between_motion, 2) +
-                np.power(difference_neighbors / max_neighbor_changes, 2))
 
-    if new_link_cost >= maintenance_cost_this_link:
-        new_link_cost = 999
+            overlap_df, product_df = \
+                find_overlap_object_to_next_frame(source_time_step_df, sel_source_bacteria,
+                                                  bacteria_in_target_time_step, sel_target_bacteria,
+                                                  center_coordinate_columns,
+                                                  daughter_flag)
 
-    return new_link_cost
+            # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
+
+            dis_cols = ['center_distance', 'endpoint1_1_distance', 'endpoint2_2_distance']
+
+            # _current', '_next
+            product_df['center_distance'] = \
+                np.linalg.norm(product_df[[center_coordinate_columns['x'] + '_current',
+                                           center_coordinate_columns['y'] + '_current']].values -
+                               product_df[[center_coordinate_columns['x'] + '_next',
+                                           center_coordinate_columns['y'] + '_next']].values, axis=1)
+
+            product_df['endpoint1_1_distance'] = \
+                np.linalg.norm(product_df[['endpoint1_X_current', 'endpoint1_Y_current']].values -
+                               product_df[['endpoint1_X_next', 'endpoint1_Y_next']].values, axis=1)
+
+            product_df['endpoint2_2_distance'] = \
+                np.linalg.norm(product_df[['endpoint2_X_current', 'endpoint2_Y_current']].values -
+                               product_df[['endpoint2_X_next', 'endpoint2_Y_next']].values, axis=1)
+
+            if daughter_flag:
+                dis_cols.extend(['endpoint1_2_distance', 'endpoint2_1_distance', 'center_endpoint1_distance',
+                                 'center_endpoint2_distance'])
+
+                product_df['endpoint1_2_distance'] = \
+                    np.linalg.norm(product_df[['endpoint1_X_current', 'endpoint1_Y_current']].values -
+                                   product_df[['endpoint2_X_next', 'endpoint2_Y_next']].values, axis=1)
+
+                product_df['endpoint2_1_distance'] = \
+                    np.linalg.norm(product_df[['endpoint2_X_current', 'endpoint2_Y_current']].values -
+                                   product_df[['endpoint1_X_next', 'endpoint1_Y_next']].values, axis=1)
+
+                product_df['center_endpoint1_distance'] = \
+                    np.linalg.norm(product_df[[center_coordinate_columns['x'] + '_current',
+                                               center_coordinate_columns['y'] + '_current']].values -
+                                   product_df[['endpoint1_X_next', 'endpoint1_Y_next']].values, axis=1)
+
+                product_df['center_endpoint2_distance'] = \
+                    np.linalg.norm(product_df[[center_coordinate_columns['x'] + '_current',
+                                               center_coordinate_columns['y'] + '_current']].values -
+                                   product_df[['endpoint2_X_next', 'endpoint2_Y_next']].values, axis=1)
+
+            product_df['min_distance'] = product_df[dis_cols].min(axis=1)
+
+            # Pivot this DataFrame to get the desired structure
+            distance_df = \
+                product_df[['index_current', 'index_next', 'min_distance']].pivot(
+                    index='index_current', columns='index_next', values='min_distance')
+            distance_df.columns.name = None
+            distance_df.index.name = None
+
+    else:
+        if sel_target_bacteria.shape[0] > 0:
+            overlap_df = pd.DataFrame(columns=[sel_target_bacteria.index], index=[0], data=999)
+            distance_df = pd.DataFrame(columns=[sel_target_bacteria.index], index=[0], data=999)
+        elif sel_source_bacteria.shape[0] > 0:
+            overlap_df = pd.DataFrame(columns=[0], index=sel_source_bacteria.index, data=999)
+            distance_df = pd.DataFrame(columns=[0], index=sel_source_bacteria.index, data=999)
+
+    overlap_df = overlap_df.apply(pd.to_numeric)
+    distance_df = distance_df.apply(pd.to_numeric)
+
+    return overlap_df, distance_df
 
 
-def create_division_link_instead_cont_life_cost(df, cost_df, source_bac_ndx, source_bac, target_bac_ndx, target_bac,
-                                                source_bac_next_time_step, angle_between_motion, difference_neighbors,
-                                                max_neighbor_changes, sum_daughter_len_to_mother_ratio_boundary,
+def create_division_link_instead_cont_life_cost(df_source_daughter_cost, source_bac_ndx, source_bac, target_bac_ndx, target_bac,
+                                                source_bac_next_time_step, sum_daughter_len_to_mother_ratio_boundary,
                                                 max_daughter_len_to_mother_ratio_boundary,
                                                 min_life_history_of_bacteria):
-    division_cost = 999
 
     daughters_bac_len_to_source = ((target_bac['AreaShape_MajorAxisLength'] +
-                                    source_bac_next_time_step['AreaShape_MajorAxisLength'].values.tolist()[0]) /
+                                    source_bac_next_time_step['AreaShape_MajorAxisLength'].values[0]) /
                                    source_bac['AreaShape_MajorAxisLength'])
 
     max_daughters_bac_len_to_source = (max(target_bac['AreaShape_MajorAxisLength'],
-                                           source_bac_next_time_step['AreaShape_MajorAxisLength'].values.tolist()[0]) /
+                                           source_bac_next_time_step['AreaShape_MajorAxisLength'].values[0]) /
                                        source_bac['AreaShape_MajorAxisLength'])
 
-    if daughters_bac_len_to_source <= sum_daughter_len_to_mother_ratio_boundary['avg'] + \
-            1.96 * sum_daughter_len_to_mother_ratio_boundary['std'] and max_daughters_bac_len_to_source < 1 and \
-            max_daughters_bac_len_to_source <= \
-            max_daughter_len_to_mother_ratio_boundary['avg'] + \
-            1.96 * max_daughter_len_to_mother_ratio_boundary['std']:
+    upper_bound_sum_daughter_len = (sum_daughter_len_to_mother_ratio_boundary['avg'] +
+                                    1.96 * sum_daughter_len_to_mother_ratio_boundary['std'])
 
-        # second mode is possible
-        nex_generation_source_bac = df.loc[df['parent_id'] == source_bac['id']]
+    lower_bound_sum_daughter_len = (sum_daughter_len_to_mother_ratio_boundary['avg'] -
+                                    1.96 * sum_daughter_len_to_mother_ratio_boundary['std'])
 
-        if nex_generation_source_bac.shape[0] > 0:
-            if nex_generation_source_bac['ImageNumber'].values.tolist()[0] > \
-                    target_bac['ImageNumber'] + min_life_history_of_bacteria:
-                division_cost = cal_division_cost(cost_df.loc[target_bac_ndx][source_bac_ndx], angle_between_motion,
-                                                  difference_neighbors, max_neighbor_changes)
+    upper_bound_max_daughter_len = (max_daughter_len_to_mother_ratio_boundary['avg'] +
+                                    1.96 * max_daughter_len_to_mother_ratio_boundary['std'])
+
+    if (lower_bound_sum_daughter_len <= daughters_bac_len_to_source <= upper_bound_sum_daughter_len and
+            max_daughters_bac_len_to_source < 1 and max_daughters_bac_len_to_source <= upper_bound_max_daughter_len):
+
+        # if source_bac['divideFlag']:
+        #    if source_bac['LifeHistory'] > source_bac['age'] + min_life_history_of_bacteria:
+        #        if source_bac['age'] > min_life_history_of_bacteria or source_bac['transition'] == True:
+        #            calc_cost = True
+        #        else:
+        #            calc_cost = False
+        #    else:
+        #        calc_cost = False
+        #else:
+        #    calc_cost = True
+
+        if source_bac['age'] > min_life_history_of_bacteria or source_bac['transition'] == True:
+            calc_cost = True
         else:
-            division_cost = cal_division_cost(cost_df.loc[target_bac_ndx][source_bac_ndx], angle_between_motion,
-                                              difference_neighbors, max_neighbor_changes)
+            calc_cost = False
 
+        if calc_cost:
+            division_cost = df_source_daughter_cost.at[source_bac_ndx, target_bac_ndx]
+        else:
+            # prob = 0 so 1 - prob = 1
+            division_cost = 1
     else:
-        division_cost = 999
+        # prob = 0 so 1 - prob = 1
+        division_cost = 1
 
     return division_cost
 
 
-def link_to_source_with_already_has_one_link(df, cost_df, maintenance_cost_df,
-                                             redundant_link_dict, source_bac_ndx, source_bac, target_bac_ndx,
-                                             target_bac, source_bac_next_time_step, target_bac_len_to_source,
-                                             angle_between_motion, source_bac_bac_length_to_back_avg,
-                                             difference_neighbors, max_neighbor_changes, bac_len_to_bac_ratio_boundary,
+def link_to_source_with_already_has_one_link(cost_df, division_cost_dict,
+                                             source_bac_ndx, source_bac, target_bac_ndx,
+                                             target_bac, source_bac_next_time_step,
                                              sum_daughter_len_to_mother_ratio_boundary,
                                              max_daughter_len_to_mother_ratio_boundary, min_life_history_of_bacteria):
 
-    maintenance_cost_this_link = \
-        maintenance_cost_df.loc[source_bac_ndx][source_bac_next_time_step.index.values.tolist()[0]]
-
     # 2 possible modes:
+    # 1. new link cost
 
-    # 1. Create a new link and delete the previous link
-    new_link_cost = create_new_link_cost(target_bac_len_to_source, cost_df, source_bac_ndx, target_bac_ndx,
-                                         maintenance_cost_this_link, angle_between_motion,
-                                         source_bac_bac_length_to_back_avg, difference_neighbors, max_neighbor_changes,
-                                         bac_len_to_bac_ratio_boundary)
     # 2. Maintain the previous link and create a new link (cell division)
     division_cost = \
-        create_division_link_instead_cont_life_cost(df, cost_df, source_bac_ndx, source_bac, target_bac_ndx,
-                                                    target_bac, source_bac_next_time_step, angle_between_motion,
-                                                    difference_neighbors, max_neighbor_changes,
+        create_division_link_instead_cont_life_cost(cost_df, source_bac_ndx, source_bac, target_bac_ndx,
+                                                    target_bac, source_bac_next_time_step,
                                                     sum_daughter_len_to_mother_ratio_boundary,
                                                     max_daughter_len_to_mother_ratio_boundary,
                                                     min_life_history_of_bacteria)
 
-    if division_cost == 999 and new_link_cost == 999:
-        cost_df.at[target_bac_ndx, source_bac_ndx] = 999
+    # for new link cost
+    division_cost_dict[target_bac_ndx][source_bac_ndx] = division_cost
 
-    elif new_link_cost < division_cost:
-        cost_df.at[target_bac_ndx, source_bac_ndx] = new_link_cost
-        redundant_link_dict[target_bac_ndx] = [source_bac_ndx, [source_bac_next_time_step.index.values.tolist()[0]]]
-
-    else:
-        cost_df.at[target_bac_ndx, source_bac_ndx] = division_cost
-
-    return cost_df, redundant_link_dict
+    return division_cost_dict
 
 
-def replacing_new_link_to_inappropriate_daughter(new_conditions, maintenance_cost_daughters_link,
-                                                 new_daughter_cost, target_bac_ndx,
-                                                 source_bac_ndx, redundant_link_dict):
-    adding_new_daughter_cost = 999
-
-    correct_daughter = list(new_conditions.keys())[0]
-    other_daughter_ndx = [ndx for ndx in list(maintenance_cost_daughters_link.keys()) if \
-                          ndx != correct_daughter][0]
-    other_daughter_cost = maintenance_cost_daughters_link[other_daughter_ndx]
-
-    if new_daughter_cost < other_daughter_cost:
-        adding_new_daughter_cost = new_daughter_cost
-
-        redundant_link_dict[target_bac_ndx] = [source_bac_ndx, [other_daughter_cost]]
-
-    return adding_new_daughter_cost, redundant_link_dict
-
-
-def replacing_new_link_to_one_of_daughters(df, new_conditions, target_bac_ndx,
-                                           source_bac_ndx, source_bac, new_daughter_cost, redundant_link_dict,
-                                           all_bacteria_in_source_time_step, all_bac_in_target_time_step_df,
-                                           center_coordinate_columns):
-    adding_new_daughter_cost = 999
+def replacing_new_link_to_one_of_daughters(maintenance_cost_df, prev_daughters_idx, target_bac_ndx,
+                                           source_bac_ndx, new_daughter_prob, redundant_link_dict_division):
 
     # we should find bad daughter
-    candidate_daughters_ndx = list(new_conditions.keys())
-    candidate_daughters_ndx.append(target_bac_ndx)
-    daughters_df = df.loc[df.index.isin(candidate_daughters_ndx)]
+    all_bac_prob_dict = {
+        prev_daughters_idx[0]: maintenance_cost_df.at[source_bac_ndx, prev_daughters_idx[0]],
+        prev_daughters_idx[1]: maintenance_cost_df.at[source_bac_ndx, prev_daughters_idx[1]],
+        target_bac_ndx: 1 - new_daughter_prob,
+    }
 
-    daughters_overlap_df, daughters_distance_df = \
-        make_initial_distance_matrix(all_bacteria_in_source_time_step,
-                                     source_bac.to_frame().transpose(), all_bac_in_target_time_step_df, daughters_df,
-                                     center_coordinate_columns)
-
-    daughters_normalized_distance_df = distance_normalization(df, daughters_distance_df)
-
-    daughters_cost_df = \
-        np.sqrt((1 - daughters_overlap_df) ** 2 + daughters_normalized_distance_df ** 2)
-
-    for daughter_ndx in candidate_daughters_ndx:
-        # Calculate orientation angle
-        orientation_angle = calculate_orientation_angle(source_bac['bacteria_slope'],
-                                                        df.loc[daughter_ndx]['bacteria_slope'])
-
-        daughters_cost_df[daughter_ndx] = \
-            np.sqrt(np.power(daughters_cost_df[daughter_ndx], 2) +
-                    np.power(orientation_angle, 2))
-
-    wrong_daughter_index = daughters_cost_df.max().idxmax()
+    # bac with minimum probability
+    wrong_daughter_index = list(all_bac_prob_dict.keys())[np.argmin(list(all_bac_prob_dict.values()))]
 
     if wrong_daughter_index != target_bac_ndx:
-        adding_new_daughter_cost = new_daughter_cost
-        redundant_link_dict[target_bac_ndx] = [source_bac_ndx, [wrong_daughter_index]]
 
-    return adding_new_daughter_cost, redundant_link_dict
+        adding_new_daughter_cost = new_daughter_prob
+        redundant_link_dict_division[target_bac_ndx][source_bac_ndx] = wrong_daughter_index
 
-
-def replacing_new_link_to_division(df, cost_df, maintenance_cost_df,
-                                   source_bac_ndx, source_bac, target_bac_ndx, target_bac, target_bac_len_to_source,
-                                   new_daughter_cost, candidate_source_bac_daughters,
-                                   max_daughter_len_to_mother_ratio_boundary,
-                                   sum_daughter_len_to_mother_ratio_boundary, redundant_link_dict,
-                                   all_bacteria_in_source_time_step, all_bac_in_target_time_step_df,
-                                   angle_between_motion, source_bac_bac_length_to_back_avg, difference_neighbors,
-                                   max_neighbor_changes, bac_len_to_bac_ratio_boundary, center_coordinate_columns):
-    adding_new_daughter_cost = 999
-    maintenance_cost_this_division = 0
-
-    # division occurs
-    maintenance_cost_daughters_link = {}
-    new_conditions = {}
-
-    for daughter_ndx, daughter_bac in candidate_source_bac_daughters.iterrows():
-
-        maintenance_cost_daughters_link[daughter_ndx] = maintenance_cost_df.loc[source_bac_ndx][daughter_ndx]
-        maintenance_cost_this_division += maintenance_cost_df.loc[source_bac_ndx][daughter_ndx]
-
-        new_sum_daughters_len_to_source = \
-            (daughter_bac['AreaShape_MajorAxisLength'] + target_bac['AreaShape_MajorAxisLength']) / \
-            source_bac['AreaShape_MajorAxisLength']
-
-        new_max_daughters_len_to_source = \
-            max(daughter_bac['AreaShape_MajorAxisLength'], target_bac['AreaShape_MajorAxisLength']) / \
-            source_bac['AreaShape_MajorAxisLength']
-
-        if new_max_daughters_len_to_source < 1 and new_max_daughters_len_to_source <= \
-                max_daughter_len_to_mother_ratio_boundary['avg'] + \
-                1.96 * max_daughter_len_to_mother_ratio_boundary['std'] and \
-                new_sum_daughters_len_to_source <= sum_daughter_len_to_mother_ratio_boundary['avg'] + \
-                1.96 * sum_daughter_len_to_mother_ratio_boundary['std']:
-            new_conditions[daughter_ndx] = {'sum': new_sum_daughters_len_to_source,
-                                            'max': new_max_daughters_len_to_source}
-
-    if len(new_conditions.keys()) > 0:
-        if len(new_conditions.keys()) == 1:
-            adding_new_daughter_cost, redundant_link_dict = \
-                replacing_new_link_to_inappropriate_daughter(new_conditions, maintenance_cost_daughters_link,
-                                                             new_daughter_cost,
-                                                             target_bac_ndx, source_bac_ndx, redundant_link_dict)
-        else:
-            adding_new_daughter_cost, redundant_link_dict = \
-                replacing_new_link_to_one_of_daughters(df, new_conditions,
-                                                       target_bac_ndx, source_bac_ndx, source_bac, new_daughter_cost,
-                                                       redundant_link_dict, all_bacteria_in_source_time_step,
-                                                       all_bac_in_target_time_step_df, center_coordinate_columns)
-
-    new_link_cost = create_new_link_cost(target_bac_len_to_source, cost_df, source_bac_ndx, target_bac_ndx,
-                                         maintenance_cost_this_division, angle_between_motion,
-                                         source_bac_bac_length_to_back_avg, difference_neighbors, max_neighbor_changes,
-                                         bac_len_to_bac_ratio_boundary)
-
-    return new_link_cost, adding_new_daughter_cost, redundant_link_dict, maintenance_cost_daughters_link
-
-
-def link_to_source_with_two_links(df, cost_df, maintenance_cost_df,
-                                  source_bac_ndx,
-                                  source_bac, target_bac_ndx, target_bac, redundant_link_dict,
-                                  target_bac_len_to_source, angle_between_motion, difference_neighbors,
-                                  max_neighbor_changes, candidate_source_bac_daughters,
-                                  max_daughter_len_to_mother_ratio_boundary, sum_daughter_len_to_mother_ratio_boundary,
-                                  all_bacteria_in_source_time_step,
-                                  all_bac_in_target_time_step_df, source_bac_bac_length_to_back_avg,
-                                  bac_len_to_bac_ratio_boundary, center_coordinate_columns):
-
-    new_daughter_cost = np.sqrt(
-        np.power(cost_df.loc[target_bac_ndx][source_bac_ndx], 2) + np.power(angle_between_motion, 2) +
-        np.power(difference_neighbors / max_neighbor_changes, 2))
-
-    new_link_instead_daughters_cost, adding_new_daughter_cost, redundant_link_dict, maintenance_cost_daughters_link = \
-        replacing_new_link_to_division(df, cost_df, maintenance_cost_df,
-                                       source_bac_ndx, source_bac, target_bac_ndx, target_bac, target_bac_len_to_source,
-                                       new_daughter_cost, candidate_source_bac_daughters,
-                                       max_daughter_len_to_mother_ratio_boundary,
-                                       sum_daughter_len_to_mother_ratio_boundary, redundant_link_dict,
-                                       all_bacteria_in_source_time_step,
-                                       all_bac_in_target_time_step_df, angle_between_motion,
-                                       source_bac_bac_length_to_back_avg, difference_neighbors, max_neighbor_changes,
-                                       bac_len_to_bac_ratio_boundary, center_coordinate_columns)
-
-    if adding_new_daughter_cost < new_link_instead_daughters_cost:
-        cost_df.at[target_bac_ndx, source_bac_ndx] = adding_new_daughter_cost
-
-    elif new_link_instead_daughters_cost < max(list(maintenance_cost_daughters_link.values())):
-        cost_df.at[target_bac_ndx, source_bac_ndx] = new_link_instead_daughters_cost
-        redundant_link_dict[target_bac_ndx] = [source_bac_ndx, list(maintenance_cost_daughters_link.keys())]
     else:
-        cost_df.at[target_bac_ndx, source_bac_ndx] = 999
+        # probability = 0 so 1 - probability = 1
+        adding_new_daughter_cost = 1
 
-    return cost_df, redundant_link_dict
+    return adding_new_daughter_cost, redundant_link_dict_division
 
 
-def adding_new_terms_to_cost_matrix(df, cost_df, maintenance_cost_df,
-                                    source_bac_ndx, source_bac, target_bac_ndx, target_bac, neighbors_df,
-                                    redundant_link_dict, max_neighbor_changes, bac_len_to_bac_ratio_boundary,
+def replacing_new_link_to_division(maintenance_cost_df, source_bac_ndx, source_bac, target_bac_ndx, target_bac,
+                                   new_daughter_cost, source_bac_daughters,
+                                   max_daughter_len_to_mother_ratio_boundary,
+                                   sum_daughter_len_to_mother_ratio_boundary,
+                                   redundant_link_dict_division):
+
+    upper_bound_max_daughter_len = (max_daughter_len_to_mother_ratio_boundary['avg'] +
+                                    1.96 * max_daughter_len_to_mother_ratio_boundary['std'])
+
+    upper_bound_sum_daughter_len = (sum_daughter_len_to_mother_ratio_boundary['avg'] +
+                                    1.96 * sum_daughter_len_to_mother_ratio_boundary['std'])
+
+    lower_bound_sum_daughter_len = (sum_daughter_len_to_mother_ratio_boundary['avg'] -
+                                    1.96 * sum_daughter_len_to_mother_ratio_boundary['std'])
+
+    source_bac_daughters['new_sum_daughters_len_to_source'] = \
+        (source_bac_daughters['AreaShape_MajorAxisLength'] + target_bac['AreaShape_MajorAxisLength']) / \
+        source_bac['AreaShape_MajorAxisLength']
+
+    source_bac_daughters['new_max_daughters_len_to_source'] = \
+        np.maximum(source_bac_daughters['AreaShape_MajorAxisLength'], target_bac['AreaShape_MajorAxisLength']) / \
+        source_bac['AreaShape_MajorAxisLength']
+
+    filtered_daughters = \
+        source_bac_daughters.loc[(source_bac_daughters['new_max_daughters_len_to_source'] < 1) &
+                                 (source_bac_daughters['new_max_daughters_len_to_source'] <=
+                                  upper_bound_max_daughter_len) &
+                                 (lower_bound_sum_daughter_len <=
+                                  source_bac_daughters['new_sum_daughters_len_to_source']) &
+                                 (source_bac_daughters['new_sum_daughters_len_to_source'] <=
+                                  upper_bound_sum_daughter_len)]
+
+    if filtered_daughters.shape[0] > 0:
+
+        if filtered_daughters.shape[0] == 1:
+
+            other_daughter_ndx = [v for v in source_bac_daughters['index'].values if v not in
+                                  filtered_daughters['index'].values][0]
+
+            redundant_link_dict_division[target_bac_ndx][source_bac_ndx] = other_daughter_ndx
+
+            adding_new_daughter_cost = new_daughter_cost
+
+        else:
+
+            adding_new_daughter_cost, redundant_link_dict_new_link = \
+                replacing_new_link_to_one_of_daughters(maintenance_cost_df, filtered_daughters['index'].values.tolist(),
+                                                       target_bac_ndx, source_bac_ndx, new_daughter_cost,
+                                                       redundant_link_dict_division)
+    else:
+        # probability = 0 so 1 - probability = 1
+        adding_new_daughter_cost = 1
+
+    return adding_new_daughter_cost, redundant_link_dict_division
+
+
+def link_to_source_with_two_links(division_cost_df, maintenance_cost_df, division_cost_dict,
+                                  source_bac_ndx,
+                                  source_bac, target_bac_ndx, target_bac,
+                                  redundant_link_dict_division, source_bac_daughters,
+                                  max_daughter_len_to_mother_ratio_boundary, sum_daughter_len_to_mother_ratio_boundary):
+
+    new_daughter_cost = division_cost_df.at[source_bac_ndx, target_bac_ndx]
+
+    (adding_new_daughter_cost, redundant_link_dict_division) = \
+        replacing_new_link_to_division(maintenance_cost_df,
+                                       source_bac_ndx, source_bac, target_bac_ndx, target_bac,
+                                       new_daughter_cost, source_bac_daughters,
+                                       max_daughter_len_to_mother_ratio_boundary,
+                                       sum_daughter_len_to_mother_ratio_boundary,
+                                       redundant_link_dict_division)
+
+    division_cost_dict[target_bac_ndx][source_bac_ndx] = adding_new_daughter_cost
+
+    return division_cost_dict, redundant_link_dict_division
+
+
+def adding_new_terms_to_cost_matrix(division_cost_df, maintenance_cost_df, division_cost_dict,
+                                    source_bac_ndx, source_bac, target_bac_ndx, target_bac,
+                                    redundant_link_dict_division,
                                     sum_daughter_len_to_mother_ratio_boundary,
                                     max_daughter_len_to_mother_ratio_boundary, min_life_history_of_bacteria,
-                                    all_bacteria_in_source_time_step, all_bac_in_target_time_step_df,
-                                    center_coordinate_columns, parent_image_number_col):
+                                    source_bac_next_time_step, source_bac_daughters):
 
-    target_bac_len_to_source = target_bac['AreaShape_MajorAxisLength'] / source_bac['AreaShape_MajorAxisLength']
+    if source_bac_next_time_step.shape[0] > 0:
 
-    source_bac_life_history = df.loc[(df['id'] == source_bac['id']) & (df['ImageNumber'] < target_bac['ImageNumber'])]
-
-    source_bac_bac_length_to_back = [v for v in source_bac_life_history['bac_length_to_back'] if v != '']
-
-    if len(source_bac_bac_length_to_back) > 0:
-        source_bac_bac_length_to_back_avg = np.average(source_bac_bac_length_to_back)
-    else:
-        source_bac_bac_length_to_back_avg = 1
-
-    neighbors_dir_motion = calc_neighbors_dir_motion(df, source_bac, neighbors_df, center_coordinate_columns)
-
-    direction_of_motion = \
-        calculate_trajectory_direction(np.array([source_bac[center_coordinate_columns['x']],
-                                                 source_bac[center_coordinate_columns['y']]]),
-                                       np.array([target_bac[center_coordinate_columns['x']],
-                                                 target_bac[center_coordinate_columns['y']]]))
-
-    if str(neighbors_dir_motion[0]) != 'nan':
-        angle_between_motion = calc_normalized_angle_between_motion(neighbors_dir_motion,
-                                                                    direction_of_motion)
-    else:
-        angle_between_motion = 0
-
-    # check neighbors
-    difference_neighbors, common_neighbors = check_num_neighbors(df, neighbors_df, df.iloc[source_bac_ndx],
-                                                                 df.iloc[target_bac_ndx], parent_image_number_col,
-                                                                 return_common_elements=True)
-
-    # Did the bacteria survive or divide?
-    source_bac_next_time_step = df.loc[(df['id'] == source_bac['id']) &
-                                       (df['ImageNumber'] == source_bac['ImageNumber'] + 1)]
-
-    candidate_source_bac_daughters = df.loc[(df['parent_id'] == source_bac['id']) &
-                                            (df['ImageNumber'] == source_bac['ImageNumber'] + 1)]
-
-    if difference_neighbors > common_neighbors:
-        cost_df.at[target_bac_ndx, source_bac_ndx] = 999
-
-    elif source_bac_next_time_step.shape[0] > 0:
-
-        cost_df, redundant_link_dict = \
-            link_to_source_with_already_has_one_link(df, cost_df, maintenance_cost_df,
-                                                     redundant_link_dict, source_bac_ndx, source_bac, target_bac_ndx,
-                                                     target_bac, source_bac_next_time_step, target_bac_len_to_source,
-                                                     angle_between_motion, source_bac_bac_length_to_back_avg,
-                                                     difference_neighbors, max_neighbor_changes,
-                                                     bac_len_to_bac_ratio_boundary,
+        # if we want to make new link, we should remove prev link of source bac, so we should write the index of prev
+        # target of source bac in redundant dict
+        division_cost_dict = \
+            link_to_source_with_already_has_one_link(division_cost_df,
+                                                     division_cost_dict,
+                                                     source_bac_ndx, source_bac,
+                                                     target_bac_ndx,
+                                                     target_bac, source_bac_next_time_step,
                                                      sum_daughter_len_to_mother_ratio_boundary,
                                                      max_daughter_len_to_mother_ratio_boundary,
                                                      min_life_history_of_bacteria)
 
-    elif candidate_source_bac_daughters.shape[0] > 0:
+    elif source_bac_daughters.shape[0] > 0:
+
         # my idea: at least one of a daughter-mother links can be wrong
-        cost_df, redundant_link_dict = \
-            link_to_source_with_two_links(df, cost_df, maintenance_cost_df,
-                                          source_bac_ndx, source_bac, target_bac_ndx, target_bac, redundant_link_dict,
-                                          target_bac_len_to_source, angle_between_motion, difference_neighbors,
-                                          max_neighbor_changes, candidate_source_bac_daughters,
+        division_cost_dict, redundant_link_dict_division = \
+            link_to_source_with_two_links(division_cost_df, maintenance_cost_df, division_cost_dict,
+                                          source_bac_ndx, source_bac, target_bac_ndx, target_bac,
+                                          redundant_link_dict_division, source_bac_daughters,
                                           max_daughter_len_to_mother_ratio_boundary,
-                                          sum_daughter_len_to_mother_ratio_boundary,
-                                          all_bacteria_in_source_time_step,
-                                          all_bac_in_target_time_step_df, source_bac_bac_length_to_back_avg,
-                                          bac_len_to_bac_ratio_boundary, center_coordinate_columns)
+                                          sum_daughter_len_to_mother_ratio_boundary)
 
-    else:
-        # source bac is unexpected end
-        cost_df.at[target_bac_ndx, source_bac_ndx] = 999
-
-    return cost_df, redundant_link_dict
+    return division_cost_dict, redundant_link_dict_division

@@ -1,111 +1,176 @@
 import numpy as np
 import pandas as pd
 from Trackrefiner.strain.correction.action.bacteriaModification import bacteria_modification
-from Trackrefiner.strain.correction.action.findOutlier import find_final_bac_change_length_ratio_outliers
-from Trackrefiner.strain.correction.action.compareBacteria import final_division_detection_cost
+from Trackrefiner.strain.correction.action.compareBacteria import optimize_assignment
+from Trackrefiner.strain.correction.action.compareBacteria import daughter_cost_for_final_step, \
+    same_link_cost_for_final_checking
 
 
-def assign_new_link(df, neighbors_df, source_bac_index, source_bac, division_cost_df, all_bac_in_target_time_step,
-                    parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns):
+def adding_new_link(df, neighbors_df, stat, source_bac_idx, source_bac, target_bac_idx, target_bac,
+                    parent_image_number_col, parent_object_number_col, center_coordinate_columns, label_col,
+                    all_bac_in_target_bac_time_step, prob_val):
+    if 1 - prob_val > 0.5:
+        # there is two scenario: first: source bac with only one bac in next time step: so we compare
+        # the probability of that with new bac
+        # the second scenario is source bac has two daughters. I think it's good idea two compare
+        # max daughter probability with new bac probability
 
-    source_bac_division_cost = division_cost_df.loc[division_cost_df['without parent index'] == source_bac_index]
+        # update info
+        source_bac = df.loc[source_bac_idx]
+        # unexpected beginning
+        target_bac_life_history = df.loc[df['id'] == df.at[target_bac_idx, 'id']]
 
-    if source_bac_division_cost.shape[0] > 0:
-        if source_bac_division_cost['Cost'].values.tolist()[0] != 999:
-            # it means division occurs
-            daughter_indx = source_bac_division_cost['Candida bacteria index in previous time step'].values.tolist()[0]
-            new_daughter = df.iloc[daughter_indx]
-            new_daughter_life_history = df.loc[df['id'] == new_daughter['id']]
-
-            df = bacteria_modification(df, source_bac, new_daughter_life_history, all_bac_in_target_time_step,
-                                       neighbors_df, parent_image_number_col, parent_object_number_col, label_col,
-                                       center_coordinate_columns)
+        df = bacteria_modification(df, source_bac, target_bac_life_history,
+                                   all_bac_in_target_bac_time_step,
+                                   neighbors_df, parent_image_number_col, parent_object_number_col,
+                                   center_coordinate_columns, label_col)
 
     return df
 
 
 def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time,
-                   parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns, logs_df):
+                   parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
+                   df_before_more_detection_and_removing, non_divided_bac_model, divided_bac_model):
+    # only we should check unexpected beginning bacteria and compare with previous links to make sure
+    # it can be possible to restore links or not
 
-    num_incorrect_same_links = None
-    prev_bacteria_with_wrong_same_link = None
-    n_iterate = 0
+    unexpected_beginning_bacteria = df.loc[df['transition'] == True]
 
-    # min life history of bacteria
-    min_life_history_of_bacteria_time_step = np.round_(min_life_history_of_bacteria / interval_time)
+    division_df = pd.DataFrame()
+    same_df = pd.DataFrame()
 
-    while num_incorrect_same_links != 0:
+    for unexpected_bac_idx in unexpected_beginning_bacteria.index.values:
 
-        # check incorrect same link
-        bac_to_bac_len_ratio_list_outliers = find_final_bac_change_length_ratio_outliers(df)
+        unexpected_bac = df.loc[[unexpected_bac_idx]]
 
-        bacteria_with_wrong_same_link = \
-            df.loc[(df["bac_length_to_back"].isin(bac_to_bac_len_ratio_list_outliers)) & (df['noise_bac'] == False)]
+        bac_related_to_this_bac_in_raw_df = \
+            df_before_more_detection_and_removing.loc[df_before_more_detection_and_removing['index'] ==
+                                                      unexpected_bac['index'].values[0]]
 
-        if n_iterate > 0:
-            if prev_bacteria_with_wrong_same_link.values.all() == bacteria_with_wrong_same_link.values.all():
-                num_incorrect_same_links = 0
+        if bac_related_to_this_bac_in_raw_df[parent_image_number_col].values[0] != 0:
+
+            # it means that this bacterium had a previous link
+            source_link = df.loc[
+                (df['ImageNumber'] == bac_related_to_this_bac_in_raw_df[parent_image_number_col].values[0]) &
+                (df['ObjectNumber'] == bac_related_to_this_bac_in_raw_df[parent_object_number_col].values[0])]
+
+            if source_link['unexpected_end'].values[0]:
+                check_prob = True
+                stat = 'same'
+
             else:
-                num_incorrect_same_links = bacteria_with_wrong_same_link.shape[0]
+                if str(source_link['daughter_length_to_mother'].values[0]) != 'nan':
+                    # it means that source bacterium has two links right now and we can not restore links
+                    check_prob = False
+                else:
+                    # discuses more about min life history for this
+                    check_prob = True
+                    other_daughter = df.loc[(df['id'] == source_link['id'].values[0]) & (
+                            df['ImageNumber'] == unexpected_bac['ImageNumber'].values[0])]
+                    stat = 'div'
 
-        prev_bacteria_with_wrong_same_link = bacteria_with_wrong_same_link
+            if check_prob:
 
-        if bacteria_with_wrong_same_link.shape[0] > 0:
-            for incorrect_same_link_bacteria_time_step in bacteria_with_wrong_same_link['ImageNumber'].unique():
+                df_bac_with_source = unexpected_bac.merge(source_link, how='cross', suffixes=('', '_source'))
 
-                neighbors_indx_dict = {}
-                neighbors_bacteria_obj_num_list = []
+                if stat == 'same':
+                    same_df = pd.concat([same_df, df_bac_with_source], ignore_index=True)
 
-                target_incorrect_same_link = \
-                    bacteria_with_wrong_same_link.loc[
-                        bacteria_with_wrong_same_link['ImageNumber'] == incorrect_same_link_bacteria_time_step]
+                elif stat == 'div':
+                    max_daughter_len = (max(other_daughter['AreaShape_MajorAxisLength'].values[0],
+                                            unexpected_bac['AreaShape_MajorAxisLength'].values[0]) /
+                                        source_link['AreaShape_MajorAxisLength'].values[0])
+                    if max_daughter_len < 1:
+                        division_df = pd.concat([division_df, df_bac_with_source], ignore_index=True)
 
-                for target_bac_ndx, target_bac in target_incorrect_same_link.iterrows():
+    if same_df.shape[0] > 0:
+        bac_with_same_source = same_df[same_df.duplicated(['ImageNumber_source', 'ObjectNumber_source'],
+                                                          keep=False)]
 
-                    target_bac_neighbors_obj_nums = \
-                        neighbors_df.loc[
-                            (neighbors_df['First Image Number'] == incorrect_same_link_bacteria_time_step) &
-                            (neighbors_df['First Object Number'] ==
-                             target_bac['ObjectNumber'])]['Second Object Number'].values.tolist()
+        if bac_with_same_source.shape[0] > 0:
 
-                    target_bac_neighbors_info = df.loc[(df['ImageNumber'] == incorrect_same_link_bacteria_time_step) &
-                                                       (df['ObjectNumber'].isin(target_bac_neighbors_obj_nums))]
+            # Group by column 2 and aggregate
+            agg_df = bac_with_same_source.groupby(['ImageNumber_source', 'ObjectNumber_source']).agg(
+                {'AreaShape_MajorAxisLength': 'max', 'AreaShape_MajorAxisLength_source': 'mean'}).reset_index()
 
-                    without_link_neighbors = \
-                        target_bac_neighbors_info.loc[target_bac_neighbors_info['transition'] == True]
+            # Rename columns for clarity
+            agg_df.columns = ['ImageNumber_source', 'ObjectNumber_source', 'max_daughter_len_same', 'source_len_same']
+            agg_df['max_daughter_len_to_mother_same'] = agg_df['max_daughter_len_same'] / agg_df['source_len_same']
+            merged_df = pd.merge(bac_with_same_source, agg_df, on=['ImageNumber_source', 'ObjectNumber_source'],
+                                 how='inner')
 
-                    neighbors_indx_dict[target_bac_ndx] = without_link_neighbors.index.values.tolist()
+            # now we should check daughters condition
+            daughters_passed_condition = merged_df.loc[merged_df['max_daughter_len_to_mother_same'] < 1]
+            daughters_passed_condition = daughters_passed_condition.drop(columns=['max_daughter_len_same',
+                                                                                  'source_len_same'])
 
-                    neighbors_bacteria_obj_num_list.extend(without_link_neighbors['ObjectNumber'].values.tolist())
+            division_df = pd.concat([division_df, daughters_passed_condition], ignore_index=True)
 
-                neighbors_bacteria_info = df.loc[(df['ImageNumber'] == incorrect_same_link_bacteria_time_step) &
-                                                 (df['ObjectNumber'].isin(neighbors_bacteria_obj_num_list))]
+            # now we should remove them from same df
+            same_df = same_df.loc[~ same_df.index.isin(bac_with_same_source.index.values)]
 
-                source_incorrect_same_link = df.loc[(df['ImageNumber'] == incorrect_same_link_bacteria_time_step - 1) &
-                                                    (df['ObjectNumber'].isin(
-                                                        target_incorrect_same_link[
-                                                            parent_object_number_col].values.tolist()
-                                                    ))]
+    if division_df.shape[0] > 0:
 
-                all_bac_in_source_time_step = df.loc[df['ImageNumber'] == incorrect_same_link_bacteria_time_step - 1]
-                all_bac_in_target_time_step = df.loc[df['ImageNumber'] == incorrect_same_link_bacteria_time_step]
+        division_cost_df = daughter_cost_for_final_step(df, neighbors_df, division_df, center_coordinate_columns,
+                                                        col_source='_source',
+                                                        col_target='', parent_image_number_col=parent_image_number_col,
+                                                        parent_object_number_col=parent_object_number_col,
+                                                        divided_bac_model=divided_bac_model,
+                                                        maintenance_cost_df=None, maintenance_to_be_check=None)
 
-                # try to detect division
-                division_cost_df = final_division_detection_cost(df, source_incorrect_same_link,
-                                                                 all_bac_in_source_time_step,
-                                                                 min_life_history_of_bacteria_time_step,
-                                                                 target_incorrect_same_link,
-                                                                 all_bac_in_target_time_step, neighbors_bacteria_info,
-                                                                 neighbors_indx_dict, center_coordinate_columns,
-                                                                 parent_object_number_col)
+        if division_cost_df.shape[0] > 0:
 
-                # try to modify the links
-                for source_bac_index, source_bac in source_incorrect_same_link.iterrows():
-                    df = assign_new_link(df, neighbors_df, source_bac_index, source_bac, division_cost_df,
-                                         all_bac_in_target_time_step, parent_image_number_col, parent_object_number_col,
-                                         label_col, center_coordinate_columns)
-                    logs_df = pd.concat([logs_df, df.iloc[source_bac_index].to_frame().transpose()],
-                                        ignore_index=True)
+            division_cost_df = division_cost_df.fillna(1)
+            # optimization
+            optimized_df = optimize_assignment(division_cost_df)
 
-        n_iterate += 1
-    return df, logs_df
+            for row_index, row in optimized_df.iterrows():
+                source_bac_idx = row['without parent index']
+                source_bac = df.loc[source_bac_idx]
+
+                target_bac_idx = int(row['Candida bacteria index in previous time step'])
+                target_bac = df.loc[target_bac_idx]
+
+                cost_val = row['Cost']
+
+                all_bac_in_target_bac_time_step = df.loc[df['ImageNumber'] == target_bac['ImageNumber']]
+
+                df = adding_new_link(df, neighbors_df, stat, source_bac_idx, source_bac,
+                                     target_bac_idx, target_bac, parent_image_number_col,
+                                     parent_object_number_col, center_coordinate_columns, label_col,
+                                     all_bac_in_target_bac_time_step, cost_val)
+
+    if same_df.shape[0] > 0:
+
+        same_df['id_source'] = df.loc[df['index'].isin(same_df['index_source'].values), 'id'].values
+        same_df['age_source'] = df.loc[df['index'].isin(same_df['index_source'].values), 'age'].values
+
+        same_cost_df = same_link_cost_for_final_checking(df, neighbors_df, same_df, center_coordinate_columns,
+                                                         col_source='_source', col_target='',
+                                                         parent_image_number_col=parent_image_number_col,
+                                                         parent_object_number_col=parent_object_number_col,
+                                                         non_divided_bac_model=non_divided_bac_model,
+                                                         maintenance_cost_df=None, maintenance_to_be_check=None)
+
+        if same_cost_df.shape[0] > 0:
+
+            same_cost_df = same_cost_df.fillna(1)
+            # optimization
+            optimized_df = optimize_assignment(same_cost_df)
+
+            for row_index, row in optimized_df.iterrows():
+                source_bac_idx = row['without parent index']
+                source_bac = df.loc[source_bac_idx]
+
+                target_bac_idx = int(row['Candida bacteria index in previous time step'])
+                target_bac = df.loc[target_bac_idx]
+
+                cost_val = row['Cost']
+
+                all_bac_in_target_bac_time_step = df.loc[df['ImageNumber'] == target_bac['ImageNumber']]
+
+                df = adding_new_link(df, neighbors_df, stat, source_bac_idx, source_bac,
+                                     target_bac_idx, target_bac, parent_image_number_col,
+                                     parent_object_number_col, center_coordinate_columns, label_col,
+                                     all_bac_in_target_bac_time_step, cost_val)
+    return df
