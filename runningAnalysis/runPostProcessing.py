@@ -1,5 +1,4 @@
 import argparse
-import numpy as np
 from Trackrefiner.strain.processCellProfilerData import process_data
 
 if __name__ == '__main__':
@@ -11,9 +10,16 @@ if __name__ == '__main__':
                                               ' contains information about measured features of bacteria,'
                                               ' such as length, orientation, etc., as well as tracking information.')
 
-    parser.add_argument('-np', '--npy', help='This folder contains files in the npy format, which are the results of'
-                                             ' segmentation, where the pixels of an object are unified in a specific '
-                                             'color.')
+    #  DecisionTreeClassifier, GradientBoostingClassifier, ExtraTreeClassifier, LinearDiscriminantAnalysis
+    # RandomForestClassifier, QuadraticDiscriminantAnalysis
+    parser.add_argument('-c', '--clf', default='LogisticRegression',
+                        help='classifier to be used for track refining. '
+                             'classifiers name: LogisticRegression, GaussianProcessClassifier, '
+                             'C-Support Vector Classifier')
+
+    parser.add_argument('-np', '--npy',
+                        help='This folder contains files in the npy format, which are the results of segmentation, '
+                             'where the pixels of an object are unified in a specific color.')
 
     parser.add_argument('-r', '--neighbor', help='CSV file containing neighboring data of bacteria.')
 
@@ -32,7 +38,8 @@ if __name__ == '__main__':
 
     parser.add_argument('-n', '--gap', default=0, help="number of gap. Default value: 0")
 
-    parser.add_argument('-u', '--umPerPixel', default=0.144, help="convert pixel to um. Default value: 0.144")
+    parser.add_argument('-u', '--umPerPixel', default=0.144, help="convert pixel to um. "
+                                                                  "Default value: 0.144")
 
     parser.add_argument('-a', '--cellType', default=True, help="assigning cell type. Default value: True")
 
@@ -40,14 +47,18 @@ if __name__ == '__main__':
                                                                         "This parameter is related to assigning the"
                                                                         " cell type. Default value: 0.1")
 
-    parser.add_argument('-w', '--warn', default='True', help="You will see all warnings if you set "
-                                                           "it to True. Default value: True (Note: "
-                                                           "The value of this argument should be T (or True) or F (or False).)")
+    parser.add_argument('-w', '--warn', default='True',
+                        help="You will see all warnings if you set it to True. Default value: True "
+                             "(Note: The value of this argument should be T (or True) or F (or False).)")
 
     parser.add_argument('-wi', '--withoutTrackingCorrection', default='False',
                         help="If you want the outputs without correction of tracking, set it to true. "
                              "Default value: False "
                              "(Note: The value of this argument should be T (or True) or F (or False).)")
+
+    parser.add_argument('-z', '--n_cpu', default=-1, help="The number of CPUs employed for parallel computing. "
+                                                          "A value of -1 indicates the utilization of all available "
+                                                          "CPUs for parallel processing. Default value: -1")
 
     # Parse the arguments
     args = parser.parse_args()
@@ -79,20 +90,22 @@ if __name__ == '__main__':
     warn = args.warn
     without_tracking_correction = args.withoutTrackingCorrection
 
-    if warn in ['T' , 'True']:
+    if warn in ['T', 'True']:
         warn = True
     else:
         warn = False
 
-    if without_tracking_correction in ['T' , 'True']:
+    if without_tracking_correction in ['T', 'True']:
         without_tracking_correction = True
     else:
         without_tracking_correction = False
 
+    clf = args.clf.rstrip().lstrip()
+    n_cpu = int(args.n_cpu)
 
     # run post-processing
     process_data(input_file=input_file, npy_files_dir=npy_files_dir, neighbors_file=neighbors_file,
                  output_directory=output_directory, interval_time=interval_time, growth_rate_method=growth_rate_method,
                  number_of_gap=number_of_gap, um_per_pixel=um_per_pixel, intensity_threshold=intensity_threshold,
                  assigning_cell_type=assigning_cell_type, min_life_history_of_bacteria=min_life_history_of_bacteria,
-                 warn=warn, without_tracking_correction=without_tracking_correction)
+                 warn=warn, without_tracking_correction=without_tracking_correction, clf=clf, n_cpu=n_cpu)
