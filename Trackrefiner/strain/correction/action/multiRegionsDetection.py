@@ -3,8 +3,6 @@ import pandas as pd
 from skimage.measure import label, regionprops
 from scipy.spatial import distance_matrix
 from Trackrefiner.strain.correction.action.multiRegionsCorrection import multi_region_correction
-import matplotlib.pyplot as plt
-import cv2
 
 
 def generate_new_color(existing_colors, seed=None):
@@ -18,7 +16,7 @@ def generate_new_color(existing_colors, seed=None):
 
 
 def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinate_columns,
-                            all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, warn):
+                           all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, warn):
 
     for img_ndx, img_npy_file in enumerate(img_npy_file_list):
 
@@ -59,15 +57,9 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
 
                 multi_region_flag = True
 
-                if warn:
-                    print('===========================================================================================')
-                    print(img_npy_file)
-                    print("WARNING: one mask with two regions! Number of regions: " + str(len(regions)))
-                    print('===========================================================================================')
-
                 labeled_mask_cp = labeled_mask.copy()
 
-                labeled_mask_cp[labeled_mask_cp >1] = 1
+                labeled_mask_cp[labeled_mask_cp > 1] = 1
                 regions_cp = regionprops(labeled_mask_cp)
 
                 y0_cp, x0_cp = regions_cp[0].centroid
@@ -110,12 +102,11 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
                 regions_center_prev_objects_stat.append('natural')
                 regions_center_particles_stat.append('natural')
 
-                regions_features.append({'center_x': x0* um_per_pixel, 'center_y': y0* um_per_pixel,
+                regions_features.append({'center_x': x0 * um_per_pixel, 'center_y': y0 * um_per_pixel,
                                          'orientation': orientation, 'major': major_length, 'minor': minor_length})
 
                 regions_color.append(color)
                 regions_coordinates.append(regions[0].coords)
-
 
         # check objects
         df_centers_raw_objects = pd.DataFrame(regions_center_raw_objects, columns=['center_x', 'center_y'])
@@ -140,15 +131,14 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
 
         min_distance_prev_objects_df = pd.DataFrame({
             'cp index': distance_df_raw_objects.columns,
-            'row indx prev': distance_df_raw_objects_min_val_idx,
+            'row idx prev': distance_df_raw_objects_min_val_idx,
             'Cost prev': distance_df_raw_objects_min_val,
             'stat prev': regions_center_prev_stat,
             'center_x_prev': regions_center_raw_x,
             'center_y_prev': regions_center_raw_y,
         })
 
-        distance_df_particles = \
-                pd.DataFrame(distance_matrix(
+        distance_df_particles = pd.DataFrame(distance_matrix(
                     df_centers_particles[['center_x', 'center_y']].values,
                     current_df[[center_coordinate_columns['x'], center_coordinate_columns['y']]].values,
                 ),
@@ -165,10 +155,10 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
 
         else:
 
-            for correct_bac_indx, correct_bac_row in min_distance_prev_objects_df.iterrows():
+            for correct_bac_idx, correct_bac_row in min_distance_prev_objects_df.iterrows():
                 bac_ndx = correct_bac_row['cp index']
-                this_region_color = regions_color[correct_bac_row['row indx prev']]
+                this_region_color = regions_color[correct_bac_row['row idx prev']]
                 df.at[bac_ndx, 'color_mask'] = tuple(this_region_color)
-                df.at[bac_ndx, 'coordinate'] = regions_coordinates[correct_bac_row['row indx prev']]
+                df.at[bac_ndx, 'coordinate'] = set(map(tuple, regions_coordinates[correct_bac_row['row idx prev']]))
 
     return df
