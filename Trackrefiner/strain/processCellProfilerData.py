@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import time
 import pickle
 import os
@@ -11,7 +10,7 @@ from Trackrefiner.strain.correction.action.helperFunctions import checking_colum
 
 def process_data(input_file, npy_files_dir, neighbors_file, output_directory, interval_time, growth_rate_method,
                  number_of_gap, um_per_pixel, intensity_threshold, assigning_cell_type, min_life_history_of_bacteria,
-                 warn, without_tracking_correction):
+                 warn, without_tracking_correction, clf, n_cpu):
     """
     The main function that processes CellProfiler data.
     .pickle Files are exported to the same directory as input_file.
@@ -57,13 +56,22 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
 
     if (len(sorted_npy_files_list) > 0 and neighbors_df.shape[0] > 0) or without_tracking_correction:
 
+        if output_directory is not None:
+            output_directory = output_directory + "/"
+        else:
+            # Create the directory if it does not exist
+            output_directory = os.path.dirname(input_file)
+            os.makedirs(output_directory + '/Trackrefiner', exist_ok=True)
+            output_directory = output_directory + '/Trackrefiner/'
+
         data_frame, find_fix_errors_log, logs_df, neighbors_df = \
             find_fix_errors(data_frame, sorted_npy_files_list, neighbors_df, center_coordinate_columns,
                             all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, label_col,
                             number_of_gap=number_of_gap, um_per_pixel=um_per_pixel,
                             intensity_threshold=intensity_threshold, check_cell_type=assigning_cell_type,
                             interval_time=interval_time, min_life_history_of_bacteria=min_life_history_of_bacteria,
-                            warn=warn, without_tracking_correction=without_tracking_correction)
+                            warn=warn, without_tracking_correction=without_tracking_correction,
+                            output_directory=output_directory, clf=clf, n_cpu=n_cpu)
 
         log_list.extend(find_fix_errors_log)
 
@@ -94,14 +102,6 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
 
         print_progress_bar(10, prefix='Progress:', suffix='Complete', length=50)
 
-        if output_directory is not None:
-            output_directory = output_directory + "/"
-        else:
-            # Create the directory if it does not exist
-            output_directory = os.path.dirname(input_file)
-            os.makedirs(output_directory + '/Trackrefiner', exist_ok=True)
-            output_directory = output_directory + '/Trackrefiner/'
-
         create_pickle_files(processed_df_with_specific_cols, output_directory, assigning_cell_type)
 
         path = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "-" +
@@ -114,7 +114,7 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
         # write to csv
         processed_df.to_csv(path + '.csv', index=False)
         logs_df.to_csv(path_logs + '.csv', index=False)
-        if  without_tracking_correction:
+        if without_tracking_correction:
             neighbors_df.to_csv(path_neighbors + '.csv', index=False)
 
         output_log = "The outputs are written in the " + output_directory + " directory."
@@ -174,7 +174,7 @@ def create_pickle_files(df, path, assigning_cell_type):
     """
     Saves processed data in a dictionary similar to CellModeller output style and exports as .pickle files
     @param df       data after being processed in experimentalDataProcessing.py
-    @param path     path where .pickle files are saved
+    @param path     str where .pickle files are saved
     """
     lineage = {}
     time_steps = sorted(df['stepNum'].unique())
