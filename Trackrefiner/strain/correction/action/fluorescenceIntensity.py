@@ -1,4 +1,3 @@
-import numpy as np
 from Trackrefiner.strain.correction.action.helperFunctions import k_nearest_neighbors
 
 
@@ -46,7 +45,6 @@ def probability_cell_type(df, cols, intensity_threshold):
 
 
 def check_intensity(dataframe_col):
-
     """
     If the CSV file has two mean intensity columns, the cosine similarity is calculated
     @param dataframe_col dataframe features value of bacteria in each time step
@@ -72,16 +70,16 @@ def assign_cell_type(dataframe, intensity_threshold):
 
 
 def fix_cell_type_error(dataframe, center_coordinate_columns, label_col):
-
-    df_bacteria_cell_type_errors = dataframe.loc[dataframe['unknown_cell_type'] == True]
+    df_bacteria_cell_type_errors = dataframe.loc[dataframe['unknown_cell_type']]
     bacteria_labels = df_bacteria_cell_type_errors[label_col].unique()
 
     for label in bacteria_labels:
         bacteria_family_tree = dataframe.loc[dataframe[label_col] == label]
         root_bacterium = bacteria_family_tree.iloc[[0]]
 
-        other_same_time_step_bacteria = dataframe.loc[(dataframe['ImageNumber'] == root_bacterium.iloc[0]['ImageNumber']) &
-                                                      (dataframe['unknown_cell_type'] == False)]
+        other_same_time_step_bacteria = \
+            dataframe.loc[(dataframe['ImageNumber'] == root_bacterium.iloc[0]['ImageNumber']) &
+                          (dataframe['unknown_cell_type'] == False)]
 
         nearest_bacteria_index = k_nearest_neighbors(root_bacterium, other_same_time_step_bacteria,
                                                      center_coordinate_columns, k=1, distance_check=False)[0]
@@ -95,8 +93,7 @@ def fix_cell_type_error(dataframe, center_coordinate_columns, label_col):
     return dataframe
 
 
-def final_cell_type(dataframe, center_coordinate_columns, label_col):
-
+def final_cell_type(dataframe):
     dataframe['unknown_cell_type'] = False
     num_intensity_cols = len(check_intensity(dataframe.columns))
 
@@ -104,30 +101,16 @@ def final_cell_type(dataframe, center_coordinate_columns, label_col):
         for bac_ndx, bac in dataframe.iterrows():
             bac_cell_type_list = bac['cellType']
 
+            if type(bac_cell_type_list) is str:
+                bac_cell_type_list = [int(v.strip()) for v in
+                                      bac_cell_type_list.replace('[', '').replace(']', '').split(',')]
+
             if bac_cell_type_list.count(1) >= 2:
                 dataframe.at[bac_ndx, 'cellType'] = 3
             elif bac_cell_type_list.count(0) >= 2:
                 dataframe.at[bac_ndx, 'cellType'] = 0
             else:
                 dataframe.at[bac_ndx, 'cellType'] = bac_cell_type_list.index(1) + 1
-
-        # bacteria_labels = dataframe[label_col].unique()
-
-        #for label in bacteria_labels:
-        #    bacteria_family_tree = dataframe.loc[dataframe[label_col] == label]
-        #    bacteria_family_tree_cell_types = bacteria_family_tree['cellType'].values.tolist()
-        #    frequency = []
-        #    for i in range(num_intensity_cols):
-        #        frequency_ith_channel = len([elem for elem in bacteria_family_tree_cell_types if elem[i] == 1])
-        #        frequency.append(frequency_ith_channel)
-        #    if len(set(frequency)) > 1:
-        #        for idx in bacteria_family_tree.index:
-        #            dataframe.at[idx, 'cellType'] = np.argmax(frequency) + 1
-        #    else:
-        #        for idx in bacteria_family_tree.index:
-        #            dataframe.at[idx, 'unknown_cell_type'] = True
-
-        #dataframe = fix_cell_type_error(dataframe, center_coordinate_columns, label_col)
     else:
         dataframe['cellType'] = 1
 
