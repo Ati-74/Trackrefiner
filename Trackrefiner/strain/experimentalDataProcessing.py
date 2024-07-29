@@ -85,7 +85,7 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
 
     if assigning_cell_type:
         # determine final cell type of each bacterium
-        data_frame = final_cell_type(data_frame, center_coordinate_columns, label_col)
+        data_frame = final_cell_type(data_frame)
 
     # rename some columns
     data_frame.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length',
