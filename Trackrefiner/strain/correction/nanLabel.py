@@ -1,6 +1,7 @@
 from Trackrefiner.strain.correction.action.helperFunctions import find_related_bacteria
 
-def modify_nan_labels(df, label_col):
+
+def modify_nan_labels(df, label_col, parent_image_number_col, parent_object_number_col):
 
     # Correct the labels of bacteria whose labels are nan.
     nan_label_bacteria = df.loc[df[label_col].isnull()]
@@ -9,7 +10,8 @@ def modify_nan_labels(df, label_col):
         for bac_index, bacterium in nan_label_bacteria.iterrows():
             if bac_index not in modified_bacteria_label_index:
                 # assign label
-                related_bacteria_index = find_related_bacteria(df, bacterium, bac_index, bacteria_index_list=None)
+                related_bacteria_index = find_related_bacteria(df, bacterium, bac_index, parent_image_number_col,
+                                                               parent_object_number_col, bacteria_index_list=None)
                 related_bacteria = df.iloc[related_bacteria_index]
                 unique_label = related_bacteria[label_col].unique()
                 # remove nan label if exist
