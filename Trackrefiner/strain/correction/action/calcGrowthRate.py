@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 from sklearn.linear_model import LinearRegression
 
 
@@ -23,9 +22,9 @@ def calculate_growth_rate(df_life_history, interval_time, growth_rate_method):
     life_history_length = df_life_history.shape[0]
 
     # calculation of new feature
-    division_length = df_life_history.iloc[[-1]]["AreaShape_MajorAxisLength"].values[0]
+    division_length = df_life_history["AreaShape_MajorAxisLength"].values[-1]
     # length of bacteria when they are born
-    birth_length = df_life_history.iloc[[0]]["AreaShape_MajorAxisLength"].values[0]
+    birth_length = df_life_history["AreaShape_MajorAxisLength"].values[0]
     # this condition checks the life history of bacteria
     # If the bacterium exists only one time step: NaN will be reported.
     if life_history_length > 1:
@@ -37,6 +36,10 @@ def calculate_growth_rate(df_life_history, interval_time, growth_rate_method):
             time = df_life_history["ImageNumber"].values * interval_time
             length = df_life_history["AreaShape_MajorAxisLength"].values
             elongation_rate = calculate_linear_regression_growth_rate(time, length)
+        else:
+            elongation_rate = np.nan
+            print('Warning: growth rate method is incorrect')
+            breakpoint()
     else:
         elongation_rate = np.nan  # shows: bacterium is present for only one timestep.
 
