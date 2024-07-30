@@ -26,11 +26,11 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', default=None,
                         help="Where to save package output. Default value: save to the CP output file folder")
 
-    parser.add_argument('-it', '--intervalTime', default=1.5,
-                        help="interval time (unit: minute). Default value: 1.5 min")
+    parser.add_argument('-it', '--intervalTime',
+                        help="interval time (unit: minute)")
 
-    parser.add_argument('-m', '--minLifeHistory', default=3,
-                        help=" min life history of bacteria. Default value: 3 min")
+    parser.add_argument('-m', '--minLifeHistory',
+                        help=" min life history of bacteria.")
 
     parser.add_argument('-g', '--growthRateMethod', default="Average",
                         help="growth rate method. The value of this parameter can be `Average` or `Linear Regression`."
