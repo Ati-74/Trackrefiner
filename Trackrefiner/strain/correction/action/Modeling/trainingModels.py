@@ -24,26 +24,28 @@ def training_models(df, neighbors_df, center_coordinate_columns, parent_image_nu
     source_bac_with_neighbors_info = \
         source_bac_with_neighbors.merge(df, left_on=['Second Image Number', 'Second Object Number'],
                                         right_on=['ImageNumber', 'ObjectNumber'], how='inner',
-                                        suffixes=('', '_neighbor'))
+                                        suffixes=('', '_neighbor_source'))
 
     target_bac_with_neighbors_info = \
         target_bac_with_neighbors.merge(df, left_on=['Second Image Number', 'Second Object Number'],
                                         right_on=['ImageNumber', 'ObjectNumber'], how='inner',
-                                        suffixes=('', '_neighbor'))
+                                        suffixes=('', '_neighbor_target'))
 
+    # (source_bac_with_neighbors_info['bad_division_flag_neighbor_source']) |
+    #                                            (source_bac_with_neighbors_info['mother_rpl_neighbor_source']) |
+    #                                            (source_bac_with_neighbors_info['source_mcl_neighbor_source'])
     source_bac_near_to_unexpected_end = \
-        source_bac_with_neighbors_info.loc[(source_bac_with_neighbors_info['unexpected_end_neighbor']) |
-                                           (source_bac_with_neighbors_info['bad_division_flag_neighbor']) |
-                                           (source_bac_with_neighbors_info['mother_rpl_neighbor']) |
-                                           (source_bac_with_neighbors_info['source_mcl_neighbor'])]
+        source_bac_with_neighbors_info.loc[(source_bac_with_neighbors_info['unexpected_end_neighbor_source'])]
 
+    # (target_bac_with_neighbors_info['target_mcl_neighbor_target']) |
+    #                                            (target_bac_with_neighbors_info['daughter_rpl_neighbor_target']) |
+    #                                            (target_bac_with_neighbors_info['bad_daughters_flag_neighbor_target'])
+
+    # (target_bac_with_neighbors_info['daughter_rpl']) |
+    #                                            (target_bac_with_neighbors_info['target_mcl'])
     target_bac_near_to_unexpected_beginning = \
-        target_bac_with_neighbors_info.loc[(target_bac_with_neighbors_info['transition_neighbor']) |
-                                           (target_bac_with_neighbors_info['bad_daughters_flag']) |
-                                           (target_bac_with_neighbors_info['bad_daughters_flag_neighbor']) |
-                                           (target_bac_with_neighbors_info['daughter_rpl']) |
-                                           (target_bac_with_neighbors_info['daughter_rpl_neighbor']) |
-                                           (target_bac_with_neighbors_info['target_mcl'])]
+        target_bac_with_neighbors_info.loc[(target_bac_with_neighbors_info['transition_neighbor_target']) |
+                                           (target_bac_with_neighbors_info['bad_daughters_flag'])]
 
     # in this situation, we ignore target bacteria : 1. daughter of bad division 2. daughter of rpl
     # 3. near to transition bac and also bacteria --> source of bacteri is near to unexpected end
