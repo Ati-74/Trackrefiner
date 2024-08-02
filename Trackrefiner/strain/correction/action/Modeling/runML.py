@@ -17,7 +17,7 @@ import numpy as np
 
 
 def write_model(output_directory, stat, model, train_dat, test_dat, accuracy, specificity, sensitivity,
-                feature_importance_df, tp, tn, fp, fn, clf):
+                feature_importance_df, tp, tn, fp, fn, clf, n_positive, n_negative):
 
     output_directory = output_directory + '/ML/'
     os.makedirs(output_directory, exist_ok=True)
@@ -36,6 +36,8 @@ def write_model(output_directory, stat, model, train_dat, test_dat, accuracy, sp
         file.write(f"Specificity: {specificity}\n")
         file.write(f"Sensitivity: {sensitivity}\n")
         file.write(f"tp: {tp}, tn: {tn}, fp: {fp}, fn: {fn}\n")
+        file.write(f"Total number of samples in class 1: {n_positive}\n")
+        file.write(f"Total number of samples in class 2: {n_negative}\n")
         if feature_importance_df.shape[0] > 0:
             file.write(f"Feature Weights: {feature_importance_df}\n")
 
@@ -57,6 +59,9 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
     # Define features and target
     X = merged_df[feature_list]
     y = merged_df['label']
+
+    n_positive = merged_df.loc[merged_df['label'] == 'positive'].shape[0]
+    n_negative = merged_df.loc[merged_df['label'] == 'negative'].shape[0]
 
     # Encode string labels to binary values
     label_encoder = LabelEncoder()
@@ -162,7 +167,7 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
 
     # Report results
     write_model(output_directory, stat, model, train_dat, test_dat, accuracy, specificity, sensitivity,
-                feature_importance_df, tp, tn, fp, fn, clf)
+                feature_importance_df, tp, tn, fp, fn, clf, n_positive, n_negative)
 
     return pipeline
 
