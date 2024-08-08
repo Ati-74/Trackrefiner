@@ -12,3 +12,15 @@ Specify the following parameters in the <a href='cellProfilerBacteriaTrackingPlo
 - `postfix_raw_name`: Postfix for the raw image files.
 - `color`: Color used for plotting.
 - `font_size`: Font size for annotations.
+
+### Details about prefix_raw_name and postfix_raw_name
+The `prefix_raw_name` and `postfix_raw_name` parameters are used to construct the filenames of the raw images that correspond to each time step. </br>The script generates the filenames based on the time step number, formatted to match the naming convention of the raw image files.
+</br></br>
+For example, if the raw images are named K12_Scene2_C0_T01.tif, K12_Scene2_C0_T02.tif, etc.:
+- prefix_raw_name should be K12_Scene2_C0_T
+- postfix_raw_name should be .tif
+</br>
+The script constructs the image filename for a given time step by combining the prefix, the zero-padded time step number (based on the length of the highest time step number), and the postfix.
+</br>
+<b>Note about the order of images<b></br>
+The script assumes that the images are ordered sequentially by time step. It constructs the image filenames based on the time step numbers extracted from the CSV file. The filenames must follow a consistent pattern to ensure the correct image is used for each time step.
