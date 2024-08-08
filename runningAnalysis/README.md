@@ -1,6 +1,6 @@
 # Cell profiler Bacteria Tracking Plot
 
-This script generates tracking plots for bacteria over different time steps using data from CSV file (output of CellProfiler) and raw images. </br>
+The `cellProfilerBacteriaTrackingPlot.py` script generates tracking plots for bacteria over different time steps using data from CSV file (output of CellProfiler) and raw images. </br>
 The plots visualize the lineage life history of cells in each time step on a background image.
 
 ## Usage
