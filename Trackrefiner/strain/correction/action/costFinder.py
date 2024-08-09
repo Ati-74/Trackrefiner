@@ -449,9 +449,16 @@ def replacing_new_link_to_division(maintenance_cost_df, source_bac_ndx, source_b
             other_daughter_ndx = [v for v in source_bac_daughters['index'].values if v not in
                                   filtered_daughters['index'].values][0]
 
-            redundant_link_dict_division[target_bac_ndx][source_bac_ndx] = other_daughter_ndx
+            other_daughter_prob = maintenance_cost_df.at[source_bac_ndx, other_daughter_ndx]
+            target_bac_prob = 1 - new_daughter_cost
 
-            adding_new_daughter_cost = new_daughter_cost
+            if target_bac_prob > other_daughter_prob:
+                redundant_link_dict_division[target_bac_ndx][source_bac_ndx] = other_daughter_ndx
+
+                adding_new_daughter_cost = new_daughter_cost
+            else:
+                # probability = 0 so 1 - probability = 1
+                adding_new_daughter_cost = 1
 
         else:
 
