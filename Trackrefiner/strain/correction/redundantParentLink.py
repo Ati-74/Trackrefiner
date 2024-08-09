@@ -99,7 +99,7 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
                 bac_len_to_bac_ratio_boundary['avg'] - 1.96 * bac_len_to_bac_ratio_boundary['std']
 
             # rpl mother with daughters
-            source_bac_with_can_target = \
+            source_bac_with_rpl = \
                 bacteria_with_redundant_parent_link_error.merge(df, left_on=['ImageNumber', 'ObjectNumber'],
                                                                 right_on=[parent_image_number_col,
                                                                           parent_object_number_col], how='inner',
@@ -109,54 +109,54 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
             col_source = '_bac1'
 
             # index correction
-            source_bac_with_can_target['index_prev' + col_target] = source_bac_with_can_target['index' + col_target]
-            source_bac_with_can_target['index' + col_target] = source_bac_with_can_target.index.values
+            source_bac_with_rpl['index_prev' + col_target] = source_bac_with_rpl['index' + col_target]
+            source_bac_with_rpl['index' + col_target] = source_bac_with_rpl.index.values
 
             # check incorrect links
             incorrect_links = \
-                source_bac_with_can_target.loc[source_bac_with_can_target['LengthChangeRatio' + col_target]
-                                               < lower_bound_threshold]
+                source_bac_with_rpl.loc[source_bac_with_rpl['LengthChangeRatio' + col_target] < lower_bound_threshold]
 
+            # also this
             incorrect_link_target_list.extend(incorrect_links['index_prev' + col_target].values.tolist())
 
             # calculate features & apply model
 
-            source_bac_with_can_target = iou_calc(source_bac_with_can_target, col_source='coordinate' + col_source,
+            source_bac_with_rpl = iou_calc(source_bac_with_rpl, col_source='coordinate' + col_source,
                                                   col_target='coordinate' + col_target, stat='same')
 
-            source_bac_with_can_target = calc_distance(source_bac_with_can_target, center_coordinate_columns,
+            source_bac_with_rpl = calc_distance(source_bac_with_rpl, center_coordinate_columns,
                                                        postfix_target=col_target, postfix_source=col_source, stat=None)
 
-            source_bac_with_can_target['difference_neighbors' + col_target] = np.nan
-            source_bac_with_can_target['other_daughter_index' + col_target] = np.nan
-            source_bac_with_can_target['parent_id' + col_target] = source_bac_with_can_target['id' + col_source]
+            source_bac_with_rpl['difference_neighbors' + col_target] = np.nan
+            source_bac_with_rpl['other_daughter_index' + col_target] = np.nan
+            source_bac_with_rpl['parent_id' + col_target] = source_bac_with_rpl['id' + col_source]
 
-            source_bac_with_can_target = \
-                neighbor_checking(source_bac_with_can_target, neighbor_df,
+            source_bac_with_rpl = \
+                neighbor_checking(source_bac_with_rpl, neighbor_df,
                                   parent_image_number_col, parent_object_number_col,
-                                  selected_rows_df=source_bac_with_can_target, selected_time_step_df=df,
+                                  selected_rows_df=source_bac_with_rpl, selected_time_step_df=df,
                                   return_common_elements=True, col_target=col_target)
 
-            source_bac_with_can_target = check_len_ratio(df, source_bac_with_can_target, col_target=col_target,
+            source_bac_with_rpl = check_len_ratio(df, source_bac_with_rpl, col_target=col_target,
                                                          col_source=col_source)
 
             # motion alignment
             # calculated for original df and we should calc for new df
-            source_bac_with_can_target["MotionAlignmentAngle" + col_target] = np.nan
-            source_bac_with_can_target = \
+            source_bac_with_rpl["MotionAlignmentAngle" + col_target] = np.nan
+            source_bac_with_rpl = \
                 calc_MotionAlignmentAngle(df, neighbor_df, center_coordinate_columns,
-                                          selected_rows=source_bac_with_can_target, col_target=col_target,
+                                          selected_rows=source_bac_with_rpl, col_target=col_target,
                                           col_source=col_source)
 
-            source_bac_with_can_target['adjusted_common_neighbors' + col_target] = np.where(
-                source_bac_with_can_target['common_neighbors' + col_target] == 0,
-                source_bac_with_can_target['common_neighbors' + col_target] + 1,
-                source_bac_with_can_target['common_neighbors' + col_target]
+            source_bac_with_rpl['adjusted_common_neighbors' + col_target] = np.where(
+                source_bac_with_rpl['common_neighbors' + col_target] == 0,
+                source_bac_with_rpl['common_neighbors' + col_target] + 1,
+                source_bac_with_rpl['common_neighbors' + col_target]
             )
 
-            source_bac_with_can_target['neighbor_ratio' + col_target] = \
-                (source_bac_with_can_target['difference_neighbors' + col_target] / (
-                source_bac_with_can_target['adjusted_common_neighbors' + col_target]))
+            source_bac_with_rpl['neighbor_ratio' + col_target] = \
+                (source_bac_with_rpl['difference_neighbors' + col_target] / (
+                source_bac_with_rpl['adjusted_common_neighbors' + col_target]))
 
             raw_feature_list = ['iou', 'min_distance', 'difference_neighbors' + col_target,
                                 'common_neighbors' + col_target,
@@ -165,8 +165,8 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
                                 'neighbor_ratio' + col_target,
                                 'index' + col_source, 'index_prev' + col_target]
 
-            source_bac_with_can_target = source_bac_with_can_target[raw_feature_list].copy()
-            source_bac_with_can_target = source_bac_with_can_target.rename(
+            source_bac_with_rpl = source_bac_with_rpl[raw_feature_list].copy()
+            source_bac_with_rpl = source_bac_with_rpl.rename(
                 {
                     'common_neighbors' + col_target: 'common_neighbors',
                     'neighbor_ratio' + col_target: 'neighbor_ratio',
@@ -182,19 +182,19 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
 
             y_prob_non_divided_bac_model = \
                 non_divided_bac_model.predict_proba(
-                    source_bac_with_can_target[feature_list_for_non_divided_bac_model])[:, 1]
+                    source_bac_with_rpl[feature_list_for_non_divided_bac_model])[:, 1]
 
-            source_bac_with_can_target['prob_non_divided_bac_model'] = y_prob_non_divided_bac_model
+            source_bac_with_rpl['prob_non_divided_bac_model'] = y_prob_non_divided_bac_model
 
-            incorrect_links_based_on_neighbors = \
-                source_bac_with_can_target.loc[(source_bac_with_can_target['difference_neighbors'] >
-                                                source_bac_with_can_target['common_neighbors'])]
+            # incorrect_links_based_on_neighbors = \
+            #    source_bac_with_rpl.loc[(source_bac_with_rpl['difference_neighbors'] >
+            #                                    source_bac_with_rpl['common_neighbors'])]
 
-            incorrect_link_target_list.extend(incorrect_links_based_on_neighbors['index_prev'].values.tolist())
+            # incorrect_link_target_list.extend(incorrect_links_based_on_neighbors['index_prev'].values.tolist())
 
             # Pivot this DataFrame to get the desired structure
             same_link_cost_df = \
-                source_bac_with_can_target[['index' + col_source, 'index_prev', 'prob_non_divided_bac_model']].pivot(
+                source_bac_with_rpl[['index' + col_source, 'index_prev', 'prob_non_divided_bac_model']].pivot(
                     index='index' + col_source, columns='index_prev', values='prob_non_divided_bac_model')
 
             same_link_cost_df.columns.name = None
