@@ -9,6 +9,7 @@ from Trackrefiner.strain.correction.action.compareBacteria import daughter_cost_
 def adding_new_link(df, neighbors_df, stat, source_bac_idx, source_bac, target_bac_idx, target_bac,
                     parent_image_number_col, parent_object_number_col, center_coordinate_columns, label_col,
                     all_bac_in_target_bac_time_step, prob_val):
+
     if 1 - prob_val > 0.5:
         # there is two scenario: first: source bac with only one bac in next time step: so we compare
         # the probability of that with new bac
@@ -44,8 +45,8 @@ def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time
         unexpected_bac = df.loc[[unexpected_bac_idx]]
 
         bac_related_to_this_bac_in_raw_df = \
-            df_before_more_detection_and_removing.loc[df_before_more_detection_and_removing['index'] ==
-                                                      unexpected_bac['index'].values[0]]
+            df_before_more_detection_and_removing.loc[df_before_more_detection_and_removing['prev_index'] ==
+                                                      unexpected_bac['prev_index'].values[0]]
 
         if bac_related_to_this_bac_in_raw_df[parent_image_number_col].values[0] != 0:
 
