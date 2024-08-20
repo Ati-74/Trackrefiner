@@ -60,6 +60,23 @@ if __name__ == '__main__':
                                                           "A value of -1 indicates the utilization of all available "
                                                           "CPUs for parallel processing. Default value: -1")
 
+    parser.add_argument('-ba', '--boundary_limits', default=None,
+                        help="To identify objects that originate from the walls of an image, "
+                             "you only need to define the boundary limits for detection. Here’s how it works:"
+                             "Specify the Boundary Limits:"
+                             "Lower X Limit: Minimum X coordinate for objects to be considered as bacteria."
+                             "Upper X Limit: Maximum X coordinate for objects to be considered as bacteria."
+                             "Lower Y Limit: Minimum Y coordinate for objects to be considered as bacteria."
+                             "Upper Y Limit: Maximum Y coordinate for objects to be considered as bacteria."
+                             "Objects are recognized as walls if their center’s X coordinate is less than the "
+                             "lower X limit or greater than the upper X limit."
+                             "Similarly, objects are considered walls if their center’s Y coordinate is less than "
+                             "the lower Y limit or greater than the upper Y limit."
+                             "Example: `0, 112, 52, 323`"
+                             "If you set the limits as 0 for the lower X, 112 for the upper X, 52 for the lower Y, "
+                             "and 323 for the upper Y, then any object with its center’s X or Y coordinates outside "
+                             "these ranges will be identified as originating from the walls of the image.")
+
     # Parse the arguments
     args = parser.parse_args()
 
@@ -90,6 +107,8 @@ if __name__ == '__main__':
     warn = args.warn
     without_tracking_correction = args.withoutTrackingCorrection
 
+    boundary_limits = args.boundary_limits
+
     if warn in ['T', 'True']:
         warn = True
     else:
@@ -108,4 +127,5 @@ if __name__ == '__main__':
                  output_directory=output_directory, interval_time=interval_time, growth_rate_method=growth_rate_method,
                  number_of_gap=number_of_gap, um_per_pixel=um_per_pixel, intensity_threshold=intensity_threshold,
                  assigning_cell_type=assigning_cell_type, min_life_history_of_bacteria=min_life_history_of_bacteria,
-                 warn=warn, without_tracking_correction=without_tracking_correction, clf=clf, n_cpu=n_cpu)
+                 warn=warn, without_tracking_correction=without_tracking_correction, clf=clf, n_cpu=n_cpu,
+                 boundary_limits=boundary_limits)
