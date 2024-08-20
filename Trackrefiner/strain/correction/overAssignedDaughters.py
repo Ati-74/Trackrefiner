@@ -1,10 +1,5 @@
 import numpy as np
-from Trackrefiner.strain.correction.action.costFinder import make_initial_distance_matrix_bad_daughters
-from Trackrefiner.strain.correction.action.helperFunctions import (distance_normalization,
-                                                                   calculate_orientation_angle_batch,
-                                                                   calc_new_features_after_oad,
-                                                                   calculate_trajectory_direction_daughters_mother)
-from Trackrefiner.strain.correction.action.compareBacteria import daughter_cost
+from Trackrefiner.strain.correction.action.helperFunctions import calculate_orientation_angle_batch
 from Trackrefiner.strain.correction.action.Modeling.calculation.iouCalForML import iou_calc
 from Trackrefiner.strain.correction.action.Modeling.calculation.calcDistanceForML import calc_distance
 
@@ -14,8 +9,8 @@ def remove_over_assigned_daughters_link(df, neighbor_df, parent_image_number_col
     """
         goal: modification of bad daughters (try to assign bad daughters to new parent)
         @param df    dataframe   bacteria dataframe
-        in last time step of its life history before transition bacterium to length of candidate parent bacterium
-        in investigated time step
+        in last time step of its life history before unexpected_beginning bacterium to length of candidate
+        parent bacterium in investigated time step
         output: df   dataframe   modified dataframe (without bad daughters)
     """
 
@@ -60,7 +55,8 @@ def remove_over_assigned_daughters_link(df, neighbor_df, parent_image_number_col
         )
 
         mothers_and_oads['neighbor_ratio_daughter'] = \
-            (mothers_and_oads['difference_neighbors_daughter'] / (mothers_and_oads['adjusted_common_neighbors_daughter']))
+            (mothers_and_oads['difference_neighbors_daughter'] / (
+                mothers_and_oads['adjusted_common_neighbors_daughter']))
 
         # rename columns
         mothers_and_oads = mothers_and_oads.rename(
@@ -69,7 +65,7 @@ def remove_over_assigned_daughters_link(df, neighbor_df, parent_image_number_col
              'direction_of_motion_daughter': 'direction_of_motion',
              'MotionAlignmentAngle_daughter': 'MotionAlignmentAngle'}, axis=1)
 
-        # we ignored the effect of each daughter to another daughters in motion alignmnet
+        # we ignored the effect of each daughter to another daughters in motion alignment
         # (because we didn't calc daughter_length_to_mother for bad mothers)
 
         if mothers_and_oads.shape[0] > 0:
@@ -103,10 +99,10 @@ def remove_over_assigned_daughters_link(df, neighbor_df, parent_image_number_col
     # remove bad daughters link
     if len(bad_daughters_list) > 0:
 
-        df.loc[bad_daughters_list,
-        [parent_image_number_col, parent_object_number_col, 'parent_id', 'transition', 'LengthChangeRatio',
-         'TrajectoryX', 'TrajectoryY', 'direction_of_motion', 'MotionAlignmentAngle',
-         'prev_time_step_NeighborIndexList', 'difference_neighbors', 'common_neighbors']] = \
+        df.loc[bad_daughters_list, [
+            parent_image_number_col, parent_object_number_col, 'parent_id', 'unexpected_beginning', 'LengthChangeRatio',
+            'TrajectoryX', 'TrajectoryY', 'direction_of_motion', 'MotionAlignmentAngle',
+            'prev_time_step_NeighborIndexList', 'difference_neighbors', 'common_neighbors']] = \
             [0, 0, 0, True, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, 0, 0]
 
         for bad_daughter_idx in bad_daughters_list:
@@ -115,7 +111,7 @@ def remove_over_assigned_daughters_link(df, neighbor_df, parent_image_number_col
         # change the value of bad division flag
         df['bad_division_flag'] = False
 
-    # now mothers with corre ct daughters
+    # now mothers with correct daughters
     division = \
         mothers_with_oad.merge(df, left_on=['ImageNumber', 'ObjectNumber'],
                                right_on=[parent_image_number_col, parent_object_number_col], how='inner',
@@ -163,7 +159,7 @@ def remove_over_assigned_daughters_link(df, neighbor_df, parent_image_number_col
     df.loc[division['index_2'].values, 'daughter_mother_LengthChangeRatio'] = \
         division['daughter_mother_LengthChangeRatio'].values
 
-    # shuld calc for all bacteria
+    # should calc for all bacteria
     df.loc[division['index_2'].values, 'slope_bac_bac'] = division['daughter_mother_slope'].values
 
     df.loc[division['index_2'].values, 'prev_bacteria_slope'] = division['bacteria_slope_1'].values
@@ -171,15 +167,15 @@ def remove_over_assigned_daughters_link(df, neighbor_df, parent_image_number_col
     df.loc[division['index_2'].values, 'prev_time_step_NeighborIndexList'] = division['NeighborIndexList_1'].values
 
     # correct divisions
-    daugter_to_daughter = division.merge(division, on=[parent_image_number_col + '_2',
-                                                       parent_object_number_col + '_2'],
-                                         suffixes=('_daughter1', '_daughter2'))
+    daughter_to_daughter = division.merge(division, on=[parent_image_number_col + '_2',
+                                                        parent_object_number_col + '_2'],
+                                          suffixes=('_daughter1', '_daughter2'))
 
-    daugter_to_daughter = daugter_to_daughter.loc[daugter_to_daughter['index_2_daughter1'] !=
-                                                  daugter_to_daughter['index_2_daughter2']]
+    daughter_to_daughter = daughter_to_daughter.loc[daughter_to_daughter['index_2_daughter1'] !=
+                                                    daughter_to_daughter['index_2_daughter2']]
 
-    df.loc[daugter_to_daughter['index_2_daughter1'].values, "other_daughter_index"] = \
-        daugter_to_daughter['index_2_daughter2'].values
+    df.loc[daughter_to_daughter['index_2_daughter1'].values, "other_daughter_index"] = \
+        daughter_to_daughter['index_2_daughter2'].values
 
     # df = calc_new_features_after_oad(df, neighbor_df, center_coordinate_columns, parent_image_number_col,
     #                                 parent_object_number_col, label_col)

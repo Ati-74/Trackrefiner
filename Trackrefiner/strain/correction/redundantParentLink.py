@@ -1,11 +1,6 @@
 import numpy as np
-import pandas as pd
-from Trackrefiner.strain.correction.action.helperFunctions import distance_normalization, calc_neighbors_avg_dir_motion
-from Trackrefiner.strain.correction.action.compareBacteria import receive_new_link_cost, optimize_assignment
-from Trackrefiner.strain.correction.action.costFinder import make_initial_distance_matrix_bad_daughters
 from Trackrefiner.strain.correction.action.findOutlier import find_daughter_len_to_mother_ratio_outliers, \
-    find_bac_len_to_bac_ratio_boundary
-from Trackrefiner.strain.correction.action.helperFunctions import calc_new_features_after_rpl
+    find_bac_len_to_bac_ratio_boundary, find_lower_bound
 from Trackrefiner.strain.correction.action.Modeling.calculation.iouCalForML import iou_calc
 from Trackrefiner.strain.correction.action.Modeling.calculation.calcDistanceForML import calc_distance
 from Trackrefiner.strain.correction.action.Modeling.calculation.lengthRatio import check_len_ratio
@@ -41,13 +36,11 @@ def calc_movement(bac2, bac1, center_coordinate_columns):
     return movement
 
 
-def detect_redundant_parent_link(df, neighbor_df,
-                                 parent_image_number_col, parent_object_number_col, label_col,
+def detect_redundant_parent_link(df, neighbor_df, parent_image_number_col, parent_object_number_col, label_col,
                                  center_coordinate_columns):
     num_redundant_links = None
 
     while num_redundant_links != 0 and len(df["daughter_length_to_mother"].dropna().values) > 0:
-
         df_check_outliers = df.loc[df['mother_rpl'] == False]
 
         # note: it's only for division (mother - daughters relation)
@@ -73,9 +66,8 @@ def detect_redundant_parent_link(df, neighbor_df,
     return df
 
 
-def detect_and_remove_redundant_parent_link(df, neighbor_df,
-                                            parent_image_number_col, parent_object_number_col, label_col,
-                                            center_coordinate_columns, non_divided_bac_model):
+def detect_and_remove_redundant_parent_link(df, neighbor_df, parent_image_number_col, parent_object_number_col,
+                                            label_col, center_coordinate_columns, non_divided_bac_model):
     num_redundant_links = None
 
     while num_redundant_links != 0 and len(df["daughter_length_to_mother"].dropna().values) > 0:
@@ -95,8 +87,7 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
 
             bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
 
-            lower_bound_threshold = \
-                bac_len_to_bac_ratio_boundary['avg'] - 1.96 * bac_len_to_bac_ratio_boundary['std']
+            lower_bound_threshold = find_lower_bound(bac_len_to_bac_ratio_boundary)
 
             # rpl mother with daughters
             source_bac_with_rpl = \
@@ -122,10 +113,10 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
             # calculate features & apply model
 
             source_bac_with_rpl = iou_calc(source_bac_with_rpl, col_source='coordinate' + col_source,
-                                                  col_target='coordinate' + col_target, stat='same')
+                                           col_target='coordinate' + col_target, stat='same')
 
             source_bac_with_rpl = calc_distance(source_bac_with_rpl, center_coordinate_columns,
-                                                       postfix_target=col_target, postfix_source=col_source, stat=None)
+                                                postfix_target=col_target, postfix_source=col_source, stat=None)
 
             source_bac_with_rpl['difference_neighbors' + col_target] = np.nan
             source_bac_with_rpl['other_daughter_index' + col_target] = np.nan
@@ -138,7 +129,7 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
                                   return_common_elements=True, col_target=col_target)
 
             source_bac_with_rpl = check_len_ratio(df, source_bac_with_rpl, col_target=col_target,
-                                                         col_source=col_source)
+                                                  col_source=col_source)
 
             # motion alignment
             # calculated for original df and we should calc for new df
@@ -156,7 +147,7 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
 
             source_bac_with_rpl['neighbor_ratio' + col_target] = \
                 (source_bac_with_rpl['difference_neighbors' + col_target] / (
-                source_bac_with_rpl['adjusted_common_neighbors' + col_target]))
+                    source_bac_with_rpl['adjusted_common_neighbors' + col_target]))
 
             raw_feature_list = ['iou', 'min_distance', 'difference_neighbors' + col_target,
                                 'common_neighbors' + col_target,
@@ -270,7 +261,7 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
                     # it means both daughters pass the prev conditions
                     # cost is equal to 1 - probability
                     incorrect_daughter = this_rpl_cost.idxmax()
-                    incorrect_daughter_prob = this_rpl_cost.max()
+                    # incorrect_daughter_prob = this_rpl_cost.max()
 
                     correct_daughter = this_rpl_cost.idxmin()
                     correct_daughter_prob = this_rpl_cost.min()
@@ -324,8 +315,7 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
                             'endpoint2_Y']
 
                         df.loc[df['parent_id'] == correct_daughter_info['id'], 'parent_id'] = \
-                        parent_with_redundant_link[
-                            'id']
+                            parent_with_redundant_link['id']
                         df.loc[df['id'] == correct_daughter_info['id'], 'parent_id'] = parent_with_redundant_link[
                             'parent_id']
                         df.loc[df['id'] == correct_daughter_info['id'], 'id'] = parent_with_redundant_link['id']
@@ -358,11 +348,11 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df,
                     wrong_daughters_index_list.extend([daughter_1_idx, daughter_2_idx])
 
             if len(wrong_daughters_index_list) > 0:
-                df.loc[wrong_daughters_index_list, [parent_image_number_col, parent_object_number_col, 'transition',
-                                                    'direction_of_motion', "TrajectoryX", "TrajectoryY",
-                                                    'prev_time_step_NeighborIndexList', 'other_daughter_index',
-                                                    'prev_bacteria_slope', 'slope_bac_bac', 'parent_index',
-                                                    'daughter_mother_LengthChangeRatio']] = \
+                df.loc[wrong_daughters_index_list, [parent_image_number_col, parent_object_number_col,
+                                                    'unexpected_beginning', 'direction_of_motion', "TrajectoryX",
+                                                    "TrajectoryY", 'prev_time_step_NeighborIndexList',
+                                                    'other_daughter_index', 'prev_bacteria_slope', 'slope_bac_bac',
+                                                    'parent_index', 'daughter_mother_LengthChangeRatio']] = \
                     [0, 0, True, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]
 
                 df.loc[mother_with_rpl_list, ["daughter_length_to_mother", "max_daughter_len_to_mother",

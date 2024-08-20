@@ -10,7 +10,7 @@ from Trackrefiner.strain.correction.action.helperFunctions import checking_colum
 
 def process_data(input_file, npy_files_dir, neighbors_file, output_directory, interval_time, growth_rate_method,
                  number_of_gap, um_per_pixel, intensity_threshold, assigning_cell_type, min_life_history_of_bacteria,
-                 warn, without_tracking_correction, clf, n_cpu):
+                 warn, without_tracking_correction, clf, n_cpu, boundary_limits):
     """
     The main function that processes CellProfiler data.
     .pickle Files are exported to the same directory as input_file.
@@ -64,14 +64,15 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
             os.makedirs(output_directory + '/Trackrefiner', exist_ok=True)
             output_directory = output_directory + '/Trackrefiner/'
 
-        data_frame, find_fix_errors_log, logs_df, neighbors_df = \
+        (data_frame, find_fix_errors_log, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df,
+         neighbors_df) = \
             find_fix_errors(data_frame, sorted_npy_files_list, neighbors_df, center_coordinate_columns,
                             all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, label_col,
                             number_of_gap=number_of_gap, um_per_pixel=um_per_pixel,
                             intensity_threshold=intensity_threshold, check_cell_type=assigning_cell_type,
                             interval_time=interval_time, min_life_history_of_bacteria=min_life_history_of_bacteria,
                             warn=warn, without_tracking_correction=without_tracking_correction,
-                            output_directory=output_directory, clf=clf, n_cpu=n_cpu)
+                            output_directory=output_directory, clf=clf, n_cpu=n_cpu, boundary_limits=boundary_limits)
 
         log_list.extend(find_fix_errors_log)
 
@@ -104,16 +105,27 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
 
         create_pickle_files(processed_df_with_specific_cols, output_directory, assigning_cell_type)
 
-        path = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "-" +
-                growth_rate_method + "-analysis")
-        path_logs = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "-" +
-                     growth_rate_method + "-logs")
-        path_neighbors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "-" +
-                          growth_rate_method + "-neighbors")
+        path = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                growth_rate_method + "_analysis")
+        path_logs = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                     growth_rate_method + "_logs")
+        path_identified_tracking_errors = \
+            (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+             growth_rate_method + "_identified_tracking_errors")
+        path_fixed_errors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                             growth_rate_method + "_fixed_errors")
+        path_remaining_errors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                                 growth_rate_method + "_remaining_errors")
+        path_neighbors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                          growth_rate_method + "_neighbors")
 
         # write to csv
         processed_df.to_csv(path + '.csv', index=False)
         logs_df.to_csv(path_logs + '.csv', index=False)
+        identified_tracking_errors_df.to_csv(path_identified_tracking_errors + '.csv', index=False)
+        fixed_errors.to_csv(path_fixed_errors + '.csv', index=False)
+        remaining_errors_df.to_csv(path_remaining_errors + '.csv', index=False)
+
         if without_tracking_correction:
             neighbors_df.to_csv(path_neighbors + '.csv', index=False)
 
@@ -160,7 +172,6 @@ class Dict2Class(object):
 
 
 def write_log_file(log_list, path):
-
     log_list = [v for v in log_list if v != '']
 
     # Open a file for writing
@@ -218,7 +229,7 @@ def write_to_pickle_file(data, path, time_step):
     if not os.path.exists(path):
         os.mkdir(path)
 
-    output_file = path + "Trackrefiner.step-" + '0' * (6-len(str(time_step))) + str(time_step) + ".pickle"
+    output_file = path + "Trackrefiner.step-" + '0' * (6 - len(str(time_step))) + str(time_step) + ".pickle"
 
     with open(output_file, 'wb') as export:
         pickle.dump(data, export, protocol=-1)

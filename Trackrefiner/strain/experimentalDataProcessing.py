@@ -31,7 +31,7 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
     bacteria_id = data_frame['id'].unique()
 
     for bacterium_id in bacteria_id:
-        print("Calculating new features for bacterium id: " + str(bacterium_id))
+        # print("Calculating new features for bacterium id: " + str(bacterium_id))
 
         bacterium_life_history = data_frame.loc[data_frame['id'] == bacterium_id]
         elongation_rate = calculate_growth_rate(bacterium_life_history, interval_time, growth_rate_method)

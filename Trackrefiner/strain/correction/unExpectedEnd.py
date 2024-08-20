@@ -139,7 +139,8 @@ def unexpected_end_bacteria(df, neighbors_df, min_life_history_of_bacteria, inte
                 #    raw_same_link_cost_df.to_csv('raw_same_link_cost_df.' + str(n_iterate) + '.csv')
                 #    new_link_cost_df.to_csv('new_link_cost_df.' + str(n_iterate) + '.csv')
                 #    division_cost_df.to_csv('division_cost_df.' + str(n_iterate) + '.csv')
-                #    final_division_cost_df_after_merge_prob.to_csv('final_division_cost_df_after_merge_prob.' + str(n_iterate) + '.csv')
+                #    final_division_cost_df_after_merge_prob.to_csv(
+                #    'final_division_cost_df_after_merge_prob.' + str(n_iterate) + '.csv')
                 #    final_division_cost_df.to_csv('final_division_cost_df.' + str(n_iterate) + '.csv')
 
                 if final_division_cost_df_after_merge_prob.shape[0] > 0 and new_link_cost_df.shape[0] > 0:
@@ -187,7 +188,7 @@ def unexpected_end_bacteria(df, neighbors_df, min_life_history_of_bacteria, inte
                             if cost_val == final_division_cost_df.at[unexpected_end_bac_idx, target_bac_idx]:
                                 stat = 'div'
 
-                                another_daughter_bac_idx = [idx for idx in \
+                                another_daughter_bac_idx = [idx for idx in
                                                             final_division_cost_df.loc[
                                                                 unexpected_end_bac_idx].dropna().index
                                                             if idx != target_bac_idx][0]

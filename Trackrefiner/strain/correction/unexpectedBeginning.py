@@ -1,13 +1,13 @@
 import numpy as np
 from Trackrefiner.strain.correction.action.bacteriaModification import bacteria_modification, remove_redundant_link
-from Trackrefiner.strain.correction.action.compareBacteria import optimization_transition_cost, optimize_assignment
+from Trackrefiner.strain.correction.action.compareBacteria import optimization_unexpected_beginning_cost, \
+    optimize_assignment
 import pandas as pd
 
 
 def assign_new_link(df, neighbors_df, unexpected_beginning_bac_idx, unexpected_beginning_bac, prob_val, source_bac_idx,
                     stat, all_bac_in_unexpected_beginning_time_step, maintenance_cost, parent_image_number_col,
-                    parent_object_number_col, label_col, center_coordinate_columns, redundant_link_division_df, qq):
-
+                    parent_object_number_col, label_col, center_coordinate_columns, redundant_link_division_df):
     if stat == 'div':
 
         # be careful: maintenance cost should compare with 1 - cost value
@@ -91,12 +91,12 @@ def correction_unexpected_beginning(df, neighbors_df, number_of_gap, check_cell_
         goal: For bacteria without parent, assign labels, ParentImageNumber, and ParentObjectNumber
         @param df    dataframe   bacteria dataframe
         @param number_of_gap int I define a gap number to find parent in other previous time steps
-        in last time step of its life history before transition bacterium to length of candidate parent bacterium
-        in investigated time step
-        output: df   dataframe   modified dataframe (without any transitions)
+        in last time step of its life history before unexpected_beginning bacterium to length of candidate parent
+        bacterium in investigated time step
+        output: df   dataframe   modified dataframe (without any unexpected_beginnings)
     """
 
-    unexpected_beginning_bacteria = df.loc[df["transition"]]
+    unexpected_beginning_bacteria = df.loc[df["unexpected_beginning"]]
 
     # min life history of bacteria
     min_life_history_of_bacteria_time_step = np.round(min_life_history_of_bacteria / interval_time)
@@ -118,13 +118,14 @@ def correction_unexpected_beginning(df, neighbors_df, number_of_gap, check_cell_
         # optimized cost dataframe
         # (rows: next time step sudden bacteria, columns: consider time step bacteria)
         new_link_cost_df, division_cost_df, redundant_link_division_df, maintenance_cost_df = \
-            optimization_transition_cost(df, all_bac_in_unexpected_beginning_bac_time_step,
-                                         sel_unexpected_beginning_bac, all_bac_in_source_time_step, check_cell_type,
-                                         neighbors_df, min_life_history_of_bacteria_time_step,
-                                         parent_image_number_col, parent_object_number_col,
-                                         center_coordinate_columns,
-                                         comparing_divided_non_divided_model,
-                                         non_divided_bac_model, divided_bac_model)
+            optimization_unexpected_beginning_cost(df, all_bac_in_unexpected_beginning_bac_time_step,
+                                                   sel_unexpected_beginning_bac, all_bac_in_source_time_step,
+                                                   check_cell_type, neighbors_df,
+                                                   min_life_history_of_bacteria_time_step,
+                                                   parent_image_number_col, parent_object_number_col,
+                                                   center_coordinate_columns,
+                                                   comparing_divided_non_divided_model,
+                                                   non_divided_bac_model, divided_bac_model)
 
         if division_cost_df.shape[0] > 0 and new_link_cost_df.shape[0] > 0:
 
@@ -193,6 +194,6 @@ def correction_unexpected_beginning(df, neighbors_df, number_of_gap, check_cell_
                                      source_bac_idx, stat,
                                      all_bac_in_unexpected_beginning_bac_time_step, maintenance_cost_df,
                                      parent_image_number_col, parent_object_number_col, label_col,
-                                     center_coordinate_columns, redundant_link_division_df, str(row_index) + str(i))
+                                     center_coordinate_columns, redundant_link_division_df)
 
     return df
