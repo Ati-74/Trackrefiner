@@ -1,6 +1,4 @@
-import numpy as np
-from Trackrefiner.strain.correction.action.helperFunctions import (calc_normalized_angle_between_motion,
-                                                                   calc_normalized_angle_between_motion_for_df)
+from Trackrefiner.strain.correction.action.helperFunctions import calc_normalized_angle_between_motion_for_df
 
 
 def calc_MotionAlignmentAngle(df, neighbor_df, center_coordinate_columns, selected_rows=None, col_target=None,

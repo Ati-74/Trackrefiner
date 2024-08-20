@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from Trackrefiner.strain.correction.action.bacteriaModification import bacteria_modification
 from Trackrefiner.strain.correction.action.compareBacteria import optimize_assignment
@@ -35,7 +34,7 @@ def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time
     # only we should check unexpected beginning bacteria and compare with previous links to make sure
     # it can be possible to restore links or not
 
-    unexpected_beginning_bacteria = df.loc[df['transition'] == True]
+    unexpected_beginning_bacteria = df.loc[df['unexpected_beginning'] == True]
 
     division_df = pd.DataFrame()
     same_df = pd.DataFrame()
@@ -61,7 +60,7 @@ def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time
 
             else:
                 if str(source_link['daughter_length_to_mother'].values[0]) != 'nan':
-                    # it means that source bacterium has two links right now and we can not restore links
+                    # it means that source bacterium has two links right now, and we can not restore links
                     check_prob = False
                 else:
                     # discuses more about min life history for this

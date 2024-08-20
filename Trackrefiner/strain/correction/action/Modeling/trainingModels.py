@@ -2,8 +2,6 @@ from Trackrefiner.strain.correction.action.Modeling.compareDividedandNonDividedB
     comparing_divided_non_divided_bacteria
 from Trackrefiner.strain.correction.action.Modeling.nonDividedBacteria import make_ml_model_for_non_divided_bacteria
 from Trackrefiner.strain.correction.action.Modeling.DividedBacteria import make_ml_model_for_divided_bacteria
-import pandas as pd
-import numpy as np
 
 
 def training_models(df, neighbors_df, center_coordinate_columns, parent_image_number_col, parent_object_number_col,
@@ -44,11 +42,11 @@ def training_models(df, neighbors_df, center_coordinate_columns, parent_image_nu
     # (target_bac_with_neighbors_info['daughter_rpl']) |
     #                                            (target_bac_with_neighbors_info['target_mcl'])
     target_bac_near_to_unexpected_beginning = \
-        target_bac_with_neighbors_info.loc[(target_bac_with_neighbors_info['transition_neighbor_target']) |
+        target_bac_with_neighbors_info.loc[(target_bac_with_neighbors_info['unexpected_beginning_neighbor_target']) |
                                            (target_bac_with_neighbors_info['bad_daughters_flag'])]
 
     # in this situation, we ignore target bacteria : 1. daughter of bad division 2. daughter of rpl
-    # 3. near to transition bac and also bacteria --> source of bacteri is near to unexpected end
+    # 3. near to unexpected_beginning bac and also bacteria --> source of bacteria is near to unexpected end
     connected_bac_high_chance_to_be_correct = \
         connected_bac.loc[(~ connected_bac['index'].isin(target_bac_near_to_unexpected_beginning['index'].values)) &
                           (~ connected_bac['index_prev'].isin(source_bac_near_to_unexpected_end['index_prev'].values))]
@@ -59,7 +57,7 @@ def training_models(df, neighbors_df, center_coordinate_columns, parent_image_nu
         connected_bac_high_chance_to_be_correct.loc[
             ~ connected_bac_high_chance_to_be_correct['daughter_length_to_mother_prev'].isna()]
 
-    # sometimes it can be possible one daughter filtered in prev steps and the other daughter is exist
+    # sometimes it can be possible one daughter filtered in prev steps and the other daughter is existing
     # I want to remove another daughter
     division_with_one_daughter = \
         division.drop_duplicates(subset=[parent_image_number_col, parent_object_number_col], keep=False)

@@ -9,8 +9,10 @@ def calc_distance(df, center_coordinate_columns, postfix_source, postfix_target,
     # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
     df['center_distance'] = \
         np.linalg.norm(
-            df[[center_coordinate_columns['x'] + postfix_source, center_coordinate_columns['y'] + postfix_source]].values -
-            df[[center_coordinate_columns['x'] + postfix_target, center_coordinate_columns['y'] + postfix_target]].values,
+            df[[center_coordinate_columns['x'] + postfix_source,
+                center_coordinate_columns['y'] + postfix_source]].values -
+            df[[center_coordinate_columns['x'] + postfix_target,
+                center_coordinate_columns['y'] + postfix_target]].values,
             axis=1)
 
     df['endpoint1_1_distance'] = \

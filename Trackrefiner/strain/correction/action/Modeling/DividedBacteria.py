@@ -89,7 +89,7 @@ def make_ml_model_for_divided_bacteria(df, connected_bac_high_chance_to_be_corre
 
     # changes in neighbors
     # now we should check neighbors
-    # we have already this feature for the links of dataset but we should calcukate it for
+    # we have already this feature for the links of dataset, but we should calculate it for
     # target - neighbor of source links
     divided_bac_with_neighbor_of_source['prev_time_step_NeighborIndexList'] = \
         divided_bac_with_neighbor_of_source['NeighborIndexList_prev']

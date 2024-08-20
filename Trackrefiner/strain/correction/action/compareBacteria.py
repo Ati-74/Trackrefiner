@@ -1,17 +1,11 @@
 from Trackrefiner.strain.correction.action.findOutlier import find_sum_daughter_len_to_mother_ratio_boundary, \
-    find_max_daughter_len_to_mother_ratio_boundary, find_bac_len_to_bac_ratio_boundary
-from Trackrefiner.strain.correction.action.helperFunctions import (calc_normalized_angle_between_motion,
-                                                                   calculate_trajectory_direction,
-                                                                   find_neighbors_info,
-                                                                   distance_normalization,
-                                                                   calc_normalized_angle_between_motion_array,
-                                                                   calculate_orientation_angle_batch,
-                                                                   slope_normalization)
-from Trackrefiner.strain.correction.neighborChecking import check_num_neighbors, check_num_neighbors_batch
+    find_max_daughter_len_to_mother_ratio_boundary, find_bac_len_to_bac_ratio_boundary, find_upper_bound, \
+    find_lower_bound
+from Trackrefiner.strain.correction.action.helperFunctions import (distance_normalization,
+                                                                   calculate_orientation_angle_batch)
+from Trackrefiner.strain.correction.neighborChecking import check_num_neighbors
 from Trackrefiner.strain.correction.action.costFinder import (adding_new_terms_to_cost_matrix,
-                                                              make_initial_distance_matrix,
-                                                              make_initial_distance_matrix_for_division_chance)
-from Trackrefiner.strain.correction.action.helperFunctions import calc_neighbors_avg_dir_motion
+                                                              make_initial_distance_matrix)
 from scipy.optimize import linear_sum_assignment
 import pandas as pd
 import numpy as np
@@ -243,12 +237,13 @@ def feature_space_adding_new_link_to_unexpected_end(neighbors_df, unexpected_end
     return bac_under_invest, final_candidate_bac
 
 
-def optimization_transition_cost(df, all_bac_in_unexpected_begging_bac_time_step_df, unexpected_begging_bacteria,
-                                 all_bacteria_in_prev_time_step, check_cell_type, neighbors_df,
-                                 min_life_history_of_bacteria, parent_image_number_col, parent_object_number_col,
-                                 center_coordinate_columns,
-                                 comparing_divided_non_divided_model, non_divided_bac_model, divided_bac_model):
-    # note: check_fluorescent_intensity(transition_bac, candidate_parent_bacterium)
+def optimization_unexpected_beginning_cost(df, all_bac_in_unexpected_begging_bac_time_step_df,
+                                           unexpected_begging_bacteria, all_bacteria_in_prev_time_step,
+                                           check_cell_type, neighbors_df, min_life_history_of_bacteria,
+                                           parent_image_number_col, parent_object_number_col, center_coordinate_columns,
+                                           comparing_divided_non_divided_model, non_divided_bac_model,
+                                           divided_bac_model):
+    # note: check_fluorescent_intensity(unexpected_beginning_bac, candidate_parent_bacterium)
 
     max_daughter_len_to_mother_ratio_boundary = find_max_daughter_len_to_mother_ratio_boundary(df)
     sum_daughter_len_to_mother_ratio_boundary = find_sum_daughter_len_to_mother_ratio_boundary(df)
@@ -479,9 +474,10 @@ def daughter_cost(df, neighbors_df, df_source_daughter, center_coordinate_column
                                                     (df_source_daughter['prob_compare'] > 0.5)]
 
         # now we should check life history of target bacteria
-        # df_source_daughter = df_source_daughter.loc[(df_source_daughter['divideFlag'] == False) |
-        #                                            (df_source_daughter['LifeHistory'] - df_source_daughter['age'] + 1 >
-        #                                             min_life_history_of_bacteria_time_step)]
+        # df_source_daughter = \
+        # df_source_daughter.loc[(df_source_daughter['divideFlag'] == False) |
+        # (df_source_daughter['LifeHistory'] - df_source_daughter['age'] + 1 >
+        # min_life_history_of_bacteria_time_step)]
 
         if df_source_daughter.shape[0] > 0:
             # Pivot this DataFrame to get the desired structure
@@ -502,7 +498,7 @@ def daughter_cost(df, neighbors_df, df_source_daughter, center_coordinate_column
                     non_na_probability = candidate_target_maintenance_cost[col].dropna().iloc[0]
                     division_cost_df.loc[division_cost_df[col] <= non_na_probability, col] = np.nan
 
-            # for maintenance_to_be_check = source we can not check and we should check it after
+            # for maintenance_to_be_check = source we can not check, and we should check it after
 
             division_cost_df = 1 - division_cost_df
 
@@ -641,7 +637,7 @@ def daughter_cost_for_final_step(df, neighbors_df, df_source_daughter, center_co
                 non_na_probability = candidate_target_maintenance_cost[col].dropna().iloc[0]
                 division_cost_df.loc[division_cost_df[col] <= non_na_probability, col] = np.nan
 
-        # for maintenance_to_be_check = source we can not check and we should check it after
+        # for maintenance_to_be_check = source we can not check, and we should check it after
 
         division_cost_df = 1 - division_cost_df
 
@@ -673,14 +669,11 @@ def division_detection_cost(df, neighbors_df, candidate_source_daughter_df, min_
         (candidate_source_daughter_df['AreaShape_MajorAxisLength'] /
          candidate_source_daughter_df['AreaShape_MajorAxisLength_source'])
 
-    upper_bound_max_daughter_len = (max_daughter_len_to_mother_ratio_boundary['avg'] +
-                                    1.96 * max_daughter_len_to_mother_ratio_boundary['std'])
+    upper_bound_max_daughter_len = find_upper_bound(max_daughter_len_to_mother_ratio_boundary)
 
-    lower_bound_sum_daughter_len = \
-        sum_daughter_len_to_mother_ratio_boundary['avg'] - 1.96 * sum_daughter_len_to_mother_ratio_boundary['std']
+    lower_bound_sum_daughter_len = find_lower_bound(sum_daughter_len_to_mother_ratio_boundary)
 
-    upper_bound_sum_daughter_len = \
-        sum_daughter_len_to_mother_ratio_boundary['avg'] + 1.96 * sum_daughter_len_to_mother_ratio_boundary['std']
+    upper_bound_sum_daughter_len = find_upper_bound(sum_daughter_len_to_mother_ratio_boundary)
 
     # now check division conditions
     cond1 = ((candidate_source_daughter_df['max_target_neighbor_len_to_source'] < 1) |
@@ -694,11 +687,11 @@ def division_detection_cost(df, neighbors_df, candidate_source_daughter_df, min_
     cond3 = candidate_source_daughter_df['age_source'] > min_life_history_of_bacteria_time_step
 
     # cond4 = candidate_source_daughter_df['divideFlag'] == False
-    cond4 = candidate_source_daughter_df['transition_source'] == True
+    cond4 = candidate_source_daughter_df['unexpected_beginning_source'] == True
 
     # cond5 = candidate_source_daughter_df['age'] > min_life_history_of_bacteria_time_step
 
-    # cond6 = candidate_source_daughter_df['transition'] == True
+    # cond6 = candidate_source_daughter_df['unexpected_beginning'] == True
 
     incorrect_same_link_in_this_time_step_with_candidate_neighbors = \
         candidate_source_daughter_df.loc[cond1 & cond2]
@@ -783,7 +776,7 @@ def same_link_cost(df, neighbors_df, source_bac_with_can_target, center_coordina
                    comparing_divided_non_divided_model, maintenance_cost_df, maintenance_to_be_check='target'):
     bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
 
-    lower_bound_threshold = bac_len_to_bac_ratio_boundary['avg'] - 1.96 * bac_len_to_bac_ratio_boundary['std']
+    lower_bound_threshold = find_lower_bound(bac_len_to_bac_ratio_boundary)
 
     source_bac_with_can_target['index_prev' + col_target] = source_bac_with_can_target['index' + col_target]
     source_bac_with_can_target['index' + col_target] = source_bac_with_can_target.index.values
@@ -877,14 +870,14 @@ def same_link_cost(df, neighbors_df, source_bac_with_can_target, center_coordina
              'LengthChangeRatio']
 
         y_prob_non_divided_bac_model = \
-            non_divided_bac_model.predict_proba(source_bac_with_can_target[feature_list_for_non_divided_bac_model])[:,
-            1]
+            non_divided_bac_model.predict_proba(source_bac_with_can_target[
+                                                    feature_list_for_non_divided_bac_model])[:, 1]
         source_bac_with_can_target['prob_non_divided_bac_model'] = y_prob_non_divided_bac_model
 
         # non divided class 1
         y_prob_compare = \
-            comparing_divided_non_divided_model.predict_proba(source_bac_with_can_target[feature_list_for_compare])[:,
-            1]
+            comparing_divided_non_divided_model.predict_proba(source_bac_with_can_target[
+                                                                  feature_list_for_compare])[:, 1]
         source_bac_with_can_target['prob_compare'] = y_prob_compare
 
         source_bac_with_can_target = \
@@ -1023,8 +1016,8 @@ def same_link_cost_for_final_checking(df, neighbors_df, source_bac_with_can_targ
             ['iou', 'min_distance', 'neighbor_ratio', 'length_dynamic', 'MotionAlignmentAngle']
 
         y_prob_non_divided_bac_model = \
-            non_divided_bac_model.predict_proba(source_bac_with_can_target[feature_list_for_non_divided_bac_model])[:,
-            1]
+            non_divided_bac_model.predict_proba(source_bac_with_can_target[
+                                                    feature_list_for_non_divided_bac_model])[:, 1]
         source_bac_with_can_target['prob_non_divided_bac_model'] = y_prob_non_divided_bac_model
 
         source_bac_with_can_target = \
@@ -1302,14 +1295,11 @@ def adding_new_link_to_unexpected(df, neighbors_df, unexpected_end_bac_in_curren
     max_daughter_len_to_mother_ratio_boundary = find_max_daughter_len_to_mother_ratio_boundary(df)
     sum_daughter_len_to_mother_ratio_boundary = find_sum_daughter_len_to_mother_ratio_boundary(df)
 
-    upper_bound_max_daughter_len = (max_daughter_len_to_mother_ratio_boundary['avg'] +
-                                    1.96 * max_daughter_len_to_mother_ratio_boundary['std'])
+    upper_bound_max_daughter_len = find_upper_bound(max_daughter_len_to_mother_ratio_boundary)
 
-    lower_bound_sum_daughter_len = \
-        sum_daughter_len_to_mother_ratio_boundary['avg'] - 1.96 * sum_daughter_len_to_mother_ratio_boundary['std']
+    lower_bound_sum_daughter_len = find_lower_bound(sum_daughter_len_to_mother_ratio_boundary)
 
-    upper_bound_sum_daughter_len = \
-        sum_daughter_len_to_mother_ratio_boundary['avg'] + 1.96 * sum_daughter_len_to_mother_ratio_boundary['std']
+    upper_bound_sum_daughter_len = find_upper_bound(sum_daughter_len_to_mother_ratio_boundary)
 
     bac_under_invest, final_candidate_bac = \
         feature_space_adding_new_link_to_unexpected_end(neighbors_df, unexpected_end_bac_in_current_time_step,
@@ -1355,7 +1345,7 @@ def adding_new_link_to_unexpected(df, neighbors_df, unexpected_end_bac_in_curren
         # first I check life history of source bac (unexpected end)
         candidate_unexpected_end_bac_for_division = \
             final_candidate_bac.loc[(final_candidate_bac['age'] > min_life_history_of_bacteria) |
-                                    (final_candidate_bac['transition'] == True)]
+                                    (final_candidate_bac['unexpected_beginning'] == True)]
 
         # unexpected bacteria index is index of division_cost_df
         division_cost_df = \
@@ -1401,8 +1391,8 @@ def adding_new_link_to_unexpected(df, neighbors_df, unexpected_end_bac_in_curren
                                                           df.at[j, 'AreaShape_MajorAxisLength']) /
                                                       df.at[row_idx, 'AreaShape_MajorAxisLength'])
 
-                            if (max_daughter_to_mother < 1 and \
-                                    max_daughter_to_mother <= upper_bound_max_daughter_len and \
+                            if (max_daughter_to_mother < 1 and
+                                    max_daughter_to_mother <= upper_bound_max_daughter_len and
                                     lower_bound_sum_daughter_len <=
                                     sum_daughter_to_mother <= upper_bound_sum_daughter_len):
                                 # daughters

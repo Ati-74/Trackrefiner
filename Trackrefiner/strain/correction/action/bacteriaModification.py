@@ -9,7 +9,7 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
                            parent_object_number_col, z, stat, bac1, bac2_life_history):
     """
     goal: assign new features like: `id`, `divideFlag`, `daughters_index`, `bad_division_flag`,
-    `unexpected_end`, `division_time`, `transition`, `LifeHistory`, `parent_id` to bacteria and find errors
+    `unexpected_end`, `division_time`, `unexpected_beginning`, `LifeHistory`, `parent_id` to bacteria and find errors
 
     @param df dataframe bacteria features value
     """
@@ -30,7 +30,7 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
     temp_org_df = df.copy()
     selected_rows = selected_rows_df['index'].values
 
-    df.loc[selected_rows, ["id", "divideFlag", 'unexpected_end', 'transition', 'daughters_index',
+    df.loc[selected_rows, ["id", "divideFlag", 'unexpected_end', 'unexpected_beginning', 'daughters_index',
                            'division_time', "difference_neighbors", "parent_id", "LengthChangeRatio",
                            "bacteria_movement", "direction_of_motion", "TrajectoryX",
                            "TrajectoryY", "daughter_length_to_mother", "max_daughter_len_to_mother",
@@ -41,7 +41,7 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
         [0,  # id
          False,  # divideFlag
          False,  # unexpected_end
-         False,  # transition
+         False,  # unexpected_beginning
          '',  # daughters_index
          np.nan,  # division_time
          0,  # difference_neighbors
@@ -66,12 +66,12 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
          np.nan,  # avg_daughters_TrajectoryY
          ]
 
-    # transition_bacteria
+    # unexpected_beginning_bacteria
     cond1 = selected_rows_df[parent_image_number_col] == 0
     cond2 = selected_rows_df['ImageNumber'] > 1
     cond3 = selected_rows_df['ImageNumber'] == 1
 
-    df.loc[selected_rows_df[cond1 & cond2]['index'].values, ['checked', 'transition', 'parent_id']] = \
+    df.loc[selected_rows_df[cond1 & cond2]['index'].values, ['checked', 'unexpected_beginning', 'parent_id']] = \
         [
             True,
             True,
@@ -145,8 +145,8 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
         calculate_orientation_angle_batch(division['bacteria_slope_2'].values,
                                           division['bacteria_slope_1'])
 
-    division['daughter_mother_LengthChangeRatio'] = division['AreaShape_MajorAxisLength_2'] / \
-                                                    division['AreaShape_MajorAxisLength_1']
+    division['daughter_mother_LengthChangeRatio'] = (division['AreaShape_MajorAxisLength_2'] /
+                                                     division['AreaShape_MajorAxisLength_1'])
 
     mothers_df_last_time_step = division.drop_duplicates(subset='index_1', keep='first')
 
@@ -390,7 +390,7 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
 
     bac_need_to_cal_dir_motion = \
         updated_selected_rows_df.loc[(updated_selected_rows_df['slope_bac_bac'].isna()) &
-                                     (updated_selected_rows_df['transition'] == False) &
+                                     (updated_selected_rows_df['unexpected_beginning'] == False) &
                                      (updated_selected_rows_df['ImageNumber'] != 1)].copy()
 
     df.loc[bac_need_to_cal_dir_motion['index'].values, 'slope_bac_bac'] = \
@@ -398,7 +398,6 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
                                           bac_need_to_cal_dir_motion['prev_bacteria_slope'])
 
     if selected_rows_df_first_time_step.shape[0] > 0:
-
         df.loc[selected_rows_df_first_time_step['index'].values, 'MotionAlignmentAngle'] = \
             selected_rows_df_first_time_step['MotionAlignmentAngle'].values
 
@@ -501,7 +500,7 @@ def bacteria_modification(df, bac1, bac2_life_history, all_bac_undergo_phase_cha
 
     else:
 
-        # transition
+        # unexpected_beginning
         index_should_be_checked = []
 
         bac2_mother_life_history = df.loc[df['id'] == bac2_life_history['parent_id'].values[0]]

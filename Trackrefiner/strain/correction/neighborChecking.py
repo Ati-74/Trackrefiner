@@ -9,7 +9,7 @@ def neighbor_checking(df, neighbor_df, parent_image_number_col, parent_object_nu
 
         important_info_list = ['ImageNumber' + col_target, 'ObjectNumber' + col_target,
                                'daughter_length_to_mother' + col_target, 'index' + col_target,
-                               'transition' + col_target, 'unexpected_end' + col_target,
+                               'unexpected_beginning' + col_target, 'unexpected_end' + col_target,
                                parent_image_number_col + col_target, parent_object_number_col + col_target,
                                'NeighborIndexList' + col_target, 'id' + col_target, 'parent_id' + col_target,
                                'prev_time_step_NeighborIndexList' + col_target, 'other_daughter_index' + col_target]
@@ -39,15 +39,16 @@ def neighbor_checking(df, neighbor_df, parent_image_number_col, parent_object_nu
             df_mother_daughters['NeighborIndexList'].values
 
     bacteria_info_dict = df[['index' + col_target, 'id' + col_target, 'parent_id' + col_target,
-                             'NeighborIndexList' + col_target, 'transition' + col_target, 'unexpected_end' + col_target,
-                             'other_daughter_index' + col_target, 'prev_time_step_NeighborIndexList' + col_target,
+                             'NeighborIndexList' + col_target, 'unexpected_beginning' + col_target,
+                             'unexpected_end' + col_target, 'other_daughter_index' + col_target,
+                             'prev_time_step_NeighborIndexList' + col_target,
                              parent_image_number_col + col_target]].to_dict(orient='index')
 
     if selected_time_step_df is not None:
         ref_bacteria_info_dict = \
-            selected_time_step_df[['index', 'id', 'parent_id', 'NeighborIndexList', 'transition', 'unexpected_end',
-                                   'other_daughter_index',
-                                   'prev_time_step_NeighborIndexList', parent_image_number_col]].to_dict(orient='index')
+            selected_time_step_df[['index', 'id', 'parent_id', 'NeighborIndexList', 'unexpected_beginning',
+                                   'unexpected_end', 'other_daughter_index', 'prev_time_step_NeighborIndexList',
+                                   parent_image_number_col]].to_dict(orient='index')
     else:
 
         ref_bacteria_info_dict = bacteria_info_dict
@@ -89,7 +90,7 @@ def neighbor_checking(df, neighbor_df, parent_image_number_col, parent_object_nu
 
                     neighbor_id_and_parent_id_list = \
                         [(ref_bacteria_info_dict[v]['id'], ref_bacteria_info_dict[v]['parent_id'])
-                         for v in neighbor_index_list if ref_bacteria_info_dict[v]['transition'] == False]
+                         for v in neighbor_index_list if ref_bacteria_info_dict[v]['unexpected_beginning'] == False]
 
                     neighbor_id_list = [(v[1] if v[1] in prev_time_step_neighbor_id_list else v[0]) for v
                                         in neighbor_id_and_parent_id_list]
@@ -176,7 +177,7 @@ def check_num_neighbors(df, neighbor_df, bac1, bac2, parent_image_number_col, re
     if len(neighbor_index_list) > 0:
 
         neighbor_bac_df = df.loc[neighbor_index_list]
-        neighbor_id_and_parent_id_list = neighbor_bac_df.loc[~ neighbor_bac_df['transition']][
+        neighbor_id_and_parent_id_list = neighbor_bac_df.loc[~ neighbor_bac_df['unexpected_beginning']][
             ['id', 'parent_id']].values.tolist()
         neighbor_id_list = [(v[1] if v[1] in prev_time_step_neighbor_id_list else v[0]) for v
                             in neighbor_id_and_parent_id_list]
@@ -240,7 +241,7 @@ def check_num_neighbors_batch(df, neighbor_df, bac1, bac2_batch, parent_image_nu
         if len(neighbor_index_list) > 0:
 
             neighbor_bac_df = df.loc[neighbor_index_list]
-            neighbor_id_and_parent_id_list = neighbor_bac_df.loc[~ neighbor_bac_df['transition']][
+            neighbor_id_and_parent_id_list = neighbor_bac_df.loc[~ neighbor_bac_df['unexpected_beginning']][
                 ['id', 'parent_id']].values.tolist()
             neighbor_id_list = [(v[1] if v[1] in prev_time_step_neighbor_id_list else v[0]) for v
                                 in neighbor_id_and_parent_id_list]

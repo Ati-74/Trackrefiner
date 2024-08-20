@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import sys
 from scipy.spatial import distance_matrix
-from scipy.spatial.distance import euclidean
 
 
 def print_progress_bar(iteration, total=10, prefix='', suffix='', decimals=1, length=100, fill='█', print_end="\r"):
@@ -56,7 +55,6 @@ def calc_neighbors_avg_dir_motion(df, source_bac, neighbor_df, center_coordinate
 
 def calc_neighbors_dir_motion_all(df, neighbor_df, division_df, parent_image_number_col,
                                   parent_object_number_col, selected_rows=None):
-
     temp_df = df[['ImageNumber', 'ObjectNumber', 'id', "TrajectoryX", "TrajectoryY",
                   "daughter_length_to_mother", 'avg_daughters_TrajectoryX', 'avg_daughters_TrajectoryY']].copy()
 
@@ -95,7 +93,8 @@ def calc_neighbors_dir_motion_all(df, neighbor_df, division_df, parent_image_num
 
     all_bac_neighbors_info.index = all_bac_neighbors_info['index'].values
 
-    if len(set(all_bac_neighbors_info['index'].values.tolist())) != len(all_bac_neighbors_info['index'].values.tolist()):
+    if len(set(all_bac_neighbors_info['index'].values.tolist())) != len(
+            all_bac_neighbors_info['index'].values.tolist()):
         breakpoint()
 
     # update dataframe
@@ -130,7 +129,7 @@ def calc_neighbors_dir_motion_all(df, neighbor_df, division_df, parent_image_num
         # bac with nan
         bac_with_nan = all_bac_neighbors_info.loc[
             (all_bac_neighbors_info["source_neighbors_TrajectoryX_for_target"].isna()) & (
-                        all_bac_neighbors_info['transition'] == False)]
+                    all_bac_neighbors_info['unexpected_beginning'] == False)]
 
         prev_motion_alignment_angle = df.loc[bac_with_nan['index'].values, "MotionAlignmentAngle"].values
 
@@ -248,7 +247,6 @@ def adding_features_to_continues_life_history(dataframe, neighbor_df, division_d
 
 def adding_features_to_continues_life_history_after_oad(dataframe, neighbor_df, division_df, center_coordinate_columns,
                                                         parent_image_number_col, parent_object_number_col):
-
     dataframe['prev_time_step_MajorAxisLength'] = dataframe.groupby('id')["AreaShape_MajorAxisLength"].shift(1)
 
     dataframe['LengthChangeRatio'] = (dataframe["AreaShape_MajorAxisLength"] /
@@ -306,7 +304,7 @@ def calc_new_features_after_rpl(df, neighbor_df, center_coordinate_columns, pare
                                 parent_object_number_col, label_col):
     """
     goal: assign new features like: `id`, `divideFlag`, `daughters_index`, `bad_division_flag`,
-    `unexpected_end`, `division_time`, `transition`, `LifeHistory`, `parent_id` to bacteria and find errors
+    `unexpected_end`, `division_time`, `unexpected_beginning`, `LifeHistory`, `parent_id` to bacteria and find errors
 
     @param df dataframe bacteria features value
     """
@@ -383,7 +381,7 @@ def calc_new_features_after_rpl(df, neighbor_df, center_coordinate_columns, pare
     df.loc[bac_idx_not_needed_to_update, 'prev_bacteria_slope'] = temporal_df['prev_bacteria_slope'].values
 
     bac_need_to_cal_dir_motion = df.loc[(df['slope_bac_bac'].isna()) &
-                                        (df['transition'] == False) &
+                                        (df['unexpected_beginning'] == False) &
                                         (df['ImageNumber'] != 1)].copy()
 
     df.loc[bac_need_to_cal_dir_motion['index'].values, 'slope_bac_bac'] = \
@@ -803,7 +801,7 @@ def calc_distance_matrix(target_bacteria, other_bacteria, col1, col2, col3=None,
     """
     goal: this function is useful to create adjacency matrix (distance matrix)
     I want to find distance of one dataframe to another
-    example1: distance of transition bacteria from all bacteria in previous time step
+    example1: distance of unexpected_beginning bacteria from all bacteria in previous time step
     example1: distance of unexpected-end bacterium from all bacteria in same time step
 
     @param target_bacteria dataframe or series The value of the features of the bacteria that we want
@@ -947,7 +945,7 @@ def calc_new_features_after_oad(df, neighbor_df, center_coordinate_columns, pare
                                 parent_object_number_col, label_col):
     """
     goal: assign new features like: `id`, `divideFlag`, `daughters_index`, `bad_division_flag`,
-    `unexpected_end`, `division_time`, `transition`, `LifeHistory`, `parent_id` to bacteria and find errors
+    `unexpected_end`, `division_time`, `unexpected_beginning`, `LifeHistory`, `parent_id` to bacteria and find errors
 
     @param df dataframe bacteria features value
     """
@@ -975,11 +973,12 @@ def calc_new_features_after_oad(df, neighbor_df, center_coordinate_columns, pare
     division['daughters_index'] = \
         division.groupby(['ImageNumber_1', 'ObjectNumber_1'])['index_2'].transform(lambda x: ', '.join(x.astype(str)))
 
-    daugter_to_daughter = division.merge(division, on=[parent_image_number_col + '_2', parent_object_number_col + '_2'],
-                                         suffixes=('_daughter1', '_daughter2'))
+    daughter_to_daughter = division.merge(division,
+                                          on=[parent_image_number_col + '_2', parent_object_number_col + '_2'],
+                                          suffixes=('_daughter1', '_daughter2'))
 
-    daugter_to_daughter = daugter_to_daughter.loc[daugter_to_daughter['index_2_daughter1'] !=
-                                                  daugter_to_daughter['index_2_daughter2']]
+    daughter_to_daughter = daughter_to_daughter.loc[daughter_to_daughter['index_2_daughter1'] !=
+                                                    daughter_to_daughter['index_2_daughter2']]
 
     mothers_df_last_time_step = division.drop_duplicates(subset='index_1', keep='first')
 
@@ -1038,8 +1037,8 @@ def calc_new_features_after_oad(df, neighbor_df, center_coordinate_columns, pare
     df.loc[division['index_2'].values, "TrajectoryY"] = division["daughters_TrajectoryY"].values
     df.loc[division['index_2'].values, "parent_index"] = division["index_1"].values
 
-    df.loc[daugter_to_daughter['index_2_daughter1'].values, "other_daughter_index"] = \
-        daugter_to_daughter['index_2_daughter2'].values
+    df.loc[daughter_to_daughter['index_2_daughter1'].values, "other_daughter_index"] = \
+        daughter_to_daughter['index_2_daughter2'].values
 
     df['daughters_index'] = df.groupby('id')['daughters_index'].transform(lambda x: x.ffill().bfill())
 

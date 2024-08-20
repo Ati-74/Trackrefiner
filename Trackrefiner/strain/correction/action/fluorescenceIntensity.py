@@ -1,21 +1,21 @@
 from Trackrefiner.strain.correction.action.helperFunctions import k_nearest_neighbors
 
 
-def check_fluorescent_intensity(transition_bac, candidate_parent_bac):
+def check_fluorescent_intensity(unexpected_beginning_bac, candidate_parent_bac):
     """
     goal: does the candidate parent has an appropriate
-    fluorescent intensity pattern to be the parent of the transition bacterium?
+    fluorescent intensity pattern to be the parent of the unexpected_beginning bacterium?
     """
     appropriate_intensity_pattern = False
 
     if len(set(candidate_parent_bac['cellType'])) == 1:
         # means: all elements value = 0 or 1
         appropriate_intensity_pattern = True
-    elif len(set(transition_bac['cellType'])) == 1:
+    elif len(set(unexpected_beginning_bac['cellType'])) == 1:
         # means: all elements value = 0 or 1
         appropriate_intensity_pattern = True
     else:
-        sum_intensity = [sum(x) for x in zip(transition_bac['cellType'], candidate_parent_bac['cellType'])]
+        sum_intensity = [sum(x) for x in zip(unexpected_beginning_bac['cellType'], candidate_parent_bac['cellType'])]
         if 2 in sum_intensity:
             # bacteria have at least one candidate cell type in common
             appropriate_intensity_pattern = True

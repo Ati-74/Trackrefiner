@@ -13,11 +13,14 @@ from Trackrefiner.strain.correction.redundantParentLink import (detect_redundant
                                                                 detect_and_remove_redundant_parent_link)
 from Trackrefiner.strain.correction.noiseRemover import noise_remover
 from Trackrefiner.strain.correction.neighborChecking import neighbor_checking
-from Trackrefiner.strain.correction.missingConnectivityLink import missing_connectivity_link, detect_missing_connectivity_link
+from Trackrefiner.strain.correction.missingConnectivityLink import missing_connectivity_link, \
+    detect_missing_connectivity_link
 from Trackrefiner.strain.correction.unExpectedEnd import unexpected_end_bacteria
 from Trackrefiner.strain.correction.action.multiRegionsDetection import multi_region_detection
 from Trackrefiner.strain.correction.action.finalMatching import final_matching
 from Trackrefiner.strain.correction.action.Modeling.trainingModels import training_models
+from Trackrefiner.strain.correction.action.wallCorrection import find_wall_objects
+from Trackrefiner.strain.correction.action.generateLogFile import generate_log_file
 import warnings
 import logging
 import traceback
@@ -43,7 +46,7 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
                                parent_image_number_col, parent_object_number_col, without_tracking_correction):
     """
     goal: assign new features like: `id`, `divideFlag`, `daughters_index`, `bad_division_flag`,
-    `unexpected_end`, `division_time`, `transition`, `LifeHistory`, `parent_id` to bacteria and find errors
+    `unexpected_end`, `division_time`, `unexpected_beginning`, `LifeHistory`, `parent_id` to bacteria and find errors
 
     @param dataframe dataframe bacteria features value
     @param intensity_threshold float min intensity value of channel
@@ -58,7 +61,7 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
 
     dataframe['unexpected_end'] = False
     dataframe['division_time'] = np.nan
-    dataframe['transition'] = False
+    dataframe['unexpected_beginning'] = False
     dataframe["parent_id"] = np.nan
     dataframe["bacteria_movement"] = np.nan
 
@@ -66,12 +69,12 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
     dataframe = find_vertex_batch(dataframe, center_coordinate_columns)
     dataframe = calculate_slope_intercept_batch(dataframe)
 
-    # transition_bacteria
+    # unexpected_beginning_bacteria
     cond1 = dataframe[parent_image_number_col] == 0
     cond2 = dataframe['ImageNumber'] > 1
     cond3 = dataframe['ImageNumber'] == 1
 
-    dataframe.loc[cond1 & cond2, ['checked', 'transition', 'parent_id', "bacteria_movement"]] = \
+    dataframe.loc[cond1 & cond2, ['checked', 'unexpected_beginning', 'parent_id', "bacteria_movement"]] = \
         [
             True,
             True,
@@ -79,7 +82,7 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
             np.nan,
         ]
 
-    dataframe.loc[cond1 & cond3, ['checked', 'transition', 'parent_id', "bacteria_movement"]] = \
+    dataframe.loc[cond1 & cond3, ['checked', 'unexpected_beginning', 'parent_id', "bacteria_movement"]] = \
         [
             True,
             False,
@@ -166,13 +169,13 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
         mothers_with_two_daughters['bacteria_slope_1'].values
 
     # correct divisions
-    daugter_to_daughter = mothers_with_two_daughters.merge(mothers_with_two_daughters,
-                                                           on=[parent_image_number_col + '_2',
-                                                               parent_object_number_col + '_2'],
-                                                           suffixes=('_daughter1', '_daughter2'))
+    daughter_to_daughter = mothers_with_two_daughters.merge(mothers_with_two_daughters,
+                                                            on=[parent_image_number_col + '_2',
+                                                                parent_object_number_col + '_2'],
+                                                            suffixes=('_daughter1', '_daughter2'))
 
-    daugter_to_daughter = daugter_to_daughter.loc[daugter_to_daughter['index_2_daughter1'] !=
-                                                  daugter_to_daughter['index_2_daughter2']]
+    daughter_to_daughter = daughter_to_daughter.loc[daughter_to_daughter['index_2_daughter1'] !=
+                                                    daughter_to_daughter['index_2_daughter2']]
 
     sum_daughters_len = \
         mothers_with_two_daughters.groupby(['ImageNumber_1', 'ObjectNumber_1'])['AreaShape_MajorAxisLength_2'].sum()
@@ -212,8 +215,8 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
     dataframe = dataframe.merge(temp_df_avg_daughters_trajectory_x, on=['ImageNumber', 'ObjectNumber'], how='outer')
     dataframe = dataframe.merge(temp_df_avg_daughters_trajectory_y, on=['ImageNumber', 'ObjectNumber'], how='outer')
 
-    dataframe.loc[daugter_to_daughter['index_2_daughter1'].values, "other_daughter_index"] = \
-        daugter_to_daughter['index_2_daughter2'].values
+    dataframe.loc[daughter_to_daughter['index_2_daughter1'].values, "other_daughter_index"] = \
+        daughter_to_daughter['index_2_daughter2'].values
 
     # other bacteria
     other_bac_df = dataframe.loc[~ dataframe['checked']]
@@ -328,7 +331,7 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
 
     # now we should cal slope bac to bac
     bac_need_to_cal_dir_motion = dataframe.loc[(dataframe['slope_bac_bac'].isna()) &
-                                               (dataframe['transition'] == False) &
+                                               (dataframe['unexpected_beginning'] == False) &
                                                (dataframe['ImageNumber'] != 1) &
                                                (dataframe['bad_daughters_flag'] == False)].copy()
 
@@ -481,7 +484,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
                     all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, label_col,
                     number_of_gap=0, um_per_pixel=0.144, intensity_threshold=0.1, check_cell_type=True,
                     interval_time=1, min_life_history_of_bacteria=20, warn=True, without_tracking_correction=False,
-                    output_directory=None, clf=None, n_cpu=-1):
+                    output_directory=None, clf=None, n_cpu=-1, boundary_limits=None):
     logs_list = []
     logs_df = pd.DataFrame(columns=dataframe.columns)
 
@@ -495,6 +498,11 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         df = multi_region_detection(df, sorted_npy_files_list, um_per_pixel, center_coordinate_columns,
                                     all_center_coordinate_columns, parent_image_number_col,
                                     parent_object_number_col, warn)
+
+    if boundary_limits is not None:
+        df, neighbors_df = \
+            find_wall_objects(boundary_limits, df, neighbors_df, center_coordinate_columns, parent_image_number_col,
+                              parent_object_number_col, um_per_pixel)
 
     print_progress_bar(1, prefix='Progress:', suffix='Complete', length=50)
 
@@ -708,97 +716,14 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
 
         df = redefine_ids(df, label_col)
 
-        # now I want to generate lof file
-        noise_bac_df = raw_df.loc[~ raw_df['prev_index'].isin(df['prev_index'])].copy()
-        noise_bac_df['noise_bac'] = True
-        noise_bac_df['changed'] = False
-        noise_bac_df['unexpected_end'] = False
-        noise_bac_df['transition'] = False
+        # now I want to generate log file
+        logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df, logs_list = \
+            generate_log_file(raw_df, df, logs_list, parent_image_number_col, parent_object_number_col,
+                              center_coordinate_columns)
 
-        msg = 'Number of Noise Objects: ' + str(noise_bac_df.shape[0])
-        logs_list.append(msg)
+    else:
+        identified_tracking_errors_df = pd.DataFrame()
+        fixed_errors = pd.DataFrame()
+        remaining_errors_df = pd.DataFrame()
 
-        transition_bac_df = df.loc[df['transition']].copy()
-        transition_bac_df['noise_bac'] = False
-        transition_bac_df['changed'] = False
-        transition_bac_df['unexpected_end'] = False
-
-        msg = 'Number of Transition Bacteria: ' + str(transition_bac_df.shape[0])
-        logs_list.append(msg)
-
-        unexpected_bac_df = df.loc[df['unexpected_end']].copy()
-        unexpected_bac_df['noise_bac'] = False
-        unexpected_bac_df['changed'] = False
-        unexpected_bac_df['transition'] = False
-
-        msg = 'Number of Unexpected end Bacteria: ' + str(unexpected_bac_df.shape[0])
-        logs_list.append(msg)
-
-        # noise_bac	unexpected_end	transition	changed
-        merged_transition_bac_unexpected_bac = \
-            transition_bac_df[
-                ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
-            ].merge(unexpected_bac_df[
-                        ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
-                    ],
-                    on=['ImageNumber', 'ObjectNumber'], how='outer', suffixes=('_transition', '_unexpected'))
-
-        merged_transition_bac_unexpected_bac = \
-            merged_transition_bac_unexpected_bac.map(lambda x: False if str(x) in ['nan', "b''"] else x)
-
-        merged_transition_bac_unexpected_bac['noise_bac'] = \
-            (merged_transition_bac_unexpected_bac['noise_bac_transition'] +
-             merged_transition_bac_unexpected_bac['noise_bac_unexpected'])
-
-        merged_transition_bac_unexpected_bac['unexpected_end'] = \
-            (merged_transition_bac_unexpected_bac['unexpected_end_transition'] +
-             merged_transition_bac_unexpected_bac['unexpected_end_unexpected'])
-
-        merged_transition_bac_unexpected_bac['transition'] = \
-            (merged_transition_bac_unexpected_bac['transition_transition'] +
-             merged_transition_bac_unexpected_bac['transition_unexpected'])
-
-        merged_transition_bac_unexpected_bac['changed'] = \
-            (merged_transition_bac_unexpected_bac['changed_transition'] +
-             merged_transition_bac_unexpected_bac['changed_unexpected'])
-
-        merged_transition_bac_unexpected_bac_noise = \
-            pd.concat([noise_bac_df[
-                           ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
-                       ],
-                       merged_transition_bac_unexpected_bac[
-                           ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
-                       ]
-                       ])
-
-        merged_df = raw_df.merge(df, on='prev_index', how='inner', suffixes=('_raw', ''))
-        bac_with_changes_df = \
-            merged_df.loc[
-                (merged_df[parent_image_number_col + '_raw'] !=
-                 merged_df[parent_image_number_col]) |
-                (merged_df[parent_object_number_col + '_raw'] !=
-                 merged_df[parent_object_number_col])].copy()
-
-        bac_with_changes_df['noise_bac'] = False
-        bac_with_changes_df['changed'] = True
-        bac_with_changes_df['unexpected_end'] = False
-        bac_with_changes_df['transition'] = False
-
-        msg = 'The number of bacteria whose links have changed: ' + str(bac_with_changes_df.shape[0])
-        logs_list.append(msg)
-
-        logs_df = merged_transition_bac_unexpected_bac_noise.merge(
-            bac_with_changes_df[
-                ['ImageNumber', 'ObjectNumber', 'noise_bac', 'unexpected_end', 'transition', 'changed']
-            ], on=['ImageNumber', 'ObjectNumber'], how='outer', suffixes=('_1', '_2'))
-
-        logs_df = logs_df.map(lambda x: False if str(x) in ['nan', "b''"] else x)
-
-        for col in ['noise_bac', 'unexpected_end', 'transition', 'changed']:
-            logs_df[col] = logs_df[col + '_1'] + logs_df[col + '_2']
-
-        logs_df = logs_df.sort_values(by=['ImageNumber', 'ObjectNumber'])
-        logs_df.rename(columns={'ImageNumber': 'stepNum'}, inplace=True)
-        logs_df = logs_df[["stepNum", "ObjectNumber", "noise_bac", "unexpected_end", "transition", 'changed']]
-
-    return df, logs_list, logs_df, neighbors_df
+    return df, logs_list, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df, neighbors_df

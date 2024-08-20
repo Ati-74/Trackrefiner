@@ -2,12 +2,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.svm import SVC
-from imblearn.over_sampling import SMOTE
-from imblearn.pipeline import Pipeline as ImbPipeline
+# from imblearn.over_sampling import SMOTE
+# from imblearn.pipeline import Pipeline as ImbPipeline
 from sklearn.metrics import accuracy_score, confusion_matrix
-from sklearn.preprocessing import LabelEncoder
+# from sklearn.preprocessing import LabelEncoder
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, RobustScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 import pandas as pd
 import os
@@ -57,18 +57,18 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
                 'C-Support Vector Classifier': SVC(random_state=42, probability=True, class_weight='balanced')}
 
     # Define features and target
-    X = merged_df[feature_list]
-    y = merged_df['label']
+    x_dat = merged_df[feature_list]
+    y_dat = merged_df['label']
 
     n_positive = merged_df.loc[merged_df['label'] == 'positive'].shape[0]
     n_negative = merged_df.loc[merged_df['label'] == 'negative'].shape[0]
 
     # Encode string labels to binary values
-    label_encoder = LabelEncoder()
-    y_encoded = label_encoder.fit_transform(y)
+    # label_encoder = LabelEncoder()
+    # y_encoded = label_encoder.fit_transform(y_dat)
 
     # Inspect the class mapping
-    class_mapping = {index: label for index, label in enumerate(label_encoder.classes_)}
+    # class_mapping = {index: label for index, label in enumerate(label_encoder.classes_)}
     # print(f"Class Mapping: {class_mapping}")
 
     # Create a ColumnTransformer to apply StandardScaler to specific columns
@@ -80,48 +80,49 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
     )
 
     # Define the pipeline with SMOTE
-    pipeline = ImbPipeline(steps=[
+    pipeline = Pipeline(steps=[
         ('preprocessor', preprocessor),
         ('classifier', clf_dict[clf])
     ])
 
     # Split the data using stratified sampling
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
+    x_train, x_test, y_train, y_test = train_test_split(x_dat, y_dat, test_size=0.3, stratify=y_dat,
+                                                        random_state=42)
 
     # Apply SMOTE to the training data
     # smote = SMOTE(random_state=42)
     # X_train, y_train = smote.fit_resample(X_train, y_train)
 
-    train_dat = X_train.copy()
+    train_dat = x_train.copy()
     train_dat['label'] = y_train.copy()
 
-    test_dat = merged_df.loc[merged_df.index.isin(X_test.index.values)]
+    test_dat = merged_df.loc[merged_df.index.isin(x_test.index.values)]
 
     # X_train_scaled = X_train
     # X_test_scaled = X_test
 
     # Train the Logistic Regression model on the scaled data
     # Fit the pipeline on the training data
-    pipeline.fit(X_train, y_train)
+    pipeline.fit(x_train, y_train)
 
     # Predict on the test set
-    y_pred_test = pipeline.predict(X_test)
+    y_predicted_test = pipeline.predict(x_test)
 
-    y_prob_train = pipeline.predict_proba(X_train)[:, 1]
-    y_prob_test = pipeline.predict_proba(X_test)[:, 1]
+    y_prob_train = pipeline.predict_proba(x_train)[:, 1]
+    y_prob_test = pipeline.predict_proba(x_test)[:, 1]
 
     # Convert the numpy array to a DataFrame
-    y_pred_train_df = pd.DataFrame(y_prob_train, index=X_train.index, columns=['probability'])
-    y_pred_test_df = pd.DataFrame(y_prob_test, index=X_test.index, columns=['probability'])
+    y_predicted_train_df = pd.DataFrame(y_prob_train, index=x_train.index, columns=['probability'])
+    y_predicted_test_df = pd.DataFrame(y_prob_test, index=x_test.index, columns=['probability'])
 
-    train_dat = pd.concat([train_dat, y_pred_train_df], axis=1)
-    test_dat = pd.concat([test_dat, y_pred_test_df], axis=1)
+    train_dat = pd.concat([train_dat, y_predicted_train_df], axis=1)
+    test_dat = pd.concat([test_dat, y_predicted_test_df], axis=1)
 
     # Calculate accuracy
-    accuracy = accuracy_score(y_test, y_pred_test)
+    accuracy = accuracy_score(y_test, y_predicted_test)
 
     # Generate confusion matrix
-    conf_matrix = confusion_matrix(y_test, y_pred_test)
+    conf_matrix = confusion_matrix(y_test, y_predicted_test)
 
     # Calculate specificity and sensitivity from confusion matrix
     tn, fp, fn, tp = conf_matrix.ravel()
@@ -129,8 +130,8 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
     sensitivity = tp / (tp + fn)
 
     # Calculate Positive Predictive Value (PPV) and Negative Predictive Value (NPV)
-    ppv = tp / (tp + fp)  # Precision
-    npv = tn / (tn + fn)
+    # ppv = tp / (tp + fp)  # Precision
+    # npv = tn / (tn + fn)
 
     # Get the weights of features
     model = pipeline.named_steps['classifier']
@@ -148,7 +149,7 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
     # Extract feature weights from the logistic regression model
     try:
         feature_weights = model.coef_[0]
-    except:
+    except AttributeError:
         try:
             # Try to get feature importances for models that have feature_importances_ attribute
             feature_weights = model.feature_importances_[0]
@@ -170,4 +171,3 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
                 feature_importance_df, tp, tn, fp, fn, clf, n_positive, n_negative)
 
     return pipeline
-
