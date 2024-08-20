@@ -1,5 +1,5 @@
 import pandas as pd
-from Trackrefiner.strain.correction.action.findOutlier import find_bac_len_boundary
+from Trackrefiner.strain.correction.action.findOutlier import find_bac_len_boundary, find_lower_bound
 from Trackrefiner.strain.correction.action.helperFunctions import remove_rows
 
 
@@ -58,8 +58,9 @@ def noise_remover(df, neighbors_df, parent_image_number_col, parent_object_numbe
 
         bac_len_boundary = find_bac_len_boundary(df)
 
-        noise_objects_df = df.loc[(df['AreaShape_MajorAxisLength'] < bac_len_boundary['avg'] -
-                                   1.96 * bac_len_boundary['std']) & (~ df['noise_bac'])]
+        bac_len_lower_bound = find_lower_bound(bac_len_boundary)
+
+        noise_objects_df = df.loc[(df['AreaShape_MajorAxisLength'] < bac_len_lower_bound) & (~ df['noise_bac'])]
 
         num_noise_obj = noise_objects_df.shape[0]
 

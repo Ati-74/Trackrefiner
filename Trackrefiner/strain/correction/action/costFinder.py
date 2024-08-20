@@ -1,12 +1,10 @@
 import numpy as np
-from Trackrefiner.strain.correction.action.helperFunctions import calc_normalized_angle_between_motion, \
-    distance_normalization, calculate_orientation_angle_batch
 from Trackrefiner.strain.correction.action.findOverlap import (find_overlap_object_to_next_frame,
                                                                find_overlap_object_to_next_frame_maintain,
                                                                find_overlap_object_to_next_frame_unexpected,
                                                                find_overlap_mother_bad_daughters,
                                                                find_overlap_object_for_division_chance)
-from Trackrefiner.strain.correction.neighborChecking import check_num_neighbors
+from Trackrefiner.strain.correction.action.findOutlier import find_upper_bound, find_lower_bound
 import pandas as pd
 
 
@@ -309,8 +307,9 @@ def make_initial_distance_matrix(source_time_step_df, sel_source_bacteria, bacte
     return overlap_df, distance_df
 
 
-def create_division_link_instead_cont_life_cost(df_source_daughter_cost, source_bac_ndx, source_bac, target_bac_ndx, target_bac,
-                                                source_bac_next_time_step, sum_daughter_len_to_mother_ratio_boundary,
+def create_division_link_instead_cont_life_cost(df_source_daughter_cost, source_bac_ndx, source_bac, target_bac_ndx,
+                                                target_bac, source_bac_next_time_step,
+                                                sum_daughter_len_to_mother_ratio_boundary,
                                                 max_daughter_len_to_mother_ratio_boundary,
                                                 min_life_history_of_bacteria):
 
@@ -322,30 +321,27 @@ def create_division_link_instead_cont_life_cost(df_source_daughter_cost, source_
                                            source_bac_next_time_step['AreaShape_MajorAxisLength'].values[0]) /
                                        source_bac['AreaShape_MajorAxisLength'])
 
-    upper_bound_sum_daughter_len = (sum_daughter_len_to_mother_ratio_boundary['avg'] +
-                                    1.96 * sum_daughter_len_to_mother_ratio_boundary['std'])
+    upper_bound_sum_daughter_len = find_upper_bound(sum_daughter_len_to_mother_ratio_boundary)
 
-    lower_bound_sum_daughter_len = (sum_daughter_len_to_mother_ratio_boundary['avg'] -
-                                    1.96 * sum_daughter_len_to_mother_ratio_boundary['std'])
+    lower_bound_sum_daughter_len = find_lower_bound(sum_daughter_len_to_mother_ratio_boundary)
 
-    upper_bound_max_daughter_len = (max_daughter_len_to_mother_ratio_boundary['avg'] +
-                                    1.96 * max_daughter_len_to_mother_ratio_boundary['std'])
+    upper_bound_max_daughter_len = find_upper_bound(max_daughter_len_to_mother_ratio_boundary)
 
     if (lower_bound_sum_daughter_len <= daughters_bac_len_to_source <= upper_bound_sum_daughter_len and
             max_daughters_bac_len_to_source < 1 and max_daughters_bac_len_to_source <= upper_bound_max_daughter_len):
 
         # if source_bac['divideFlag']:
         #    if source_bac['LifeHistory'] > source_bac['age'] + min_life_history_of_bacteria:
-        #        if source_bac['age'] > min_life_history_of_bacteria or source_bac['transition'] == True:
+        #        if source_bac['age'] > min_life_history_of_bacteria or source_bac['unexpected_beginning'] == True:
         #            calc_cost = True
         #        else:
         #            calc_cost = False
         #    else:
         #        calc_cost = False
-        #else:
+        # else:
         #    calc_cost = True
 
-        if source_bac['age'] > min_life_history_of_bacteria or source_bac['transition'] == True:
+        if source_bac['age'] > min_life_history_of_bacteria or source_bac['unexpected_beginning'] == True:
             calc_cost = True
         else:
             calc_cost = False
@@ -416,14 +412,11 @@ def replacing_new_link_to_division(maintenance_cost_df, source_bac_ndx, source_b
                                    sum_daughter_len_to_mother_ratio_boundary,
                                    redundant_link_dict_division):
 
-    upper_bound_max_daughter_len = (max_daughter_len_to_mother_ratio_boundary['avg'] +
-                                    1.96 * max_daughter_len_to_mother_ratio_boundary['std'])
+    upper_bound_max_daughter_len = find_upper_bound(max_daughter_len_to_mother_ratio_boundary)
 
-    upper_bound_sum_daughter_len = (sum_daughter_len_to_mother_ratio_boundary['avg'] +
-                                    1.96 * sum_daughter_len_to_mother_ratio_boundary['std'])
+    upper_bound_sum_daughter_len = find_upper_bound(sum_daughter_len_to_mother_ratio_boundary)
 
-    lower_bound_sum_daughter_len = (sum_daughter_len_to_mother_ratio_boundary['avg'] -
-                                    1.96 * sum_daughter_len_to_mother_ratio_boundary['std'])
+    lower_bound_sum_daughter_len = find_lower_bound(sum_daughter_len_to_mother_ratio_boundary)
 
     source_bac_daughters['new_sum_daughters_len_to_source'] = \
         (source_bac_daughters['AreaShape_MajorAxisLength'] + target_bac['AreaShape_MajorAxisLength']) / \

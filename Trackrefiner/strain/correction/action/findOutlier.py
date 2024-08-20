@@ -6,7 +6,9 @@ def find_outlier_traditional_bac_change_length(values):
     avg_val = np.average(values)
     std_val = np.std(values)
 
-    outlier_list = values[(values < (avg_val - 1.96 * std_val)) & (values < 1)]
+    lower_bound_val = find_lower_bound({'avg': avg_val, 'std': std_val})
+
+    outlier_list = values[(values < lower_bound_val) & (values < 1)]
 
     if len(outlier_list) > 0:
         max_outlier_val = max(outlier_list)
@@ -21,10 +23,12 @@ def find_outlier_traditional_sum_daughter_len_to_mother_ratio(values, higher_tha
     avg_val = np.average(values)
     std_val = np.std(values)
 
+    upper_bound_val = find_upper_bound({'avg': avg_val, 'std': std_val})
+
     if not higher_than_one_is_outlier:
-        outlier_list = values[values > avg_val + 1.96 * std_val]
+        outlier_list = values[values > upper_bound_val]
     else:
-        outlier_list = values[(values > (avg_val + 1.96 * std_val)) | (values >= 1)]
+        outlier_list = values[(values > upper_bound_val) | (values >= 1)]
 
     if len(outlier_list) == 0:
         outlier_list = [None]
@@ -66,13 +70,15 @@ def find_daughter_len_to_mother_ratio_outliers(df):
     avg_max_daughter_length_ratio = np.average(max_daughter_length_ratio_list)
     std_max_daughter_length_ratio = np.std(max_daughter_length_ratio_list)
 
-    threshold_sum_daughter = avg_sum_daughter_length_ratio + 1.96 * std_sum_daughter_length_ratio
-    threshold_max_daughter = avg_max_daughter_length_ratio + 1.96 * std_max_daughter_length_ratio
+    upper_bound_sum_daughter = find_upper_bound({'avg': avg_sum_daughter_length_ratio,
+                                                 'std': std_sum_daughter_length_ratio})
+    upper_bound_max_daughter = find_upper_bound({'avg': avg_max_daughter_length_ratio,
+                                                 'std': std_max_daughter_length_ratio})
 
     # Apply the conditions using vectorized operations
     condition = (
-            (df["daughter_length_to_mother"] > threshold_sum_daughter) |
-            (df["max_daughter_len_to_mother"] > threshold_max_daughter) |
+            (df["daughter_length_to_mother"] > upper_bound_sum_daughter) |
+            (df["max_daughter_len_to_mother"] > upper_bound_max_daughter) |
             (df["max_daughter_len_to_mother"] > 1)
     )
 
@@ -124,3 +130,13 @@ def find_bac_len_boundary(df):
     std_val = np.std(bacteria_length)
 
     return {'avg': avg_val, 'std': std_val}
+
+
+def find_upper_bound(feature_boundary_dict):
+
+    return feature_boundary_dict['avg'] + 1.96 * feature_boundary_dict['std']
+
+
+def find_lower_bound(feature_boundary_dict):
+
+    return feature_boundary_dict['avg'] - 1.96 * feature_boundary_dict['std']
