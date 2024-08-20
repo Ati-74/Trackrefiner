@@ -2,12 +2,15 @@
 
 from setuptools import setup
 
-setup(name='CellProfilerAnalysis',
-      version='1.0.0',
+setup(name='TrackRefiner',
+      version='1.1.1.b',
       description='analyzing CellProfiler output',
-      install_requires=['numpy', 'scipy', 'pandas', 'scikit-learn', 'matplotlib', 'opencv-python'],
-      setup_requires=['numpy', 'scipy', 'pandas', 'scikit-learn', 'matplotlib', 'opencv-python'],
-      packages=['CellProfilerAnalysis', 'CellProfilerAnalysis.strain', 'CellProfilerAnalysis.strain.correction', 'CellProfilerAnalysis.strain.correction.action'],
+      install_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
+                        'scikit-image'],
+      setup_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
+                      'scikit-image'],
+      packages=['Trackrefiner', 'Trackrefiner.strain', 'Trackrefiner.strain.correction',
+                'Trackrefiner.strain.correction.action'],
       python_requires='>=3',
       url='https://github.com/Ati-74/CellProfilerAnalysis',
       author='Atiyeh Ahmadi',

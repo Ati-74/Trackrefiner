@@ -1,24 +1,37 @@
-# CellProfilerAnalysis
-Codes used to analyze CellProfiler output
-
-
-## Converting CellProfiler data similar to CellModeller:
+# Trackrefiner
+Analyzing CellProfiler output
 <div align="justify">
-The process can be done by GUI. GUI Input file is CellProfiler output including columns:<br/> 
-1. ImageNumber<br/>
-2. ObjectNumber<br/>
-3. AreaShape_MajorAxisLength<br/>
-4. AreaShape_MinorAxisLength<br/>
-5. AreaShape_Orientation<br/>
-6. Intensity_MeanIntensity_rfp/gfp/yfp_channel (optional)<br/>
-7. Location_Center_X (or AreaShape_Center_X), Location_Center_Y (or AreaShape_Center_Y)<br/>
-8. TrackObjects_Label_50<br/>
-9. TrackObjects_ParentImageNumber_50<br/>
-10. TrackObjects_ParentObjectNumber_50<br/>
-<br/><br/>
-After choosing output file directory(same as input or wherever you select), and setting interval time based on your experiments and growth rate methods (average or linear regression) the process will be done by pressing start button. GUI final messages will guide you where the output is and whether the process is done. Final output is stored in both csv files and pickles for each time-step.
-</div>
-<br/>
-<p align="center">
-  <img src="doc/gui.png">
-</p>
+
+## How can I install the Trackrefiner package?
+1. Download the most recent version of the package. For beta versions, check the `dev` branch.
+2. Extract the files and navigate to the folder where you downloaded the package
+3. Execute the following command:
+```
+pip install -e .
+```
+
+Additionally, you can set it up in a new conda environment using these commands:
+```
+conda env create -f environment.yml
+pip install -e .
+```
+
+## Required dependencies for this package include
+- numpy
+- scipy
+- pandas
+- scikit-learn
+- matplotlib
+- opencv-python
+- scikit-image
+
+## How do I execute the package?
+To execute it, run the <a href="runningAnalysis/runPostProcessing.py">runPostProcessing.py</a> file in your terminal. To understand the script's arguments, you can execute the following script:
+```
+python runPostProcessing.py -h
+```
+
+## Inputs required to run this package
+1. The output CSV file from "CP" which contains information about measured features of bacteria, such as length, orientation, etc., as well as tracking information. See an example <a href="examples/e.coli/FilterObjects.csv">here</a>.
+2. The folder contains files in the `npy` format, which are the results of segmentation, where the pixels of an object are unified in a specific color. See an example <a href="examples/e.coli/objects">here</a>.
+3. CSV file containing neighboring data of bacteria. See an example <a href="examples/e.coli/Object%20relationships.csv">here</a>.
