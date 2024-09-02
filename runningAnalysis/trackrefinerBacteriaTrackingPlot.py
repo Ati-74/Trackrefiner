@@ -9,12 +9,29 @@ import argparse
 import glob
 
 
-def bac_info(bac_in_timestep, um_per_pixel):
+def checking_columns(data_frame):
+    center_coordinate_columns = []
+
+    if 'Location_Center_X' in data_frame.columns and 'Location_Center_Y' in data_frame.columns:
+        center_coordinate_columns = {'x': 'Location_Center_X', 'y': 'Location_Center_Y'}
+
+    elif 'AreaShape_Center_X' in data_frame.columns and 'AreaShape_Center_Y' in data_frame.columns:
+        center_coordinate_columns = {'x': 'AreaShape_Center_X', 'y': 'AreaShape_Center_Y'}
+
+    else:
+        print('There was no column corresponding to the center of bacteria.')
+        breakpoint()
+
+    return center_coordinate_columns
+
+
+def bac_info(bac_in_timestep, um_per_pixel, center_coordinate_columns):
     """
     Extract key information about bacteria from a given DataFrame for a specific time step.
 
     @param bac_in_timestep DataFrame DataFrame containing bacteria information for a particular time step.
     @param um_per_pixel float Conversion factor from pixels to micrometers.
+    @param center_coordinate_columns dict column name of center_x & center_y
 
     Returns:
     tuple: A tuple containing four elements:
@@ -25,8 +42,8 @@ def bac_info(bac_in_timestep, um_per_pixel):
     """
 
     # Calculate the center coordinates of bacteria in micrometers
-    Objects_center_x = bac_in_timestep["AreaShape_Center_X"] / um_per_pixel
-    Objects_center_y = bac_in_timestep["AreaShape_Center_Y"] / um_per_pixel
+    Objects_center_x = bac_in_timestep[center_coordinate_columns['x']] / um_per_pixel
+    Objects_center_y = bac_in_timestep[center_coordinate_columns['y']] / um_per_pixel
 
     # Calculate the major axis length of bacteria in micrometers
     Objects_major_axis = bac_in_timestep["length"] / um_per_pixel
@@ -82,7 +99,8 @@ def find_vertex(center_x, center_y, major, angle_rotation, angle_tolerance=1e-6)
     return [[vertex_1_x, vertex_1_y], [vertex_2_x, vertex_2_y]]
 
 
-def draw_tracking_plot(df_current, raw_images, timestep, axis, object_color, um_per_pixel, font_size):
+def draw_tracking_plot(df_current, raw_images, timestep, axis, object_color, um_per_pixel, font_size,
+                       center_coordinate_columns):
 
     """
     Plot the lineage life history of bacteria in a given time step on a background image (raw image).
@@ -94,6 +112,7 @@ def draw_tracking_plot(df_current, raw_images, timestep, axis, object_color, um_
     @param object_color str Color used for plotting the bacteria.
     @param um_per_pixel float Conversion factor from pixels to micrometers.
     @param font_size float Font size for labeling the cells.
+    @param center_coordinate_columns dict column name of center_x & center_y
     """
 
     timestep = int(timestep)
@@ -110,7 +129,7 @@ def draw_tracking_plot(df_current, raw_images, timestep, axis, object_color, um_
 
     # Extract objects' information from the current time step
     Objects_center_coord_x, Objects_center_coord_y, Objects_major_current, Objects_orientation_current = \
-        bac_info(df_current, um_per_pixel)
+        bac_info(df_current, um_per_pixel, center_coordinate_columns)
 
     # Plot each cell
     num_cells = df_current.shape[0]
@@ -168,6 +187,8 @@ def tracking_bac(raw_img_dir, trackrefiner_csv_output_file, output_dir, object_c
     # Read CSV file containing tracking data
     df = pd.read_csv(trackrefiner_csv_output_file)
 
+    center_coordinate_columns = checking_columns(df)
+
     # Get list of all raw images
     raw_images = glob.glob(raw_img_dir + '/*.tif')
 
@@ -190,7 +211,8 @@ def tracking_bac(raw_img_dir, trackrefiner_csv_output_file, output_dir, object_c
 
         # Plot tracking plot for the current timestep
         fig, ax = plt.subplots()
-        draw_tracking_plot(df_current, raw_images, timestep, ax, object_color, um_per_pixel, font_size)
+        draw_tracking_plot(df_current, raw_images, timestep, ax, object_color, um_per_pixel, font_size,
+                           center_coordinate_columns)
 
         # Add legend and title
         plt.suptitle("Trackrefiner: Tracking objects in time step = " + str(timestep), fontsize=14, fontweight="bold")
