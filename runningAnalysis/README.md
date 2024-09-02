@@ -27,7 +27,7 @@ The script assumes that the images are ordered sequentially by time step. It con
 
 
 # Trackrefiner Bacteria Tracking Plot
-The `trackingPlotBacteria.py` script generates tracking plots for bacteria over different time steps using data from CSV file (output of Trackrefiner) and raw images. </br>
+The `trackrefinerBacteriaTrackingPlot.py` script generates tracking plots for bacteria over different time steps using data from CSV file (output of Trackrefiner) and raw images. </br>
 The plots visualize the lineage life history of cells in each time step on a background image.
 
 ## Usage
@@ -53,5 +53,5 @@ Default Value: 1
 ## How to Run the Script from the Command Line
 To run the script, use the following format:</br>
 ```
-python trackingPlotBacteria.py -t <trackrefiner_csv_output_file> -r <raw_image_dir> -o <output_dir> -u <umPerPixel> -c <objectColor> -f <font_size>
+python trackrefinerBacteriaTrackingPlot.py -t <trackrefiner_csv_output_file> -r <raw_image_dir> -o <output_dir> -u <umPerPixel> -c <objectColor> -f <font_size>
 ```
