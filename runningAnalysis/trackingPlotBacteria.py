@@ -177,7 +177,7 @@ def tracking_bac(raw_img_dir, trackrefiner_csv_output_file, output_dir, object_c
 
     # Create output directory if not provided
     if output_dir is None:
-        output_dir = os.path.dirname(trackrefiner_csv_output_file) + '/tracking_plot/'
+        output_dir = os.path.dirname(trackrefiner_csv_output_file) + '/Trackrefiner_tracking_plot/'
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -229,7 +229,7 @@ if __name__ == "__main__":
                         help="Color of objects in tracking plots. Default value: #56e64e.")
 
     parser.add_argument('-f', '--font_size', default="1",
-                        help="Font size for labeling information on objects. Default value: 1.")
+                        help="Font size for labeling information on objects. Default value: 1")
 
     # Parse the arguments
     args = parser.parse_args()
