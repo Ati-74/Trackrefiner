@@ -23,7 +23,7 @@ Default Value: 1
 ## How to Run the Script from the Command Line
 To run the script, use the following format:</br>
 ```
-python cellProfilerBacteriaTrackingPlot.py -t <trackrefiner_csv_output_file> -r <raw_image_dir> -o <output_dir> -u <umPerPixel> -c <objectColor> -f <font_size>
+python cellProfilerBacteriaTrackingPlot.py -t <cellprofiler_csv_output_file> -r <raw_image_dir> -o <output_dir> -c <objectColor> -f <font_size>
 ```
 
 
