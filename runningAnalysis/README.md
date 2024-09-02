@@ -52,5 +52,6 @@ Default Value: 1
 
 ## How to Run the Script from the Command Line
 To run the script, use the following format:
-`python trackingPlotBacteria.py -t <trackrefiner_csv_output_file> -r <raw_image_dir> -o <output_dir> -u <umPerPixel> -c <objectColor> -f <font_size>
-`
+``
+python trackingPlotBacteria.py -t <trackrefiner_csv_output_file> -r <raw_image_dir> -o <output_dir> -u <umPerPixel> -c <objectColor> -f <font_size>
+``
