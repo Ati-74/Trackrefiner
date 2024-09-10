@@ -1,9 +1,7 @@
 from Trackrefiner.strain.correction.action.findOutlier import find_sum_daughter_len_to_mother_ratio_boundary, \
     find_max_daughter_len_to_mother_ratio_boundary, find_bac_len_to_bac_ratio_boundary, find_upper_bound, \
     find_lower_bound
-from Trackrefiner.strain.correction.action.helperFunctions import (distance_normalization,
-                                                                   calculate_orientation_angle_batch)
-from Trackrefiner.strain.correction.neighborChecking import check_num_neighbors
+from Trackrefiner.strain.correction.action.helperFunctions import calculate_orientation_angle_batch
 from Trackrefiner.strain.correction.action.costFinder import (adding_new_terms_to_cost_matrix,
                                                               make_initial_distance_matrix)
 from scipy.optimize import linear_sum_assignment
@@ -40,28 +38,6 @@ def optimize_assignment(df):
     result_df['Total Minimized Cost'] = selected_costs.sum()
 
     return result_df
-
-
-def compare_daughters_bacteria(source_target_candidate_neighbors):
-    source_target_candidate_neighbors['endpoint12_distance'] = \
-        np.linalg.norm(source_target_candidate_neighbors[['endpoint1_X_target', 'endpoint1_Y_target']].values -
-                       source_target_candidate_neighbors[['endpoint2_X', 'endpoint2_Y']].values, axis=1)
-
-    source_target_candidate_neighbors['endpoint21_distance'] = \
-        np.linalg.norm(source_target_candidate_neighbors[['endpoint2_X_target', 'endpoint2_Y_target']].values -
-                       source_target_candidate_neighbors[['endpoint1_X', 'endpoint1_Y']].values, axis=1)
-
-    source_target_candidate_neighbors['min_distance'] = \
-        source_target_candidate_neighbors[['endpoint12_distance', 'endpoint21_distance']].min(axis=1)
-
-    # Pivot this DataFrame to get the desired structure
-    distance_df = \
-        source_target_candidate_neighbors[['index_source', 'index', 'min_distance']].pivot(
-            index='index_source', columns='index', values='min_distance')
-    distance_df.columns.name = None
-    distance_df.index.name = None
-
-    return distance_df
 
 
 def feature_space_adding_new_link_to_unexpected_beginning(neighbors_df, unexpected_begging_bac,
@@ -154,6 +130,7 @@ def feature_space_adding_new_link_to_unexpected_end(neighbors_df, unexpected_end
                                                     all_bac_in_unexpected_end_bac_time_step_df,
                                                     all_bacteria_in_next_time_step_to_unexpected_end_bac,
                                                     center_coordinate_columns, parent_object_number_col):
+
     overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_unexpected_end_bac_time_step_df,
                                                            unexpected_end_bac,
                                                            all_bacteria_in_next_time_step_to_unexpected_end_bac,
@@ -220,8 +197,8 @@ def feature_space_adding_new_link_to_unexpected_end(neighbors_df, unexpected_end
 
     # Concatenate the DataFrames
     final_candidate_bac = pd.concat([df_unexpected_beginning_with_can_bac,
-                                     df_unexpected_beginning_with_can_neighbor_bac]).sort_index(
-        kind='merge').reset_index(drop=True)
+                                     df_unexpected_beginning_with_can_neighbor_bac
+                                     ]).sort_index(kind='merge').reset_index(drop=True)
 
     # remove Nas because we used left join for neighbors
     final_candidate_bac = final_candidate_bac.dropna(subset=['index', 'index_candidate'])
@@ -725,52 +702,6 @@ def division_detection_cost(df, neighbors_df, candidate_source_daughter_df, min_
     return cost_df
 
 
-def receive_new_link_cost(df, neighbors_df, neighbors_bacteria_info, all_bac_in_source_time_step,
-                          target_incorrect_link, all_bac_in_target_time_step, center_coordinate_columns,
-                          parent_image_number_col, lower_bound_threshold_for_len, max_neighbor_changes):
-
-    overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_source_time_step,
-                                                           neighbors_bacteria_info, all_bac_in_target_time_step,
-                                                           target_incorrect_link, center_coordinate_columns)
-
-    normalized_distance_df = distance_normalization(df, distance_df)
-
-    cost_df = np.hypot(1 - overlap_df, normalized_distance_df)
-
-    final_cost_dict = {}
-
-    for neighbors_bac_ndx, neighbors_bac_cost in cost_df.iterrows():
-
-        neighbors_bac = df.iloc[neighbors_bac_ndx]
-
-        final_cost_dict[neighbors_bac_ndx] = []
-
-        for col in cost_df.columns:
-
-            bac_to_bac_length_ratio = df.loc[col]['AreaShape_MajorAxisLength'] / \
-                                      neighbors_bac['AreaShape_MajorAxisLength']
-
-            if bac_to_bac_length_ratio < lower_bound_threshold_for_len:
-
-                final_cost_dict[neighbors_bac_ndx].append(999)
-
-            else:
-
-                neighbors_changes = check_num_neighbors(df, neighbors_df, df.loc[col], neighbors_bac,
-                                                        parent_image_number_col)
-
-                final_cost_dict[neighbors_bac_ndx].append(
-                    np.linalg.norm([cost_df.at[neighbors_bac_ndx, col],
-                                    neighbors_changes / max_neighbor_changes])
-                )
-
-    final_cost = pd.DataFrame.from_dict(final_cost_dict, orient='index', columns=cost_df.columns.tolist())
-    final_cost = final_cost[~(final_cost == 999).all(axis=1)]
-    final_cost.columns = [col[0] if isinstance(col, tuple) else col for col in cost_df.columns]
-
-    return cost_df
-
-
 def same_link_cost(df, neighbors_df, source_bac_with_can_target, center_coordinate_columns, col_source, col_target,
                    parent_image_number_col, parent_object_number_col, non_divided_bac_model,
                    comparing_divided_non_divided_model, maintenance_cost_df, maintenance_to_be_check='target'):
@@ -911,13 +842,14 @@ def same_link_cost(df, neighbors_df, source_bac_with_can_target, center_coordina
                 maintenance_cost_df.loc[maintenance_cost_df.index.isin(
                     source_bac_with_can_target['index' + col_source].unique())]
 
-            for source_idx in candidate_target_maintenance_cost.index.values:
-                min_probability_value = candidate_target_maintenance_cost.loc[source_idx].min()
+            selected_candidate_target_maintenance_cost = \
+                candidate_target_maintenance_cost[candidate_target_maintenance_cost.min(axis=1) > 0.5]
+
+            for source_idx in selected_candidate_target_maintenance_cost.index.values:
+
                 max_probability_value = candidate_target_maintenance_cost.loc[source_idx].max()
 
-                if min_probability_value > 0.5:
-                    same_link_cost_df.loc[source_idx, same_link_cost_df.loc[source_idx] <= max_probability_value] = \
-                        np.nan
+                same_link_cost_df.loc[source_idx, same_link_cost_df.loc[source_idx] <= max_probability_value] = np.nan
 
         same_link_cost_df = 1 - same_link_cost_df
 
@@ -1040,6 +972,7 @@ def same_link_cost_for_final_checking(df, neighbors_df, source_bac_with_can_targ
 
             # don't need to convert probability to 1 - probability
             for col in candidate_target_maintenance_cost.columns.values:
+                # maintenance cost
                 this_target_bac_maintenance_cost = candidate_target_maintenance_cost[col].dropna().iloc[0]
                 same_link_cost_df.loc[same_link_cost_df[col] <= this_target_bac_maintenance_cost, col] = np.nan
 
@@ -1050,13 +983,13 @@ def same_link_cost_for_final_checking(df, neighbors_df, source_bac_with_can_targ
                 maintenance_cost_df.loc[maintenance_cost_df.index.isin(
                     source_bac_with_can_target['index' + col_source].unique())]
 
-            for source_idx in candidate_target_maintenance_cost.index.values:
-                min_probability_value = candidate_target_maintenance_cost.loc[source_idx].min()
+            selected_candidate_target_maintenance_cost = \
+                candidate_target_maintenance_cost[candidate_target_maintenance_cost.min(axis=1) > 0.5]
+
+            for source_idx in selected_candidate_target_maintenance_cost.index.values:
                 max_probability_value = candidate_target_maintenance_cost.loc[source_idx].max()
 
-                if min_probability_value > 0.5:
-                    same_link_cost_df.loc[source_idx, same_link_cost_df.loc[source_idx] <= max_probability_value] = \
-                        np.nan
+                same_link_cost_df.loc[source_idx, same_link_cost_df.loc[source_idx] <= max_probability_value] = np.nan
 
         same_link_cost_df = 1 - same_link_cost_df
 
@@ -1083,7 +1016,6 @@ def calc_maintenance_cost(df, all_bac_in_source_time_step, sel_source_bacteria_i
                           all_bac_in_target_time_step, neighbor_df, sel_target_bacteria_info,
                           center_coordinate_columns, parent_image_number_col, parent_object_number_col,
                           comparing_divided_non_divided_model):
-
     if sel_target_bacteria_info.shape[0] > 0 and sel_source_bacteria_info.shape[0] > 0:
 
         # difference_neighbors,
@@ -1162,7 +1094,6 @@ def calc_maintenance_cost(df, all_bac_in_source_time_step, sel_source_bacteria_i
             cost_df_division.index.name = None
 
         if same_bac_merged_df.shape[0] > 0:
-
             y_prob_compare_same_bac = \
                 comparing_divided_non_divided_model.predict_proba(same_bac_merged_df[feature_list])[:, 1]
 
@@ -1286,12 +1217,12 @@ def feature_space_adding_new_link_to_unexpected(df, neighbors_df, unexpected_end
     return bac_under_invest, final_candidate_bac
 
 
-def adding_new_link_to_unexpected(df, neighbors_df, unexpected_end_bac_in_current_time_step,
-                                  all_bac_in_unexpected_end_bac_time_step,
-                                  all_bac_in_next_time_step_to_unexpected_end_bac, center_coordinate_columns,
-                                  parent_image_number_col, parent_object_number_col,
-                                  min_life_history_of_bacteria, comparing_divided_non_divided_model,
-                                  non_divided_bac_model, divided_bac_model):
+def adding_new_link_to_unexpected_end(df, neighbors_df, unexpected_end_bac_in_current_time_step,
+                                      all_bac_in_unexpected_end_bac_time_step,
+                                      all_bac_in_next_time_step_to_unexpected_end_bac, center_coordinate_columns,
+                                      parent_image_number_col, parent_object_number_col,
+                                      min_life_history_of_bacteria, comparing_divided_non_divided_model,
+                                      non_divided_bac_model, divided_bac_model):
     max_daughter_len_to_mother_ratio_boundary = find_max_daughter_len_to_mother_ratio_boundary(df)
     sum_daughter_len_to_mother_ratio_boundary = find_sum_daughter_len_to_mother_ratio_boundary(df)
 
@@ -1354,56 +1285,67 @@ def adding_new_link_to_unexpected(df, neighbors_df, unexpected_end_bac_in_curren
 
         division_cost_dict = {}
 
-        for row_idx, row in division_cost_df.iterrows():
+        # < 2: # it means that division can not possible
+        filtered_division_cost_df = division_cost_df[division_cost_df[division_cost_df < 0.5].count(axis=1) >= 2]
+
+        for row_idx, row in filtered_division_cost_df.iterrows():
+
             candidate_daughters = row[row < 0.5].index.values
 
-            if len(candidate_daughters) < 2:
-                # it means that division can not possible
-                pass
+            unexpected_bac_length = df.at[row_idx, 'AreaShape_MajorAxisLength']
 
-            elif len(candidate_daughters) == 2:
-                sum_daughter_to_mother = ((df.at[candidate_daughters[0], 'AreaShape_MajorAxisLength'] +
-                                           df.at[candidate_daughters[1], 'AreaShape_MajorAxisLength']) /
-                                          df.at[row_idx, 'AreaShape_MajorAxisLength'])
+            if len(candidate_daughters) == 2:
 
-                max_daughter_to_mother = (max(df.at[candidate_daughters[0], 'AreaShape_MajorAxisLength'],
-                                              df.at[candidate_daughters[1], 'AreaShape_MajorAxisLength']) /
-                                          df.at[row_idx, 'AreaShape_MajorAxisLength'])
+                daughter1_length = df.at[candidate_daughters[0], 'AreaShape_MajorAxisLength']
+                daughter2_length = df.at[candidate_daughters[1], 'AreaShape_MajorAxisLength']
+
+                sum_daughter_to_mother = ((daughter1_length + daughter2_length) / unexpected_bac_length)
+
+                max_daughter_to_mother = max(daughter1_length, daughter2_length) / unexpected_bac_length
 
                 if max_daughter_to_mother < 1 and max_daughter_to_mother <= upper_bound_max_daughter_len and \
                         lower_bound_sum_daughter_len <= sum_daughter_to_mother <= upper_bound_sum_daughter_len:
-
                     division_cost_dict[row_idx] = {candidate_daughters[0]: row[candidate_daughters[0]],
                                                    candidate_daughters[1]: row[candidate_daughters[1]]}
 
             elif len(candidate_daughters) > 2:
 
-                division_cost_for_compare = {}
+                num_candidate_daughters = len(candidate_daughters)
 
-                for i in candidate_daughters:
-                    for j in candidate_daughters:
-                        if i != j:
-                            sum_daughter_to_mother = ((df.at[i, 'AreaShape_MajorAxisLength'] +
-                                                       df.at[j, 'AreaShape_MajorAxisLength']) /
-                                                      df.at[row_idx, 'AreaShape_MajorAxisLength'])
+                division_cost_for_compare = []
+                division_cost_daughters = []
 
-                            max_daughter_to_mother = (max(df.at[i, 'AreaShape_MajorAxisLength'],
-                                                          df.at[j, 'AreaShape_MajorAxisLength']) /
-                                                      df.at[row_idx, 'AreaShape_MajorAxisLength'])
+                for i_idx in range(num_candidate_daughters):
 
-                            if (max_daughter_to_mother < 1 and
-                                    max_daughter_to_mother <= upper_bound_max_daughter_len and
-                                    lower_bound_sum_daughter_len <=
-                                    sum_daughter_to_mother <= upper_bound_sum_daughter_len):
-                                # daughters
-                                # compare basen on minimum probability (1 - probability)
-                                division_cost_for_compare[min(row[i], row[j])] = [i, j]
+                    i = candidate_daughters[i_idx]
+                    daughter1_length = df.at[i, 'AreaShape_MajorAxisLength']
 
-                    if len(division_cost_for_compare.keys()) > 0:
-                        min_div_cost = min(list(division_cost_for_compare.keys()))
+                    for j_idx in range(i_idx + 1, num_candidate_daughters):
+
+                        j = candidate_daughters[j_idx]
+
+                        daughter2_length = df.at[j, 'AreaShape_MajorAxisLength']
+
+                        sum_daughter_to_mother = ((daughter1_length + daughter2_length) / unexpected_bac_length)
+
+                        max_daughter_to_mother = max(daughter1_length, daughter2_length) / unexpected_bac_length
+
+                        if (max_daughter_to_mother < 1 and
+                                max_daughter_to_mother <= upper_bound_max_daughter_len and
+                                lower_bound_sum_daughter_len <=
+                                sum_daughter_to_mother <= upper_bound_sum_daughter_len):
+                            # daughters
+                            # compare basen on average probability (1 - probability)
+                            division_cost_for_compare.append(np.average([row[i], row[j]]))
+                            division_cost_daughters.append((i, j))
+
+                    if division_cost_daughters:
+                        min_div_cost_idx = np.argmin(division_cost_for_compare)
+                        selected_daughters = division_cost_daughters[min_div_cost_idx]
+
                         division_cost_dict[row_idx] = {
-                            division_cost_for_compare[min_div_cost][0]: row[division_cost_for_compare[min_div_cost][0]],
-                            division_cost_for_compare[min_div_cost][1]: row[division_cost_for_compare[min_div_cost][1]]}
+                            selected_daughters[0]: row[selected_daughters[0]],
+                            selected_daughters[1]: row[selected_daughters[1]]}
 
         final_division_cost_df = pd.DataFrame.from_dict(division_cost_dict, orient='index')
 
@@ -1411,37 +1353,48 @@ def adding_new_link_to_unexpected(df, neighbors_df, unexpected_end_bac_in_curren
         # want to have same daughter
         non_nan_counts = final_division_cost_df.count()
         # Identify columns with more than one non-NaN value
+        # it means that this daughter can participate in two different division
         columns_with_multiple_non_nan = non_nan_counts[non_nan_counts > 1].index
 
         if len(columns_with_multiple_non_nan) > 0:
             for col in columns_with_multiple_non_nan:
 
-                if final_division_cost_df[col].count() > 1:
-                    # it means that this daughter can participate in two different division
-                    # I want to compare average probability
-                    division_cost_check = final_division_cost_df.loc[~ final_division_cost_df[col].isna()]
-                    # find division with lower chance
-                    incorrect_division = division_cost_check.loc[division_cost_check.mean(axis=1) >
-                                                                 division_cost_check.mean(axis=1).min()]
+                # if final_division_cost_df[col].count() > 1:
+                # I want to compare average probability
+                division_cost_check = final_division_cost_df.loc[~ final_division_cost_df[col].isna()]
 
-                    final_division_cost_df.loc[incorrect_division.index.values] = np.nan
+                # find division with lower chance
+                avg_division_probability_per_unexpected_end_bac = division_cost_check.mean(axis=1)
+
+                incorrect_division_cond = (avg_division_probability_per_unexpected_end_bac >
+                                           avg_division_probability_per_unexpected_end_bac.min())
+
+                final_division_cost_df.loc[incorrect_division_cond] = np.nan
 
         # now we should compare division with same cost because one target bac can be daughter of
-        common_columns = \
-            set(final_division_cost_df.columns.tolist()).intersection(set(same_link_cost_df.columns.tolist()))
+        common_columns = np.intersect1d(final_division_cost_df.columns, same_link_cost_df.columns)
 
         if len(common_columns) > 0:
+
+            # Calculate the minimum values for each column in same_link_cost_df
+            incorrect_same_link_nan_col = []
+            incorrect_division_row_ndx = []
+
             for col in common_columns:
                 min_same_bac_cost = same_link_cost_df[col].min()
 
                 division_related_to_this_col = final_division_cost_df.loc[~ final_division_cost_df[col].isna()]
-                min_div_probability = min(division_related_to_this_col.min())
+                min_div_probability = min(division_related_to_this_col.mean())
 
                 if min_same_bac_cost > min_div_probability:
                     # it means 1 - same probability is lower than 1 - division probability
-                    same_link_cost_df[col] = np.nan
+                    incorrect_same_link_nan_col.append(col)
                 else:
+                    incorrect_division_row_ndx.extend(division_related_to_this_col.index.values)
                     final_division_cost_df.loc[division_related_to_this_col.index.values] = np.nan
+
+            same_link_cost_df[incorrect_same_link_nan_col] = np.nan
+            final_division_cost_df.loc[incorrect_division_row_ndx] = np.nan
 
         # remove rows with all value equal to nan
         same_link_cost_df = same_link_cost_df.dropna(axis=1, how='all')
