@@ -26,8 +26,8 @@ def make_ml_model_for_non_divided_bacteria(df, connected_bac_high_chance_to_be_c
 
     col_names = df.columns.tolist().copy()
     org_col_names = df.columns.tolist().copy()
-    col_names.extend([v + '_prev_neighbor' for v in df.columns.tolist()])
-    org_col_names.extend([v + '_prev' for v in df.columns.tolist()])
+    col_names.extend([v + '_prev_neighbor' for v in df.columns])
+    org_col_names.extend([v + '_prev' for v in df.columns])
 
     non_divided_bac_with_neighbor_of_source = non_divided_bac[col_names]
     non_divided_bac = non_divided_bac[org_col_names]
@@ -38,7 +38,7 @@ def make_ml_model_for_non_divided_bacteria(df, connected_bac_high_chance_to_be_c
             ~ non_divided_bac_with_neighbor_of_source['index_prev_neighbor'].isna()]
 
     rename_dict = {}
-    for col in df.columns.tolist():
+    for col in df.columns:
         rename_dict[col + '_prev_neighbor'] = col + '_prev'
 
     # rename columns

@@ -21,13 +21,13 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
 
     selected_rows_df = selected_rows_df.drop(["daughter_length_to_mother", "max_daughter_len_to_mother",
                                               'avg_daughters_TrajectoryX', 'avg_daughters_TrajectoryY'], axis=1)
-    selected_rows_df_temp = selected_rows_df.copy()
+    # selected_rows_df_temp = selected_rows_df.copy()
 
     selected_rows_df_first_time_step = \
         selected_rows_df.loc[(selected_rows_df['ImageNumber'] == selected_rows_df['ImageNumber'].min()) &
                              (selected_rows_df[parent_image_number_col] != 0)]
 
-    temp_org_df = df.copy()
+    # temp_org_df = df.copy()
     selected_rows = selected_rows_df['index'].values
 
     df.loc[selected_rows, ["id", "divideFlag", 'unexpected_end', 'unexpected_beginning', 'daughters_index',
@@ -237,7 +237,8 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
     other_bac_df = df.loc[other_bac_idx]
 
     temp_df = df.loc[(df['ImageNumber'] >= first_time_step_selected_rows - 1) &
-                     (df['ImageNumber'] <= last_time_step_selected_rows)].copy()
+                     (df['ImageNumber'] <= last_time_step_selected_rows)][['ImageNumber', 'ObjectNumber',
+                                                                           'index']].copy()
 
     temp_df.index = (temp_df['ImageNumber'].astype(str) + '_' + temp_df['ObjectNumber'].astype(str))
 
@@ -391,7 +392,8 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
     bac_need_to_cal_dir_motion = \
         updated_selected_rows_df.loc[(updated_selected_rows_df['slope_bac_bac'].isna()) &
                                      (updated_selected_rows_df['unexpected_beginning'] == False) &
-                                     (updated_selected_rows_df['ImageNumber'] != 1)].copy()
+                                     (updated_selected_rows_df['ImageNumber'] != 1)][['index', 'bacteria_slope',
+                                                                                      'prev_bacteria_slope']].copy()
 
     df.loc[bac_need_to_cal_dir_motion['index'].values, 'slope_bac_bac'] = \
         calculate_orientation_angle_batch(bac_need_to_cal_dir_motion['bacteria_slope'].values,
@@ -454,16 +456,16 @@ def calc_modified_features(df, selected_rows_df, neighbor_df, center_coordinate_
                            selected_rows_df=bac_in_selected_rows_time_step,
                            selected_time_step_df=selected_time_step_df)
 
-    temp_fff = df.loc[(df['direction_of_motion'].isna()) & (df['TrackObjects_ParentImageNumber_50'] != 0)]
-    if temp_fff.shape[0] > 0:
-        temp_org_df.to_csv('temp_org_df.csv')
-        selected_rows_df_temp.to_csv('selected_rows_df_temp.csv')
-        df.to_csv('df.csv')
-        print(z)
-        print(stat)
-        print(bac1)
-        bac2_life_history.to_csv('bac2_life_history.csv')
-        breakpoint()
+    # temp_fff = df.loc[(df['direction_of_motion'].isna()) & (df['TrackObjects_ParentImageNumber_50'] != 0)]
+    #if temp_fff.shape[0] > 0:
+        # temp_org_df.to_csv('temp_org_df.csv')
+    #    selected_rows_df_temp.to_csv('selected_rows_df_temp.csv')
+    #    df.to_csv('df.csv')
+    #    print(z)
+    #    print(stat)
+    #    print(bac1)
+    #    bac2_life_history.to_csv('bac2_life_history.csv')
+    #    breakpoint()
 
     # dataframe.drop(labels='checked', axis=1, inplace=True)
     return df

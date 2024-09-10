@@ -24,8 +24,8 @@ def make_ml_model_for_divided_bacteria(df, connected_bac_high_chance_to_be_corre
 
     col_names = df.columns.tolist().copy()
     org_col_names = df.columns.tolist().copy()
-    col_names.extend([v + '_prev_neighbor' for v in df.columns.tolist()])
-    org_col_names.extend([v + '_prev' for v in df.columns.tolist()])
+    col_names.extend([v + '_prev_neighbor' for v in df.columns])
+    org_col_names.extend([v + '_prev' for v in df.columns])
 
     divided_bac_with_neighbor_of_source = connected_bac_high_chance_to_be_correct_with_neighbors_info[col_names].copy()
     divided_bac = divided_bac[org_col_names]
@@ -36,7 +36,7 @@ def make_ml_model_for_divided_bacteria(df, connected_bac_high_chance_to_be_corre
             ~ divided_bac_with_neighbor_of_source['index_prev_neighbor'].isna()]
 
     rename_dict = {}
-    for col in df.columns.tolist():
+    for col in df.columns:
         rename_dict[col + '_prev_neighbor'] = col + '_prev'
 
     divided_bac_with_neighbor_of_source = divided_bac_with_neighbor_of_source.rename(rename_dict, axis=1)

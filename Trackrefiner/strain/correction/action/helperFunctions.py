@@ -93,8 +93,7 @@ def calc_neighbors_dir_motion_all(df, neighbor_df, division_df, parent_image_num
 
     all_bac_neighbors_info.index = all_bac_neighbors_info['index'].values
 
-    if len(set(all_bac_neighbors_info['index'].values.tolist())) != len(
-            all_bac_neighbors_info['index'].values.tolist()):
+    if len(np.unique(all_bac_neighbors_info['index'].values)) != len(all_bac_neighbors_info['index'].values):
         breakpoint()
 
     # update dataframe
@@ -172,13 +171,10 @@ def update_df_based_on_selected_rows(dataframe, selected_rows):
     return dataframe
 
 
-def adding_features_to_continues_life_history(dataframe, neighbor_df, division_df, center_coordinate_columns,
-                                              parent_image_number_col, parent_object_number_col,
-                                              calc_all=True, selected_rows=None, bac_with_neighbors=None):
-    if selected_rows is not None:
-        original_df = dataframe.copy()
-        dataframe = selected_rows.copy()
-
+def calc_features_features_to_continues_life_history(dataframe, calc_all, neighbor_df, division_df,
+                                                     parent_image_number_col,
+                                                     parent_object_number_col, center_coordinate_columns,
+                                                     flag_selected_rows, original_df=None):
     if calc_all:
         dataframe['prev_time_step_MajorAxisLength'] = dataframe.groupby('id')["AreaShape_MajorAxisLength"].shift(1)
         dataframe['LengthChangeRatio'] = (dataframe["AreaShape_MajorAxisLength"] /
@@ -217,23 +213,30 @@ def adding_features_to_continues_life_history(dataframe, neighbor_df, division_d
 
     if calc_all:
 
-        bac_need_to_cal_dir_motion = dataframe.loc[dataframe["direction_of_motion"].isna()]
-        bac_need_to_cal_dir_motion = bac_need_to_cal_dir_motion.drop(['TrajectoryX', 'TrajectoryY'], axis=1)
+        bac_need_to_cal_dir_motion_condition = dataframe["direction_of_motion"].isna()
 
         direction_of_motion = \
-            calculate_trajectory_direction_angle_all(bac_need_to_cal_dir_motion, center_coordinate_columns)
+            calculate_trajectory_direction_angle_all(dataframe[bac_need_to_cal_dir_motion_condition],
+                                                     center_coordinate_columns)
 
-        dataframe.loc[bac_need_to_cal_dir_motion.index, "direction_of_motion"] = direction_of_motion
+        dataframe.loc[bac_need_to_cal_dir_motion_condition, "direction_of_motion"] = direction_of_motion
 
-        dataframe.loc[bac_need_to_cal_dir_motion.index, ['TrajectoryX', 'TrajectoryY']] = \
-            calculate_trajectory_direction_all(bac_need_to_cal_dir_motion,
-                                               center_coordinate_columns)[['TrajectoryX', 'TrajectoryY']]
+        calculated_trajectory_x = calculate_trajectory_direction_all(
+            dataframe.loc[bac_need_to_cal_dir_motion_condition],
+            center_coordinate_columns, mode='x')
 
-        if selected_rows is not None:
+        calculated_trajectory_y = calculate_trajectory_direction_all(
+            dataframe.loc[bac_need_to_cal_dir_motion_condition],
+            center_coordinate_columns, mode='y')
+
+        dataframe.loc[bac_need_to_cal_dir_motion_condition, 'TrajectoryX'] = calculated_trajectory_x
+        dataframe.loc[bac_need_to_cal_dir_motion_condition, 'TrajectoryY'] = calculated_trajectory_y
+
+        if flag_selected_rows:
 
             original_df = update_df_based_on_selected_rows(original_df, dataframe)
-            selected_rows = original_df.loc[(original_df['ImageNumber'] >= selected_rows['ImageNumber'].min()) &
-                                            (original_df['ImageNumber'] <= selected_rows['ImageNumber'].max())]
+            selected_rows = original_df.loc[(original_df['ImageNumber'] >= dataframe['ImageNumber'].min()) &
+                                            (original_df['ImageNumber'] <= dataframe['ImageNumber'].max())]
 
             dataframe = calc_neighbors_dir_motion_all(original_df, neighbor_df, division_df, parent_image_number_col,
                                                       parent_object_number_col, selected_rows)
@@ -241,6 +244,27 @@ def adding_features_to_continues_life_history(dataframe, neighbor_df, division_d
         else:
             dataframe = calc_neighbors_dir_motion_all(dataframe, neighbor_df, division_df, parent_image_number_col,
                                                       parent_object_number_col)
+
+    return dataframe
+
+
+def adding_features_to_continues_life_history(dataframe, neighbor_df, division_df, center_coordinate_columns,
+                                              parent_image_number_col, parent_object_number_col,
+                                              calc_all=True, selected_rows=None, bac_with_neighbors=None):
+    if selected_rows is not None:
+
+        dataframe = calc_features_features_to_continues_life_history(selected_rows, calc_all, neighbor_df, division_df,
+                                                                     parent_image_number_col,
+                                                                     parent_object_number_col,
+                                                                     center_coordinate_columns,
+                                                                     flag_selected_rows=True, original_df=dataframe)
+
+    else:
+        dataframe = calc_features_features_to_continues_life_history(dataframe, calc_all, neighbor_df, division_df,
+                                                                     parent_image_number_col,
+                                                                     parent_object_number_col,
+                                                                     center_coordinate_columns,
+                                                                     flag_selected_rows=False)
 
     return dataframe
 
@@ -283,16 +307,23 @@ def adding_features_to_continues_life_history_after_oad(dataframe, neighbor_df, 
         np.minimum.reduce([center_movement, endpoint1_1_movement, endpoint2_2_movement,
                            endpoint1_endpoint2_movement, endpoint2_endpoint1_movement])
 
-    bac_need_to_cal_dir_motion = dataframe.loc[dataframe["direction_of_motion"].isna()].copy()
+    bac_need_to_cal_dir_motion_condition = dataframe["direction_of_motion"].isna()
 
     direction_of_motion = \
-        calculate_trajectory_direction_angle_all(bac_need_to_cal_dir_motion, center_coordinate_columns)
+        calculate_trajectory_direction_angle_all(dataframe.loc[bac_need_to_cal_dir_motion_condition],
+                                                 center_coordinate_columns)
 
-    dataframe.loc[bac_need_to_cal_dir_motion.index, "direction_of_motion"] = direction_of_motion
+    dataframe.loc[bac_need_to_cal_dir_motion_condition, "direction_of_motion"] = direction_of_motion
 
-    dataframe.loc[bac_need_to_cal_dir_motion.index, ['TrajectoryX', 'TrajectoryY']] = \
-        calculate_trajectory_direction_all(bac_need_to_cal_dir_motion,
-                                           center_coordinate_columns)[['TrajectoryX', 'TrajectoryY']]
+    calculated_trajectory_x = calculate_trajectory_direction_all(dataframe.loc[bac_need_to_cal_dir_motion_condition],
+                                                                 center_coordinate_columns, mode='x')
+
+    calculated_trajectory_y = calculate_trajectory_direction_all(dataframe.loc[bac_need_to_cal_dir_motion_condition],
+                                                                 center_coordinate_columns, mode='y')
+
+    dataframe.loc[bac_need_to_cal_dir_motion_condition, 'TrajectoryX'] = calculated_trajectory_x
+
+    dataframe.loc[bac_need_to_cal_dir_motion_condition, 'TrajectoryY'] = calculated_trajectory_y
 
     dataframe = calc_neighbors_dir_motion_all(dataframe, neighbor_df, division_df, parent_image_number_col,
                                               parent_object_number_col)
@@ -380,13 +411,13 @@ def calc_new_features_after_rpl(df, neighbor_df, center_coordinate_columns, pare
     df['prev_bacteria_slope'] = df.groupby('id')['bacteria_slope'].shift(1)
     df.loc[bac_idx_not_needed_to_update, 'prev_bacteria_slope'] = temporal_df['prev_bacteria_slope'].values
 
-    bac_need_to_cal_dir_motion = df.loc[(df['slope_bac_bac'].isna()) &
-                                        (df['unexpected_beginning'] == False) &
-                                        (df['ImageNumber'] != 1)].copy()
+    bac_need_to_cal_dir_motion_condition = (df['slope_bac_bac'].isna() &
+                                            df['unexpected_beginning'] == False &
+                                            df['ImageNumber'] != 1)
 
-    df.loc[bac_need_to_cal_dir_motion['index'].values, 'slope_bac_bac'] = \
-        calculate_orientation_angle_batch(bac_need_to_cal_dir_motion['bacteria_slope'].values,
-                                          bac_need_to_cal_dir_motion['prev_bacteria_slope'])
+    df.loc[bac_need_to_cal_dir_motion_condition, 'slope_bac_bac'] = \
+        calculate_orientation_angle_batch(df[bac_need_to_cal_dir_motion_condition, 'bacteria_slope'].values,
+                                          df[bac_need_to_cal_dir_motion_condition, 'prev_bacteria_slope'])
 
     df = calc_neighbors_dir_motion_all(df, neighbor_df, division, parent_image_number_col, parent_object_number_col)
 
@@ -422,10 +453,12 @@ def calculate_trajectory_direction(previous_position, current_position):
     return direction
 
 
-def calculate_trajectory_direction_all(df, center_coordinate_columns):
+def calculate_trajectory_direction_all(df, center_coordinate_columns, mode):
     # Calculate the direction vector from the previous position to the current position
-    df['TrajectoryX'] = df[center_coordinate_columns['x']] - df['prev_time_step_center_x']
-    df['TrajectoryY'] = df[center_coordinate_columns['y']] - df['prev_time_step_center_y']
+    if mode == 'x':
+        return df[center_coordinate_columns['x']] - df['prev_time_step_center_x']
+    elif mode == 'y':
+        return df[center_coordinate_columns['y']] - df['prev_time_step_center_y']
 
     return df
 
