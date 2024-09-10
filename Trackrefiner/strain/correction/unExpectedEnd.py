@@ -1,4 +1,4 @@
-from Trackrefiner.strain.correction.action.compareBacteria import adding_new_link_to_unexpected
+from Trackrefiner.strain.correction.action.compareBacteria import adding_new_link_to_unexpected_end
 from Trackrefiner.strain.correction.action.compareBacteria import optimize_assignment
 from Trackrefiner.strain.correction.action.bacteriaModification import bacteria_modification, remove_redundant_link
 import pandas as pd
@@ -126,14 +126,14 @@ def unexpected_end_bacteria(df, neighbors_df, min_life_history_of_bacteria, inte
 
                 (raw_same_link_cost_df, new_link_cost_df, division_cost_df, final_division_cost_df_after_merge_prob,
                  final_division_cost_df, maintenance_cost_df) = \
-                    adding_new_link_to_unexpected(df, neighbors_df,
-                                                  unexpected_end_bac_in_current_time_step_df,
-                                                  all_bac_in_unexpected_end_bac_time_step,
-                                                  all_bac_in_next_time_step_to_unexpected_end_bac,
-                                                  center_coordinate_columns, parent_image_number_col,
-                                                  parent_object_number_col, min_life_history_of_bacteria,
-                                                  comparing_divided_non_divided_model, non_divided_bac_model,
-                                                  divided_bac_model)
+                    adding_new_link_to_unexpected_end(df, neighbors_df,
+                                                      unexpected_end_bac_in_current_time_step_df,
+                                                      all_bac_in_unexpected_end_bac_time_step,
+                                                      all_bac_in_next_time_step_to_unexpected_end_bac,
+                                                      center_coordinate_columns, parent_image_number_col,
+                                                      parent_object_number_col, min_life_history_of_bacteria,
+                                                      comparing_divided_non_divided_model, non_divided_bac_model,
+                                                      divided_bac_model)
 
                 # if unexpected_end_bacteria_time_step == 69:
                 #    raw_same_link_cost_df.to_csv('raw_same_link_cost_df.' + str(n_iterate) + '.csv')

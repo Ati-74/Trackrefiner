@@ -360,6 +360,8 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
     # Rename the aggregated column for clarity
     idx_neighbors_for_each_bac.rename(columns={'index_neighbor': 'NeighborIndexList'}, inplace=True)
 
+    # idx_neighbors_for_each_bac['NeighborIndexList'] = idx_neighbors_for_each_bac['NeighborIndexList'].apply(np.array)
+
     # Merge the aggregated data back to the original DataFrame
     # append the list od daughters id to mother
     dataframe = dataframe.merge(idx_neighbors_for_each_bac, on=['ImageNumber', 'ObjectNumber'], how='left')
@@ -737,4 +739,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         fixed_errors = pd.DataFrame()
         remaining_errors_df = pd.DataFrame()
 
-    return df, logs_list, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df, neighbors_df
+    selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
+
+    return (df[selected_cols], logs_list, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df,
+            neighbors_df)
