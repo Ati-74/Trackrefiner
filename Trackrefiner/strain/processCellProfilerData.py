@@ -6,6 +6,22 @@ import glob
 from Trackrefiner.strain.experimentalDataProcessing import bacteria_analysis_func
 from Trackrefiner.strain.correction.findFixErrors import find_fix_errors
 from Trackrefiner.strain.correction.action.helperFunctions import checking_columns, print_progress_bar
+import psutil
+import threading
+
+
+def monitor_system_usage(stats, interval=1, stop_event=None):
+    process = psutil.Process()
+    while not stop_event.is_set():
+        cpu_usage = psutil.cpu_percent(interval=None)
+        memory_info = process.memory_info()
+        memory_usage = memory_info.rss / (1024 * 1024 * 1024)  # Convert memory to GB
+
+        # Store CPU and memory usage in a shared list
+        stats['cpu'].append(cpu_usage)
+        stats['memory'].append(memory_usage)
+
+        time.sleep(interval)  # Interval to report CPU and memory usage
 
 
 def process_data(input_file, npy_files_dir, neighbors_file, output_directory, interval_time, growth_rate_method,
@@ -24,119 +40,144 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
 
     log_list = []
 
-    # Recording the start time
-    start_time = time.time()
-    start_time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
-    start_time_log = "Started at: " + start_time_str
-    print(start_time_log)
-    log_list.append(start_time_log)
+    # Shared dictionary to store CPU and memory usage stats
+    stats = {
+        'cpu': [],  # List to store CPU usage over time
+        'memory': []  # List to store memory usage over time
+    }
 
-    # Initial call to print 0% progress
-    print_progress_bar(0, prefix='Progress:', suffix='Complete', length=50)
+    # Set up an event to stop the monitoring thread when execution is done
+    stop_event = threading.Event()
 
-    if not without_tracking_correction:
-        # Parsing CellProfiler output
-        if npy_files_dir is not None:
-            sorted_npy_files_list = sorted(glob.glob(npy_files_dir + '/*.npy'))
+    # Start the monitoring in a separate thread
+    monitoring_thread = threading.Thread(target=monitor_system_usage, args=(stats, 1, stop_event))
+    monitoring_thread.start()
+
+    try:
+        # Recording the start time
+        start_time = time.time()
+        start_time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))
+        start_time_log = "Started at: " + start_time_str
+        print(start_time_log)
+        log_list.append(start_time_log)
+
+        # Initial call to print 0% progress
+        print_progress_bar(0, prefix='Progress:', suffix='Complete', length=50)
+
+        if not without_tracking_correction:
+            # Parsing CellProfiler output
+            if npy_files_dir is not None:
+                sorted_npy_files_list = sorted(glob.glob(npy_files_dir + '/*.npy'))
+            else:
+                sorted_npy_files_list = []
         else:
             sorted_npy_files_list = []
-    else:
-        sorted_npy_files_list = []
 
-    data_frame = pd.read_csv(input_file)
+        data_frame = pd.read_csv(input_file)
 
-    (center_coordinate_columns, all_center_coordinate_columns, parent_image_number_col, parent_object_number_col,
-     label_col) = checking_columns(data_frame)
+        (center_coordinate_columns, all_center_coordinate_columns, parent_image_number_col, parent_object_number_col,
+         label_col) = checking_columns(data_frame)
 
-    if not without_tracking_correction:
-        neighbors_df = pd.read_csv(neighbors_file)
-        neighbors_df = neighbors_df.loc[neighbors_df['Relationship'] == 'Neighbors']
-    else:
-        neighbors_df = pd.DataFrame()
-
-    if (len(sorted_npy_files_list) > 0 and neighbors_df.shape[0] > 0) or without_tracking_correction:
-
-        if output_directory is not None:
-            output_directory = output_directory + "/"
+        if not without_tracking_correction:
+            neighbors_df = pd.read_csv(neighbors_file)
+            neighbors_df = neighbors_df.loc[neighbors_df['Relationship'] == 'Neighbors']
         else:
-            # Create the directory if it does not exist
-            output_directory = os.path.dirname(input_file)
-            os.makedirs(output_directory + '/Trackrefiner', exist_ok=True)
-            output_directory = output_directory + '/Trackrefiner/'
+            neighbors_df = pd.DataFrame()
 
-        (data_frame, find_fix_errors_log, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df,
-         neighbors_df) = \
-            find_fix_errors(data_frame, sorted_npy_files_list, neighbors_df, center_coordinate_columns,
-                            all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, label_col,
-                            number_of_gap=number_of_gap, um_per_pixel=um_per_pixel,
-                            intensity_threshold=intensity_threshold, check_cell_type=assigning_cell_type,
-                            interval_time=interval_time, min_life_history_of_bacteria=min_life_history_of_bacteria,
-                            warn=warn, without_tracking_correction=without_tracking_correction,
-                            output_directory=output_directory, clf=clf, n_cpu=n_cpu, boundary_limits=boundary_limits)
+        if (len(sorted_npy_files_list) > 0 and neighbors_df.shape[0] > 0) or without_tracking_correction:
 
-        log_list.extend(find_fix_errors_log)
+            if output_directory is not None:
+                output_directory = output_directory + "/"
+            else:
+                # Create the directory if it does not exist
+                output_directory = os.path.dirname(input_file)
+                os.makedirs(output_directory + '/Trackrefiner', exist_ok=True)
+                output_directory = output_directory + '/Trackrefiner/'
 
-        start_calc_new_features_time = time.time()
-        start_calc_new_features_time_str = \
-            time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_calc_new_features_time))
+            (data_frame, find_fix_errors_log, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df,
+             neighbors_df) = \
+                find_fix_errors(data_frame, sorted_npy_files_list, neighbors_df, center_coordinate_columns,
+                                all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, label_col,
+                                number_of_gap=number_of_gap, um_per_pixel=um_per_pixel,
+                                intensity_threshold=intensity_threshold, check_cell_type=assigning_cell_type,
+                                interval_time=interval_time, min_life_history_of_bacteria=min_life_history_of_bacteria,
+                                warn=warn, without_tracking_correction=without_tracking_correction,
+                                output_directory=output_directory, clf=clf, n_cpu=n_cpu, boundary_limits=boundary_limits)
 
-        start_calc_new_features_time_log = "At " + start_calc_new_features_time_str + \
-                                           ", the process of calculating new features for bacteria commenced."
+            log_list.extend(find_fix_errors_log)
 
-        print(start_calc_new_features_time_log)
-        log_list.append(start_calc_new_features_time_log)
+            start_calc_new_features_time = time.time()
+            start_calc_new_features_time_str = \
+                time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_calc_new_features_time))
 
-        # process the tracking data
-        processed_df, processed_df_with_specific_cols = bacteria_analysis_func(data_frame, interval_time,
-                                                                               growth_rate_method, assigning_cell_type,
-                                                                               label_col, center_coordinate_columns)
+            start_calc_new_features_time_log = "At " + start_calc_new_features_time_str + \
+                                               ", the process of calculating new features for bacteria commenced."
 
-        end_calc_new_features_time = time.time()
-        end_calc_new_features_time_str = \
-            time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_calc_new_features_time))
+            print(start_calc_new_features_time_log)
+            log_list.append(start_calc_new_features_time_log)
 
-        end_calc_new_features_time_log = "At " + end_calc_new_features_time_str + \
-                                         ", the process of calculating new features for bacteria was completed."
+            # process the tracking data
+            processed_df, processed_df_with_specific_cols = bacteria_analysis_func(data_frame, interval_time,
+                                                                                   growth_rate_method, assigning_cell_type,
+                                                                                   label_col, center_coordinate_columns)
 
-        print(end_calc_new_features_time_log)
-        log_list.append(end_calc_new_features_time_log)
+            end_calc_new_features_time = time.time()
+            end_calc_new_features_time_str = \
+                time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_calc_new_features_time))
 
-        print_progress_bar(10, prefix='Progress:', suffix='Complete', length=50)
+            end_calc_new_features_time_log = "At " + end_calc_new_features_time_str + \
+                                             ", the process of calculating new features for bacteria was completed."
 
-        create_pickle_files(processed_df_with_specific_cols, output_directory, assigning_cell_type)
+            print(end_calc_new_features_time_log)
+            log_list.append(end_calc_new_features_time_log)
 
-        path = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
-                growth_rate_method + "_analysis")
-        path_logs = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
-                     growth_rate_method + "_logs")
-        path_identified_tracking_errors = \
-            (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
-             growth_rate_method + "_identified_tracking_errors")
-        path_fixed_errors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
-                             growth_rate_method + "_fixed_errors")
-        path_remaining_errors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
-                                 growth_rate_method + "_remaining_errors")
-        path_neighbors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
-                          growth_rate_method + "_neighbors")
+            print_progress_bar(10, prefix='Progress:', suffix='Complete', length=50)
 
-        # write to csv
-        processed_df.to_csv(path + '.csv', index=False)
-        logs_df.to_csv(path_logs + '.csv', index=False)
-        identified_tracking_errors_df.to_csv(path_identified_tracking_errors + '.csv', index=False)
-        fixed_errors.to_csv(path_fixed_errors + '.csv', index=False)
-        remaining_errors_df.to_csv(path_remaining_errors + '.csv', index=False)
+            create_pickle_files(processed_df_with_specific_cols, output_directory, assigning_cell_type)
 
-        if without_tracking_correction:
-            neighbors_df.to_csv(path_neighbors + '.csv', index=False)
+            path = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                    growth_rate_method + "_analysis")
+            path_logs = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                         growth_rate_method + "_logs")
+            path_identified_tracking_errors = \
+                (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                 growth_rate_method + "_identified_tracking_errors")
+            path_fixed_errors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                                 growth_rate_method + "_fixed_errors")
+            path_remaining_errors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                                     growth_rate_method + "_remaining_errors")
+            path_neighbors = (output_directory + 'Trackrefiner.' + os.path.basename(input_file).split('.')[0] + "_" +
+                              growth_rate_method + "_neighbors")
 
-        output_log = "The outputs are written in the " + output_directory + " directory."
-        print(output_log)
-        log_list.append(output_log)
+            # write to csv
+            processed_df.to_csv(path + '.csv', index=False)
+            logs_df.to_csv(path_logs + '.csv', index=False)
+            identified_tracking_errors_df.to_csv(path_identified_tracking_errors + '.csv', index=False)
+            fixed_errors.to_csv(path_fixed_errors + '.csv', index=False)
+            remaining_errors_df.to_csv(path_remaining_errors + '.csv', index=False)
 
-    else:
-        log = "The npy folder or neighbor file or both are incorrect!"
-        print(log)
-        log_list.append(log)
+            if without_tracking_correction:
+                neighbors_df.to_csv(path_neighbors + '.csv', index=False)
+
+            output_log = "The outputs are written in the " + output_directory + " directory."
+            print(output_log)
+            log_list.append(output_log)
+
+        else:
+            log = "The npy folder or neighbor file or both are incorrect!"
+            print(log)
+            log_list.append(log)
+
+    finally:
+        # Stop the monitoring thread after all functions have executed
+        stop_event.set()
+        monitoring_thread.join()
+
+        # Calculate maximum and average CPU and memory usage
+        max_cpu = max(stats['cpu']) if stats['cpu'] else 0
+        avg_cpu = sum(stats['cpu']) / len(stats['cpu']) if stats['cpu'] else 0
+        max_memory = max(stats['memory']) if stats['memory'] else 0
+        avg_memory = sum(stats['memory']) / len(stats['memory']) if stats['memory'] else 0
 
     end_time = time.time()
     end_time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))
@@ -156,6 +197,17 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
     print(duration_log)
 
     log_list.append(duration_log)
+
+    resource_usage = "Resource Usage Report:"
+    max_cpu_usage = f"Maximum CPU Usage: {max_cpu:.2f}%"
+    avg_cpu_usage = f"Average CPU Usage: {avg_cpu:.2f}%"
+    max_mem_usage = f"Maximum Memory Usage: {max_memory:.2f} GB"
+    avg_mem_usage = f"Average Memory Usage: {avg_memory:.2f} GB"
+    log_list.append(resource_usage)
+    log_list.append(max_cpu_usage)
+    log_list.append(avg_cpu_usage)
+    log_list.append(max_mem_usage)
+    log_list.append(avg_mem_usage)
 
     write_log_file(log_list, output_directory)
 
