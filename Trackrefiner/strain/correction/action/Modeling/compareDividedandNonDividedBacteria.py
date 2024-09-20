@@ -5,23 +5,27 @@ import pandas as pd
 import numpy as np
 
 
-def comparing_divided_non_divided_bacteria(df, connected_bac, neighbors_df, center_coordinate_columns,
+def comparing_divided_non_divided_bacteria(raw_df, df, connected_bac, neighbors_df, center_coordinate_columns,
                                            parent_image_number_col, parent_object_number_col, output_directory,
                                            clf, n_cpu):
+
     non_divided_bac = \
-        connected_bac.drop_duplicates(subset=[parent_image_number_col, parent_object_number_col], keep=False).copy()
+        connected_bac.drop_duplicates(subset=[parent_image_number_col, parent_object_number_col],
+                                      keep=False).copy()
 
     divided_bac = \
         connected_bac[
-            connected_bac.duplicated(subset=[parent_image_number_col, parent_object_number_col], keep=False)].copy()
+            connected_bac.duplicated(subset=[parent_image_number_col, parent_object_number_col],
+                                     keep=False)].copy()
 
     divided_bac['LengthChangeRatio'] = divided_bac['daughter_mother_LengthChangeRatio']
 
     # now we should calculate features
     # IOU
-    non_divided_bac = iou_calc(non_divided_bac, col_source='coordinate_prev', col_target='coordinate', stat='same')
+    non_divided_bac = iou_calc(raw_df, non_divided_bac, col_source='prev_index_prev', col_target='prev_index',
+                               stat='same')
     # stat='div'
-    divided_bac = iou_calc(divided_bac, col_source='coordinate_prev', col_target='coordinate', stat='div')
+    divided_bac = iou_calc(raw_df, divided_bac, col_source='prev_index_prev', col_target='prev_index', stat='div')
 
     # distance
     non_divided_bac = calc_distance(non_divided_bac, center_coordinate_columns, postfix_target='',

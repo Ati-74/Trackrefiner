@@ -28,7 +28,7 @@ def adding_new_link(df, neighbors_df, stat, source_bac_idx, source_bac, target_b
     return df
 
 
-def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time,
+def final_matching(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
                    parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                    df_before_more_detection_and_removing, non_divided_bac_model, divided_bac_model):
     # only we should check unexpected beginning bacteria and compare with previous links to make sure
@@ -111,8 +111,8 @@ def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time
 
     if division_df.shape[0] > 0:
 
-        division_cost_df = daughter_cost_for_final_step(df, neighbors_df, division_df, center_coordinate_columns,
-                                                        col_source='_source',
+        division_cost_df = daughter_cost_for_final_step(raw_df, df, neighbors_df, division_df,
+                                                        center_coordinate_columns, col_source='_source',
                                                         col_target='', parent_image_number_col=parent_image_number_col,
                                                         parent_object_number_col=parent_object_number_col,
                                                         divided_bac_model=divided_bac_model,
@@ -145,7 +145,7 @@ def final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time
         same_df['id_source'] = df.loc[df['index'].isin(same_df['index_source'].values), 'id'].values
         same_df['age_source'] = df.loc[df['index'].isin(same_df['index_source'].values), 'age'].values
 
-        same_cost_df = same_link_cost_for_final_checking(df, neighbors_df, same_df, center_coordinate_columns,
+        same_cost_df = same_link_cost_for_final_checking(raw_df, df, neighbors_df, same_df, center_coordinate_columns,
                                                          col_source='_source', col_target='',
                                                          parent_image_number_col=parent_image_number_col,
                                                          parent_object_number_col=parent_object_number_col,

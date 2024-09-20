@@ -501,6 +501,11 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
                                     all_center_coordinate_columns, parent_image_number_col,
                                     parent_object_number_col, warn)
 
+        raw_df['coordinate'] = df['coordinate']
+
+        selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
+        df = df[selected_cols]
+
     if boundary_limits is not None:
         df, neighbors_df = \
             find_wall_objects(boundary_limits, df, neighbors_df, center_coordinate_columns, parent_image_number_col,
@@ -518,8 +523,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
     msg = '10.0% Complete' + msg
     logs_list.append(msg)
 
-    selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-    df[selected_cols].to_csv(output_directory + '/10.percent.csv', index=False)
+    df.to_csv(output_directory + '/10.percent.csv', index=False)
 
     # remove noise objects
     df, neighbors_df, noise_objects_log_list, logs_df = noise_remover(df, neighbors_df,
@@ -539,8 +543,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
     msg = '20.0% Complete' + msg
     logs_list.append(msg)
 
-    selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-    df[selected_cols].to_csv(output_directory + '/20.percent.csv', index=False)
+    df.to_csv(output_directory + '/20.percent.csv', index=False)
 
     df = data_modification(df, intensity_threshold, check_cell_type, neighbors_df,
                            center_coordinate_columns, parent_image_number_col, parent_object_number_col,
@@ -558,8 +561,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
     msg = '30.0% Complete' + msg
     logs_list.append(msg)
 
-    selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-    df[selected_cols].to_csv(output_directory + '/30.percent.csv', index=False)
+    df.to_csv(output_directory + '/30.percent.csv', index=False)
 
     data_preparation_time = time.time()
     data_preparation_time_str = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(data_preparation_time))
@@ -586,8 +588,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         msg = '40.0% Complete' + msg
         logs_list.append(msg)
 
-        selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-        df[selected_cols].to_csv(output_directory + '/40.percent.csv', index=False)
+        df.to_csv(output_directory + '/40.percent.csv', index=False)
 
         # redundant links
         df = detect_redundant_parent_link(df, neighbors_df, parent_image_number_col,
@@ -596,11 +597,11 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         df = detect_missing_connectivity_link(df, parent_image_number_col, parent_object_number_col)
 
         comparing_divided_non_divided_model, non_divided_bac_model, divided_bac_model = \
-            training_models(df, neighbors_df, center_coordinate_columns, parent_image_number_col,
+            training_models(raw_df, df, neighbors_df, center_coordinate_columns, parent_image_number_col,
                             parent_object_number_col, output_directory, clf, n_cpu)
 
         # more than two daughters
-        df = remove_over_assigned_daughters_link(df, neighbors_df, parent_image_number_col,
+        df = remove_over_assigned_daughters_link(raw_df, df, neighbors_df, parent_image_number_col,
                                                  parent_object_number_col, label_col, center_coordinate_columns,
                                                  divided_bac_model)
 
@@ -618,11 +619,10 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         msg = '45.0% Complete' + msg
         logs_list.append(msg)
 
-        selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-        df[selected_cols].to_csv(output_directory + '/45.percent.csv', index=False)
+        df.to_csv(output_directory + '/45.percent.csv', index=False)
 
         # remove redundant links
-        df = detect_and_remove_redundant_parent_link(df, neighbors_df, parent_image_number_col,
+        df = detect_and_remove_redundant_parent_link(raw_df, df, neighbors_df, parent_image_number_col,
                                                      parent_object_number_col, label_col, center_coordinate_columns,
                                                      non_divided_bac_model)
         print_progress_bar(5, prefix='Progress:', suffix='Complete', length=50)
@@ -637,10 +637,9 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         msg = '50.0% Complete' + msg
         logs_list.append(msg)
 
-        selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-        df[selected_cols].to_csv(output_directory + '/50.percent.csv', index=False)
+        df.to_csv(output_directory + '/50.percent.csv', index=False)
 
-        df = missing_connectivity_link(df, neighbors_df, min_life_history_of_bacteria, interval_time,
+        df = missing_connectivity_link(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
                                        parent_image_number_col, parent_object_number_col, label_col,
                                        center_coordinate_columns, comparing_divided_non_divided_model,
                                        non_divided_bac_model, divided_bac_model)
@@ -657,11 +656,10 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         msg = '60.0% Complete' + msg
         logs_list.append(msg)
 
-        selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-        df[selected_cols].to_csv(output_directory + '/60.percent.csv', index=False)
+        df.to_csv(output_directory + '/60.percent.csv', index=False)
 
         # try to assign new link
-        df = correction_unexpected_beginning(df, neighbors_df, number_of_gap, check_cell_type, interval_time,
+        df = correction_unexpected_beginning(raw_df, df, neighbors_df, number_of_gap, check_cell_type, interval_time,
                                              min_life_history_of_bacteria, parent_image_number_col,
                                              parent_object_number_col, label_col, center_coordinate_columns,
                                              comparing_divided_non_divided_model, non_divided_bac_model,
@@ -679,10 +677,9 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         msg = '70.0% Complete' + msg
         logs_list.append(msg)
 
-        selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-        df[selected_cols].to_csv(output_directory + '/70.percent.csv', index=False)
+        df.to_csv(output_directory + '/70.percent.csv', index=False)
 
-        df = unexpected_end_bacteria(df, neighbors_df, min_life_history_of_bacteria, interval_time,
+        df = unexpected_end_bacteria(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
                                      parent_image_number_col, parent_object_number_col, label_col,
                                      center_coordinate_columns, comparing_divided_non_divided_model,
                                      non_divided_bac_model, divided_bac_model)
@@ -699,11 +696,10 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         msg = '80.0% Complete' + msg
         logs_list.append(msg)
 
-        selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-        df[selected_cols].to_csv(output_directory + '/80.percent.csv', index=False)
+        df.to_csv(output_directory + '/80.percent.csv', index=False)
 
-        df = final_matching(df, neighbors_df, min_life_history_of_bacteria, interval_time, parent_image_number_col,
-                            parent_object_number_col, label_col, center_coordinate_columns,
+        df = final_matching(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
+                            parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                             df_before_more_detection_and_removing, non_divided_bac_model, divided_bac_model)
 
         df = remove_rows(df, 'noise_bac', False)
@@ -723,8 +719,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         print(end_tracking_errors_correction_log)
         end_tracking_errors_correction_log = '90.0% Complete' + end_tracking_errors_correction_log
 
-        selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-        df[selected_cols].to_csv(output_directory + '/90.percent.csv', index=False)
+        df.to_csv(output_directory + '/90.percent.csv', index=False)
         logs_list.append(end_tracking_errors_correction_log)
 
         df = redefine_ids(df, label_col)
@@ -739,7 +734,4 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         fixed_errors = pd.DataFrame()
         remaining_errors_df = pd.DataFrame()
 
-    selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-
-    return (df[selected_cols], logs_list, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df,
-            neighbors_df)
+    return df, logs_list, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df, neighbors_df

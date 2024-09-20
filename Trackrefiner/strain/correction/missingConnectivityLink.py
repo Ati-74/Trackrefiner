@@ -104,7 +104,7 @@ def detect_missing_connectivity_link(df, parent_image_number_col, parent_object_
     return df
 
 
-def missing_connectivity_link(df, neighbors_df, min_life_history_of_bacteria, interval_time,
+def missing_connectivity_link(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
                               parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                               comparing_divided_non_divided_model, non_divided_bac_model, divided_bac_model):
     num_incorrect_same_links = None
@@ -204,7 +204,7 @@ def missing_connectivity_link(df, neighbors_df, min_life_history_of_bacteria, in
                     neighbors_target_bac = \
                         all_bac_in_target_time_step.loc[neighbors_bac_to_target_with_source['index_neighbor_target']]
 
-                    maintenance_cost_df = calc_maintenance_cost(df, all_bac_in_source_time_step,
+                    maintenance_cost_df = calc_maintenance_cost(raw_df, df, all_bac_in_source_time_step,
                                                                 neighbors_source_bac,
                                                                 all_bac_in_target_time_step, neighbors_df,
                                                                 neighbors_target_bac, center_coordinate_columns,
@@ -212,7 +212,7 @@ def missing_connectivity_link(df, neighbors_df, min_life_history_of_bacteria, in
                                                                 comparing_divided_non_divided_model)
                     # try to detect division
                     division_cost_df = \
-                        division_detection_cost(df, neighbors_df,
+                        division_detection_cost(raw_df, df, neighbors_df,
                                                 incorrect_same_link_in_this_time_step_with_neighbors_features,
                                                 min_life_history_of_bacteria_time_step, center_coordinate_columns,
                                                 parent_image_number_col, parent_object_number_col,
@@ -220,7 +220,7 @@ def missing_connectivity_link(df, neighbors_df, min_life_history_of_bacteria, in
                                                 maintenance_cost_df)
 
                     new_link_cost_df = \
-                        adding_new_link_cost(df, neighbors_df,
+                        adding_new_link_cost(raw_df, df, neighbors_df,
                                              incorrect_same_link_in_this_time_step_with_neighbors_features,
                                              center_coordinate_columns, parent_image_number_col,
                                              parent_object_number_col, non_divided_bac_model,

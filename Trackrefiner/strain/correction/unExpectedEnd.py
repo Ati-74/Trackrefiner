@@ -86,7 +86,7 @@ def adding_new_link(df, neighbors_df, stat, unexpected_end_bac_idx, unexpected_e
     return df
 
 
-def unexpected_end_bacteria(df, neighbors_df, min_life_history_of_bacteria, interval_time,
+def unexpected_end_bacteria(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
                             parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                             comparing_divided_non_divided_model, non_divided_bac_model,
                             divided_bac_model):
@@ -126,7 +126,7 @@ def unexpected_end_bacteria(df, neighbors_df, min_life_history_of_bacteria, inte
 
                 (raw_same_link_cost_df, new_link_cost_df, division_cost_df, final_division_cost_df_after_merge_prob,
                  final_division_cost_df, maintenance_cost_df) = \
-                    adding_new_link_to_unexpected_end(df, neighbors_df,
+                    adding_new_link_to_unexpected_end(raw_df, df, neighbors_df,
                                                       unexpected_end_bac_in_current_time_step_df,
                                                       all_bac_in_unexpected_end_bac_time_step,
                                                       all_bac_in_next_time_step_to_unexpected_end_bac,

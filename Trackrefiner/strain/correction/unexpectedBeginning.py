@@ -83,7 +83,7 @@ def assign_new_link(df, neighbors_df, unexpected_beginning_bac_idx, unexpected_b
     return df
 
 
-def correction_unexpected_beginning(df, neighbors_df, number_of_gap, check_cell_type, interval_time,
+def correction_unexpected_beginning(raw_df, df, neighbors_df, number_of_gap, check_cell_type, interval_time,
                                     min_life_history_of_bacteria, parent_image_number_col, parent_object_number_col,
                                     label_col, center_coordinate_columns, comparing_divided_non_divided_model,
                                     non_divided_bac_model, divided_bac_model):
@@ -118,7 +118,7 @@ def correction_unexpected_beginning(df, neighbors_df, number_of_gap, check_cell_
         # optimized cost dataframe
         # (rows: next time step sudden bacteria, columns: consider time step bacteria)
         new_link_cost_df, division_cost_df, redundant_link_division_df, maintenance_cost_df = \
-            optimization_unexpected_beginning_cost(df, all_bac_in_unexpected_beginning_bac_time_step,
+            optimization_unexpected_beginning_cost(raw_df, df, all_bac_in_unexpected_beginning_bac_time_step,
                                                    sel_unexpected_beginning_bac, all_bac_in_source_time_step,
                                                    check_cell_type, neighbors_df,
                                                    min_life_history_of_bacteria_time_step,

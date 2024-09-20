@@ -4,8 +4,8 @@ from Trackrefiner.strain.correction.action.Modeling.calculation.iouCalForML impo
 from Trackrefiner.strain.correction.action.Modeling.calculation.calcDistanceForML import calc_distance
 
 
-def remove_over_assigned_daughters_link(df, neighbor_df, parent_image_number_col, parent_object_number_col, label_col,
-                                        center_coordinate_columns, divided_bac_model):
+def remove_over_assigned_daughters_link(raw_df, df, neighbor_df, parent_image_number_col, parent_object_number_col,
+                                        label_col, center_coordinate_columns, divided_bac_model):
     """
         goal: modification of bad daughters (try to assign bad daughters to new parent)
         @param df    dataframe   bacteria dataframe
@@ -34,8 +34,8 @@ def remove_over_assigned_daughters_link(df, neighbor_df, parent_image_number_col
         # now we should apply ml model
 
         # IOU
-        mothers_and_oads = iou_calc(mothers_and_oads,
-                                    col_source='coordinate_parent', col_target='coordinate_daughter', stat='div')
+        mothers_and_oads = iou_calc(raw_df, mothers_and_oads,
+                                    col_source='prev_index_parent', col_target='prev_index_daughter', stat='div')
 
         # distance
         mothers_and_oads = calc_distance(mothers_and_oads, center_coordinate_columns, '_daughter',

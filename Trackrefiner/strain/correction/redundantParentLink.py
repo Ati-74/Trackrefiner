@@ -66,7 +66,7 @@ def detect_redundant_parent_link(df, neighbor_df, parent_image_number_col, paren
     return df
 
 
-def detect_and_remove_redundant_parent_link(df, neighbor_df, parent_image_number_col, parent_object_number_col,
+def detect_and_remove_redundant_parent_link(raw_df, df, neighbor_df, parent_image_number_col, parent_object_number_col,
                                             label_col, center_coordinate_columns, non_divided_bac_model):
     num_redundant_links = None
 
@@ -112,8 +112,8 @@ def detect_and_remove_redundant_parent_link(df, neighbor_df, parent_image_number
 
             # calculate features & apply model
 
-            source_bac_with_rpl = iou_calc(source_bac_with_rpl, col_source='coordinate' + col_source,
-                                           col_target='coordinate' + col_target, stat='same')
+            source_bac_with_rpl = iou_calc(raw_df, source_bac_with_rpl, col_source='prev_index' + col_source,
+                                           col_target='prev_index' + col_target, stat='same')
 
             source_bac_with_rpl = calc_distance(source_bac_with_rpl, center_coordinate_columns,
                                                 postfix_target=col_target, postfix_source=col_source, stat=None)

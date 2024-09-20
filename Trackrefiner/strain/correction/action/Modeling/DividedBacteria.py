@@ -9,8 +9,8 @@ from Trackrefiner.strain.correction.neighborChecking import neighbor_checking
 import time
 
 
-def make_ml_model_for_divided_bacteria(df, connected_bac_high_chance_to_be_correct_with_neighbors_info, neighbors_df,
-                                       center_coordinate_columns,
+def make_ml_model_for_divided_bacteria(raw_df, df, connected_bac_high_chance_to_be_correct_with_neighbors_info,
+                                       neighbors_df, center_coordinate_columns,
                                        parent_image_number_col, parent_object_number_col, output_directory, clf, n_cpu):
 
     end_tracking_errors_correction_time = time.time()
@@ -66,9 +66,9 @@ def make_ml_model_for_divided_bacteria(df, connected_bac_high_chance_to_be_corre
 
     # now we should calculate features
     # IOU
-    divided_bac = iou_calc(divided_bac, col_source='coordinate_prev', col_target='coordinate', stat='div')
-    divided_bac_with_neighbor_of_source = iou_calc(divided_bac_with_neighbor_of_source,
-                                                   col_source='coordinate_prev', col_target='coordinate', stat='div')
+    divided_bac = iou_calc(raw_df, divided_bac, col_source='prev_index_prev', col_target='prev_index', stat='div')
+    divided_bac_with_neighbor_of_source = iou_calc(raw_df, divided_bac_with_neighbor_of_source,
+                                                   col_source='prev_index_prev', col_target='prev_index', stat='div')
 
     end_tracking_errors_correction_time = time.time()
     end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
