@@ -16,7 +16,6 @@ def modify_existing_object(df, regions_color, faulty_row, img_array, regions_coo
 
 
 def remove_existing_object(df, faulty_row, img_array, regions_coordinates):
-
     # Update the img_array with the new color for this region
     img_array[tuple(zip(*regions_coordinates[faulty_row['row idx par']]))] = (0, 0, 0)
     df.at[faulty_row['cp index'], 'noise_bac'] = True
@@ -108,10 +107,15 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
         for faulty_row_ndx, faulty_row in faulty_rows_df.iterrows():
 
             number_of_occ_par = \
-                merged_distance_df[(merged_distance_df['row idx par'] == faulty_row['row idx par']) &
-                                   (merged_distance_df['Cost par'] < merged_distance_df['Cost prev'])].shape[0]
+                merged_distance_df.loc[(merged_distance_df['row idx par'] == faulty_row['row idx par']) &
+                                       (merged_distance_df['Cost par'] < merged_distance_df['Cost prev'])].shape[0]
 
-            if number_of_occ_par > 1:
+            second_cond_number_of_occ_par = \
+                merged_distance_df.loc[(merged_distance_df['row idx par'] == faulty_row['row idx par']) &
+                                       (merged_distance_df['stat prev'] == 'multi') &
+                                       (merged_distance_df['row idx prev'] == faulty_row['row idx prev'])].shape[0]
+
+            if number_of_occ_par > 1 or second_cond_number_of_occ_par > 1:
                 df, img_array = \
                     remove_existing_object(df, faulty_row, img_array, regions_coordinates)
 
