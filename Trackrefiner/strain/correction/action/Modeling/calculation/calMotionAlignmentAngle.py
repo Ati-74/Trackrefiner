@@ -3,7 +3,6 @@ from Trackrefiner.strain.correction.action.helperFunctions import calc_normalize
 
 def calc_MotionAlignmentAngle(df, neighbor_df, center_coordinate_columns, selected_rows=None, col_target=None,
                               col_source=None):
-
     temp_df = df[['ImageNumber', 'ObjectNumber', 'id', "TrajectoryX", "TrajectoryY",
                   "daughter_length_to_mother", 'avg_daughters_TrajectoryX', 'avg_daughters_TrajectoryY']].copy()
 
@@ -45,11 +44,17 @@ def calc_MotionAlignmentAngle(df, neighbor_df, center_coordinate_columns, select
                                            'ObjectNumber' + col_source])['source_target_TrajectoryY'].transform('mean')
 
     # now I want to remove duplicated rows due to merging with neighbors df
-    source_bac_neighbors_info = source_bac_neighbors_info.drop_duplicates(['ImageNumber' + col_target,
-                                                                           'ObjectNumber' + col_target,
-                                                                           'ImageNumber' + col_source,
-                                                                           'ObjectNumber' + col_source
-                                                                           ])
+    # source_bac_neighbors_info = source_bac_neighbors_info.drop_duplicates(['ImageNumber' + col_target,
+    #                                                                       'ObjectNumber' + col_target,
+    #                                                                       'ImageNumber' + col_source,
+    #                                                                       'ObjectNumber' + col_source
+    #                                                                       ])
+
+    source_bac_neighbors_info = source_bac_neighbors_info.groupby(['ImageNumber' + col_target,
+                                                                   'ObjectNumber' + col_target,
+                                                                   'ImageNumber' + col_source,
+                                                                   'ObjectNumber' + col_source
+                                                                   ]).head(1)
 
     source_bac_neighbors_info = \
         calc_normalized_angle_between_motion_for_df(

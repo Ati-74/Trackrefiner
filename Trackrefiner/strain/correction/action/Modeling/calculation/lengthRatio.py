@@ -3,7 +3,6 @@ import pandas as pd
 
 
 def check_len_ratio(df, selected_rows, col_target, col_source):
-
     selected_rows['LengthChangeRatio'] = \
         selected_rows['AreaShape_MajorAxisLength' + col_target] / selected_rows[
             'AreaShape_MajorAxisLength' + col_source]
@@ -18,24 +17,41 @@ def check_len_ratio(df, selected_rows, col_target, col_source):
     selected_rows.loc[condition2 & condition3, 'length_dynamic' + col_target] = \
         1 - selected_rows.loc[condition2 & condition3, 'LengthChangeRatio']
 
-    other_bac_should_cal = selected_rows.loc[condition2 & condition4].copy()
-    other_bac_should_cal['real_index'] = other_bac_should_cal.index.values
+    # other_bac_should_cal = selected_rows.loc[condition2 & condition4].copy()
+    other_bac_should_cal_view = selected_rows.loc[condition2 & condition4]
+    # other_bac_should_cal['real_index'] = other_bac_should_cal.index.values
 
-    other_bac_should_cal = other_bac_should_cal.merge(df, left_on='id' + col_source, right_on='id', how='left',
-                                                      suffixes=('', '_org_df'))
+    other_bac_should_cal = \
+        other_bac_should_cal_view.reset_index(
+            names='real_index')[
+            ['ImageNumber' + col_target, 'ObjectNumber' + col_target,
+             'ImageNumber' + col_source, 'ObjectNumber' + col_source, 'id' + col_source,
+             'LengthChangeRatio', 'real_index']].merge(
+            df[['ImageNumber', 'LengthChangeRatio', 'id']],
+            left_on='id' + col_source, right_on='id', how='left', suffixes=('', '_org_df'))
 
-    other_bac_should_cal = other_bac_should_cal.loc[other_bac_should_cal['ImageNumber_org_df'] <
-                                                    other_bac_should_cal['ImageNumber' + col_target]].copy()
+    # other_bac_should_cal = other_bac_should_cal.loc[other_bac_should_cal['ImageNumber_org_df'] <
+    #                                                other_bac_should_cal['ImageNumber' + col_target]].copy()
 
-    other_bac_should_cal['avg_source_bac_changes'] = \
-        other_bac_should_cal.groupby(['ImageNumber' + col_target, 'ObjectNumber' + col_target,
-                                      'id' + col_source])['LengthChangeRatio_org_df'].transform('mean')
+    condition5 = other_bac_should_cal['ImageNumber_org_df'] < other_bac_should_cal['ImageNumber' + col_target]
 
-    other_bac_should_cal = other_bac_should_cal.drop_duplicates(['ImageNumber' + col_target,
-                                                                 'ObjectNumber' + col_target,
-                                                                 'ImageNumber' + col_source,
-                                                                 'ObjectNumber' + col_source
-                                                                 ])
+    other_bac_should_cal.loc[condition5, 'avg_source_bac_changes'] = \
+        other_bac_should_cal.loc[condition5].groupby(['ImageNumber' + col_target, 'ObjectNumber' + col_target,
+                                                      'id' + col_source])['LengthChangeRatio_org_df'].transform('mean')
+
+    # other_bac_should_cal = other_bac_should_cal.drop_duplicates(['ImageNumber' + col_target,
+    #                                                             'ObjectNumber' + col_target,
+    #                                                             'ImageNumber' + col_source,
+    #                                                             'ObjectNumber' + col_source
+    #                                                             ])
+
+    other_bac_should_cal = other_bac_should_cal.loc[condition5].groupby(['ImageNumber' + col_target,
+                                                                         'ObjectNumber' + col_target,
+                                                                         'ImageNumber' + col_source,
+                                                                         'ObjectNumber' + col_source
+                                                                         ]).head(1)[['real_index',
+                                                                                     'avg_source_bac_changes',
+                                                                                     'LengthChangeRatio']]
 
     other_bac_should_cal['final_changes'] = (other_bac_should_cal['avg_source_bac_changes'] -
                                              other_bac_should_cal['LengthChangeRatio'])
@@ -55,8 +71,7 @@ def check_len_ratio(df, selected_rows, col_target, col_source):
     return selected_rows
 
 
-def new_check_len_ratio(df, selected_rows, col_target, col_source):
-
+def zzznew_check_len_ratio(df, selected_rows, col_target, col_source):
     result_df = pd.DataFrame(index=selected_rows.index)
 
     result_df['LengthChangeRatio'] = \
@@ -90,11 +105,17 @@ def new_check_len_ratio(df, selected_rows, col_target, col_source):
         other_bac_should_cal.groupby(['ImageNumber' + col_target, 'ObjectNumber' + col_target,
                                       'id' + col_source])['LengthChangeRatio_org_df'].transform('mean')
 
-    other_bac_should_cal = other_bac_should_cal.drop_duplicates(['ImageNumber' + col_target,
-                                                                 'ObjectNumber' + col_target,
-                                                                 'ImageNumber' + col_source,
-                                                                 'ObjectNumber' + col_source
-                                                                 ])
+    # other_bac_should_cal = other_bac_should_cal.drop_duplicates(['ImageNumber' + col_target,
+    #                                                             'ObjectNumber' + col_target,
+    #                                                             'ImageNumber' + col_source,
+    #                                                             'ObjectNumber' + col_source
+    #                                                             ])
+
+    other_bac_should_cal = other_bac_should_cal.groupby(['ImageNumber' + col_target,
+                                                         'ObjectNumber' + col_target,
+                                                         'ImageNumber' + col_source,
+                                                         'ObjectNumber' + col_source
+                                                         ]).head(1)
 
     other_bac_should_cal['final_changes'] = (other_bac_should_cal['avg_source_bac_changes'] -
                                              other_bac_should_cal['LengthChangeRatio'])

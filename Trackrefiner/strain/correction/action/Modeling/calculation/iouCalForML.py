@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def calculate_intersections_and_unions(raw_df, df, col1, col2, stat='same', chunk_size=5000):
+def calculate_intersections_and_unions(raw_df, df, col1, col2, stat='same', chunk_size=5000, df_view=None):
 
     # col1 , col2 refer to index
 
@@ -16,8 +16,12 @@ def calculate_intersections_and_unions(raw_df, df, col1, col2, stat='same', chun
         start_idx = i
         end_idx = min(i + chunk_size, dataframe_len)
 
-        idx1_vals = df[col1].values[start_idx:end_idx]
-        idx2_vals = df[col2].values[start_idx:end_idx]
+        if df_view is not None:
+            idx1_vals = df_view[col1].values[start_idx:end_idx]
+            idx2_vals = df_view[col2].values[start_idx:end_idx]
+        else:
+            idx1_vals = df[col1].values[start_idx:end_idx]
+            idx2_vals = df[col2].values[start_idx:end_idx]
 
         if stat == 'same':
             intersection_list.extend(
@@ -77,9 +81,9 @@ def calculate_intersections_and_unions(raw_df, df, col1, col2, stat='same', chun
     return df
 
 
-def iou_calc(raw_df, df, stat, col_source='prev_index_prev', col_target='prev_index'):
+def iou_calc(raw_df, df, stat, col_source='prev_index_prev', col_target='prev_index', df_view=None):
 
-    df = calculate_intersections_and_unions(raw_df, df, col1=col_source, col2=col_target, stat=stat)
+    df = calculate_intersections_and_unions(raw_df, df, col1=col_source, col2=col_target, stat=stat, df_view=df_view)
 
     df['iou'] = 1 - df['iou']
 

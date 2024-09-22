@@ -60,17 +60,19 @@ def training_models(raw_df, df, neighbors_df, center_coordinate_columns, parent_
 
     # sometimes it can be possible one daughter filtered in prev steps and the other daughter is existing
     # I want to remove another daughter
+
+    # division_with_one_daughter = \
+    #    division.drop_duplicates(subset=[parent_image_number_col, parent_object_number_col], keep=False)
     division_with_one_daughter = \
-        division.drop_duplicates(subset=[parent_image_number_col, parent_object_number_col], keep=False)
+        division[division.groupby([parent_image_number_col, parent_object_number_col]).transform('size') == 1]
 
     connected_bac_high_chance_to_be_correct = \
         connected_bac_high_chance_to_be_correct.loc[~ connected_bac_high_chance_to_be_correct['index'].isin(
             division_with_one_daughter['index'].values)]
 
     # connected_bac_high_chance_to_be_correct.to_csv('connected_bac_high_chance_to_be_correct.csv')
-
     comparing_divided_non_divided_model = \
-        comparing_divided_non_divided_bacteria(raw_df, df, connected_bac_high_chance_to_be_correct, neighbors_df,
+        comparing_divided_non_divided_bacteria(raw_df, connected_bac_high_chance_to_be_correct,
                                                center_coordinate_columns, parent_image_number_col,
                                                parent_object_number_col, output_directory, clf, n_cpu)
 

@@ -20,18 +20,20 @@ def make_ml_model_for_non_divided_bacteria(raw_df, df, connected_bac_high_chance
                                                             time.localtime(end_tracking_errors_correction_time))
     print(end_tracking_errors_correction_time_str)
 
-    non_divided_bac = \
+    non_divided_bac_view = \
         connected_bac_high_chance_to_be_correct_with_neighbors_info.loc[
-            connected_bac_high_chance_to_be_correct_with_neighbors_info['daughter_length_to_mother'].isna()].copy()
+            connected_bac_high_chance_to_be_correct_with_neighbors_info['daughter_length_to_mother'].isna()]
 
     col_names = df.columns.tolist().copy()
     org_col_names = df.columns.tolist().copy()
     col_names.extend([v + '_prev_neighbor' for v in df.columns])
     org_col_names.extend([v + '_prev' for v in df.columns])
 
-    non_divided_bac_with_neighbor_of_source = non_divided_bac[col_names]
-    non_divided_bac = non_divided_bac[org_col_names]
-    non_divided_bac = non_divided_bac.drop_duplicates(subset=['ImageNumber', 'ObjectNumber'], keep='last').copy()
+    non_divided_bac_with_neighbor_of_source = non_divided_bac_view[col_names]
+    non_divided_bac = non_divided_bac_view[org_col_names]
+    # non_divided_bac = non_divided_bac.drop_duplicates(subset=['ImageNumber', 'ObjectNumber'], keep='last').copy()
+
+    non_divided_bac = non_divided_bac.groupby(['ImageNumber', 'ObjectNumber']).tail(1).copy()
 
     non_divided_bac_with_neighbor_of_source = \
         non_divided_bac_with_neighbor_of_source.loc[
