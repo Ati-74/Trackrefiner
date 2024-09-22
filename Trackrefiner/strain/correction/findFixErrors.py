@@ -502,6 +502,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
                                     parent_object_number_col, warn)
 
         raw_df['coordinate'] = df['coordinate']
+        raw_df['color_mask'] = df['color_mask']
 
         selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
         df = df[selected_cols]

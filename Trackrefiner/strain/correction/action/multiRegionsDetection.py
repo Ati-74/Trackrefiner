@@ -79,6 +79,7 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
 
                     regions_center_particles.append((x0 * um_per_pixel, y0 * um_per_pixel))
                     regions_center_particles_stat.append('particle')
+
                     regions_features.append({'center_x': x0 * um_per_pixel, 'center_y': y0 * um_per_pixel,
                                              'orientation': orientation, 'major': major_length, 'minor': minor_length})
 
