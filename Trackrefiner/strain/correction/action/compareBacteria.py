@@ -1379,7 +1379,10 @@ def adding_new_link_to_unexpected_end(raw_df, df, neighbors_df, unexpected_end_b
                 incorrect_division_cond = (avg_division_probability_per_unexpected_end_bac >
                                            avg_division_probability_per_unexpected_end_bac.min())
 
-                final_division_cost_df.loc[incorrect_division_cond] = np.nan
+                # Align the boolean condition index with the original DataFrame
+                condition_aligned = incorrect_division_cond.reindex(final_division_cost_df.index, fill_value=False)
+
+                final_division_cost_df.loc[condition_aligned] = np.nan
 
         # now we should compare division with same cost because one target bac can be daughter of
         common_columns = np.intersect1d(final_division_cost_df.columns, same_link_cost_df.columns)
