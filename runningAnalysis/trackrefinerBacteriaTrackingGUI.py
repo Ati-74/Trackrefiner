@@ -80,14 +80,15 @@ class TrackingGUI(tk.Tk):
         self.show_two_steps_button.pack(side='top', pady=(10, 0))
 
         # Button to correct tracking
-        self.correct_tracking_button_frame = tk.Frame(self.frame)
-        self.correct_tracking_button_frame.pack(side='top', pady=(10, 0))
-        self.correct_tracking_button = tk.Button(self.correct_tracking_button_frame, text="Correction of Tracking",
-                                                 command=self.correction_tracking)
-        self.correct_tracking_button.pack(side='top', pady=(10, 0))
+        # self.correct_tracking_button_frame = tk.Frame(self.frame)
+        # self.correct_tracking_button_frame.pack(side='top', pady=(10, 0))
+        # self.correct_tracking_button = tk.Button(self.correct_tracking_button_frame, text="Correction of Tracking",
+        #                                         command=self.correction_tracking)
+        # self.correct_tracking_button.pack(side='top', pady=(10, 0))
 
         # Variables for file paths
         self.csv_file = None
+        self.csv_neighbor_file = None
         self.raw_images_dir = None
 
         # Conversion factors and settings
@@ -104,6 +105,13 @@ class TrackingGUI(tk.Tk):
         self.csv_file = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")],
                                                    title="Select CSV file output of Trackrefiner")
         print(f"Loaded CSV file: {self.csv_file}")
+
+
+    def load_neighbor_csv_file(self, parent_window):
+        self.csv_neighbor_file = filedialog.askopenfilename(parent=parent_window, filetypes=[("CSV files", "*.csv")],
+                                                            title="Select CSV file containing neighboring data of"
+                                                                  " bacteria")
+        print(f"Loaded CSV file containing neighboring data of bacteria: {self.csv_neighbor_file}")
 
     def load_images_dir(self):
         self.raw_images_dir = filedialog.askdirectory(title="Select Raw Images Directory")
@@ -174,7 +182,16 @@ class TrackingGUI(tk.Tk):
         # Open a new window to specify time step 1, time step 2, ID, parent ID, and neighbor distance
         new_window = tk.Toplevel(self)
         new_window.title("Trackrefiner Specify Time Steps and Settings")
-        new_window.geometry("400x270")
+        new_window.geometry("400x320")
+
+        # CSV neighbor file selection
+        open_neighbor_file_frame = tk.Frame(new_window)
+        open_neighbor_file_frame.pack(side='top', pady=(10, 0))
+
+        btn_open_neighbor_file = tk.Button(open_neighbor_file_frame,
+                                           text="Select CSV file containing neighboring data of bacteria",
+                                           command=lambda: self.load_neighbor_csv_file(new_window))
+        btn_open_neighbor_file.pack(side='top', pady=(0, 0))
 
         # Time step 1 entry
         t1_frame = tk.Frame(new_window)
@@ -242,8 +259,10 @@ class TrackingGUI(tk.Tk):
         submit_frame.pack(side='top', pady=(10, 0))
         submit_button = tk.Button(submit_frame, text="Show",
                                   command=lambda: self.handle_two_steps(entry_t1.get(), entry_t2.get(),
-                                                                        entry_obj_num.get(), entry_id.get(), entry_parent_id.get(),
+                                                                        entry_obj_num.get(), entry_id.get(),
+                                                                        entry_parent_id.get(),
                                                                         entry_distance.get(), selected_option.get(),
+                                                                        self.csv_neighbor_file,
                                                                         new_window))
         submit_button.pack()
 
@@ -270,16 +289,18 @@ class TrackingGUI(tk.Tk):
             messagebox.showerror("Invalid Input", "Please enter a valid number for neighbor distance.")
             return
 
-    def handle_two_steps(self, t1, t2, object_numbers, ids, parent_ids, distance, mode, window):
+    def handle_two_steps(self, t1, t2, object_numbers, ids, parent_ids, distance, mode, csv_neighbor_file, window):
+
         # Logic to handle the specified input and show the visualizations
         print(f"Time Step 1: {t1}, Time Step 2: {t2}, Object Numbers: {object_numbers}, IDs: {ids}, "
-              f"Parent IDs: {parent_ids}, Distance: {distance}, Mode: {mode}")
+              f"Parent IDs: {parent_ids}, Distance: {distance}, Mode: {mode}, "
+              f"\nCSV file containing neighboring data of bacteria: {csv_neighbor_file}")
         # window.destroy()
         # Use this data to display images based on user input
-        self.display_images(t1, t2, object_numbers, ids, parent_ids, distance, mode)
+        self.display_images(t1, t2, object_numbers, ids, parent_ids, distance, mode, csv_neighbor_file)
 
     def display_images(self, timestep1, timestep2, specified_object_numbers, specified_ids_str,
-                       specified_parent_ids_str, neighbor_distance_str, selected_mode):
+                       specified_parent_ids_str, neighbor_distance_str, selected_mode, csv_neighbor_file):
 
         # Parse the object Numbers, specified IDs, and Parent IDs
 
@@ -304,6 +325,12 @@ class TrackingGUI(tk.Tk):
             messagebox.showerror("No CSV File", "Please select a CSV file.")
             return
         df = pd.read_csv(self.csv_file)
+
+        if self.csv_neighbor_file is not None:
+            df_neighbor = pd.read_csv(self.csv_neighbor_file)
+            df_neighbor = df_neighbor.loc[df_neighbor['Relationship'] == 'Neighbors']
+        else:
+            df_neighbor = pd.DataFrame()
 
         # Get the unique time steps from the dataset
         available_time_steps = df['stepNum'].unique()
@@ -330,19 +357,29 @@ class TrackingGUI(tk.Tk):
 
         # Check the selected mode and display images accordingly
         if selected_mode == "Two Different Slides":
-            # Display each time step in a separate window
-            self.show_image(df_t1, raw_images[int(timestep1) - 1], f"Time Step {timestep1}", object_numbers,
-                            specified_ids, specified_parent_ids, neighbor_distance)
-            self.show_image(df_t2, raw_images[int(timestep2) - 1], f"Time Step {timestep2}", object_numbers,
-                            specified_ids, specified_parent_ids, neighbor_distance)
+            if specified_ids:
+                # Display each time step in a separate window
+                self.show_image(df_t1, raw_images[int(timestep1) - 1], f"Time Step {timestep1}",
+                                object_numbers, specified_ids.copy(), specified_parent_ids, neighbor_distance,
+                                df_neighbor)
+                self.show_image(df_t2, raw_images[int(timestep2) - 1], f"Time Step {timestep2}",
+                                object_numbers, specified_ids.copy(), specified_parent_ids, neighbor_distance,
+                                df_neighbor)
+            else:
+                # Display each time step in a separate window
+                self.show_image(df_t1, raw_images[int(timestep1) - 1], f"Time Step {timestep1}", object_numbers,
+                                specified_ids, specified_parent_ids, neighbor_distance, df_neighbor)
+                self.show_image(df_t2, raw_images[int(timestep2) - 1], f"Time Step {timestep2}", object_numbers,
+                                specified_ids, specified_parent_ids, neighbor_distance, df_neighbor)
+
         elif selected_mode == "Slide Show":
             # Display both time steps in a single window with slider control
             self.show_sliding_image(df_t1, df_t2, raw_images[int(timestep1) - 1], raw_images[int(timestep2) - 1],
                                     object_numbers, specified_ids, specified_parent_ids, neighbor_distance,
-                                    timestep1, timestep2)
+                                    timestep1, timestep2, df_neighbor)
 
     def show_image(self, df_current, image_path, window_title, specified_object_numbers=None, specified_ids=None,
-                   specified_parent_ids=None, neighbor_distance=None):
+                   specified_parent_ids=None, neighbor_distance=None, df_neighbor=None):
 
         # Create a new window for the plot
         img_window = tk.Toplevel(self)
@@ -375,12 +412,28 @@ class TrackingGUI(tk.Tk):
             bac_info(df_current, self.um_per_pixel, center_cols)
 
         if specified_object_numbers or specified_ids or specified_parent_ids:
+
+            selected_bac_by_user = df_current.loc[(df_current['ObjectNumber'].isin(specified_object_numbers)) |
+                                                  (df_current['id'].isin(specified_ids)) |
+                                                  (df_current['parent_id'].isin(specified_parent_ids))]
+
+            if df_neighbor.shape[0] > 0:
+
+                selected_bac_with_neighbors = \
+                    selected_bac_by_user.merge(df_neighbor, left_on=['stepNum', 'ObjectNumber'],
+                                               right_on=['First Image Number', 'First Object Number'], how='left')
+                selected_bac_with_neighbors_with_info = \
+                    selected_bac_with_neighbors.merge(df_current,
+                                                      left_on=['Second Image Number', 'Second Object Number'],
+                                                      right_on=['stepNum', 'ObjectNumber'], how='left',
+                                                      suffixes=('_1', '_2'))
+
+                neighbors_bac_id = [v for v in selected_bac_with_neighbors_with_info['id_2'].values.tolist() if
+                                    str(v) != 'nan']
+                specified_ids.extend(neighbors_bac_id)
+
             # Check if the object is within the neighbor distance from the specified objects
             if neighbor_distance:
-
-                selected_bac_by_user = df_current.loc[(df_current['ObjectNumber'].isin(specified_object_numbers)) |
-                                                      (df_current['id'].isin(specified_ids)) |
-                                                      (df_current['parent_id'].isin(specified_parent_ids))]
 
                 other_bac = df_current.loc[~ df_current['id'].isin(selected_bac_by_user['id'].values)]
 
@@ -481,7 +534,7 @@ class TrackingGUI(tk.Tk):
 
     def show_sliding_image(self, df_t1, df_t2, image_path_t1, image_path_t2, specified_object_numbers=None,
                            specified_ids=None, specified_parent_ids=None, neighbor_distance=None, timestep1=None,
-                           timestep2=None):
+                           timestep2=None, df_neighbor=None):
         # Create a new window for the sliding plot
         slide_window = tk.Toplevel(self)
         slide_window.title("Trackrefiner Slider Control")
@@ -539,8 +592,12 @@ class TrackingGUI(tk.Tk):
             # ax.set_title(title)
 
             # Plot bacteria objects (if specified) for the current time step
-            self.plot_bacteria_on_image(ax, current_df, specified_object_numbers, specified_ids, specified_parent_ids,
-                                        neighbor_distance)
+            if specified_ids:
+                self.plot_bacteria_on_image(ax, current_df, specified_object_numbers, specified_ids.copy(),
+                                            specified_parent_ids, neighbor_distance, df_neighbor)
+            else:
+                self.plot_bacteria_on_image(ax, current_df, specified_object_numbers, specified_ids.copy(),
+                                            specified_parent_ids, neighbor_distance, df_neighbor)
 
             canvas.draw()
 
@@ -549,8 +606,12 @@ class TrackingGUI(tk.Tk):
         # ax.set_title("Time Step 1")
 
         # Plot bacteria objects for time step 1
-        self.plot_bacteria_on_image(ax, df_t1, specified_object_numbers, specified_ids, specified_parent_ids,
-                                    neighbor_distance)
+        if specified_ids:
+            self.plot_bacteria_on_image(ax, df_t1, specified_object_numbers, specified_ids.copy(), specified_parent_ids,
+                                        neighbor_distance, df_neighbor)
+        else:
+            self.plot_bacteria_on_image(ax, df_t1, specified_object_numbers, specified_ids, specified_parent_ids,
+                                        neighbor_distance, df_neighbor)
 
         # Embed the figure into the Tkinter window with zoom functionality
         canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
@@ -580,7 +641,7 @@ class TrackingGUI(tk.Tk):
         slide_window.grid_columnconfigure(0, weight=1)
 
     def plot_bacteria_on_image(self, ax, df_current, specified_object_numbers, specified_ids, specified_parent_ids,
-                               neighbor_distance):
+                               neighbor_distance, df_neighbor):
 
         center_cols = checking_columns(df_current)
 
@@ -589,11 +650,26 @@ class TrackingGUI(tk.Tk):
             bac_info(df_current, self.um_per_pixel, center_cols)
 
         if specified_object_numbers or specified_ids or specified_parent_ids:
+            selected_bac_by_user = df_current.loc[(df_current['ObjectNumber'].isin(specified_object_numbers)) |
+                                                  (df_current['id'].isin(specified_ids)) |
+                                                  (df_current['parent_id'].isin(specified_parent_ids))]
+
+            if df_neighbor.shape[0] > 0:
+                selected_bac_with_neighbors = \
+                    selected_bac_by_user.merge(df_neighbor, left_on=['stepNum', 'ObjectNumber'],
+                                               right_on=['First Image Number', 'First Object Number'], how='left')
+                selected_bac_with_neighbors_with_info = \
+                    selected_bac_with_neighbors.merge(df_current,
+                                                      left_on=['Second Image Number', 'Second Object Number'],
+                                                      right_on=['stepNum', 'ObjectNumber'], how='left',
+                                                      suffixes=('_1', '_2'))
+
+                neighbors_bac_id = [v for v in selected_bac_with_neighbors_with_info['id_2'].values.tolist() if
+                                    str(v) != 'nan']
+                specified_ids.extend(neighbors_bac_id)
+
             # Check if the object is within the neighbor distance from the specified objects
             if neighbor_distance:
-                selected_bac_by_user = df_current.loc[(df_current['ObjectNumber'].isin(specified_object_numbers)) |
-                                                      (df_current['id'].isin(specified_ids)) |
-                                                      (df_current['parent_id'].isin(specified_parent_ids))]
 
                 other_bac = df_current.loc[~ df_current['id'].isin(selected_bac_by_user['id'].values)]
 
@@ -744,7 +820,7 @@ class TrackingGUI(tk.Tk):
 
             ax.imshow(img_rgb)
             self.plot_bacteria_on_image(ax, df_current, [],[], [],
-                                        None)
+                                        None, None)
 
             # Draw the updated canvas
             canvas.draw()
@@ -758,7 +834,7 @@ class TrackingGUI(tk.Tk):
         # Plot bacteria objects for the first time step
         df_t1 = df[df['stepNum'] == first_time_step].reset_index(drop=True)
         self.plot_bacteria_on_image(ax, df_t1, [], [], [],
-                                    None)
+                                    None, None)
 
         # Embed the figure into the Tkinter window with zoom functionality
         canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
