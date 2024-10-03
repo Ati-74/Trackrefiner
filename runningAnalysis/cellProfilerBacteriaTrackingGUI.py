@@ -358,10 +358,19 @@ class TrackingGUI(tk.Tk):
         # Check the selected mode and display images accordingly
         if selected_mode == "Two Different Slides":
             # Display each time step in a separate window
-            self.show_image(df_t1, raw_images[int(timestep1) - 1], f"Time Step {timestep1}", object_numbers,
-                            specified_ids, specified_parent_ids, neighbor_distance, df_neighbor)
-            self.show_image(df_t2, raw_images[int(timestep2) - 1], f"Time Step {timestep2}", object_numbers,
-                            specified_ids, specified_parent_ids, neighbor_distance, df_neighbor)
+            if specified_ids:
+                self.show_image(df_t1, raw_images[int(timestep1) - 1], f"Time Step {timestep1}",
+                                object_numbers, specified_ids.copy(), specified_parent_ids, neighbor_distance,
+                                df_neighbor)
+                self.show_image(df_t2, raw_images[int(timestep2) - 1], f"Time Step {timestep2}",
+                                object_numbers, specified_ids.copy(), specified_parent_ids, neighbor_distance,
+                                df_neighbor)
+            else:
+                self.show_image(df_t1, raw_images[int(timestep1) - 1], f"Time Step {timestep1}",
+                                object_numbers, specified_ids, specified_parent_ids, neighbor_distance, df_neighbor)
+                self.show_image(df_t2, raw_images[int(timestep2) - 1], f"Time Step {timestep2}",
+                                object_numbers, specified_ids, specified_parent_ids, neighbor_distance, df_neighbor)
+
         elif selected_mode == "Slide Show":
             # Display both time steps in a single window with slider control
             self.show_sliding_image(df_t1, df_t2, raw_images[int(timestep1) - 1], raw_images[int(timestep2) - 1],
@@ -580,8 +589,12 @@ class TrackingGUI(tk.Tk):
             # ax.set_title(title)
 
             # Plot bacteria objects (if specified) for the current time step
-            self.plot_bacteria_on_image(ax, current_df, specified_object_numbers, specified_ids, specified_parent_ids,
-                                        neighbor_distance, df_neighbor)
+            if specified_ids:
+                self.plot_bacteria_on_image(ax, current_df, specified_object_numbers, specified_ids.copy(),
+                                            specified_parent_ids, neighbor_distance, df_neighbor)
+            else:
+                self.plot_bacteria_on_image(ax, current_df, specified_object_numbers, specified_ids,
+                                            specified_parent_ids, neighbor_distance, df_neighbor)
 
             canvas.draw()
 
@@ -590,8 +603,12 @@ class TrackingGUI(tk.Tk):
         # ax.set_title("Time Step 1")
 
         # Plot bacteria objects for time step 1
-        self.plot_bacteria_on_image(ax, df_t1, specified_object_numbers, specified_ids, specified_parent_ids,
-                                    neighbor_distance, df_neighbor)
+        if specified_ids:
+            self.plot_bacteria_on_image(ax, df_t1, specified_object_numbers, specified_ids.copy(), specified_parent_ids,
+                                        neighbor_distance, df_neighbor)
+        else:
+            self.plot_bacteria_on_image(ax, df_t1, specified_object_numbers, specified_ids, specified_parent_ids,
+                                        neighbor_distance, df_neighbor)
 
         # Embed the figure into the Tkinter window with zoom functionality
         canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
