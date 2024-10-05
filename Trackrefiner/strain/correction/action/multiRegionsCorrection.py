@@ -89,18 +89,27 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
 
         merged_distance_df = pd.merge(min_distance_prev_objects_df, min_distance_particles_df, on='cp index')
 
-        merged_distance_df['center_x_compare'] = \
-            merged_distance_df['center_x_par'] - merged_distance_df['center_x_prev']
-        merged_distance_df['center_y_compare'] = \
-            merged_distance_df['center_y_par'] - merged_distance_df['center_y_prev']
+        # merged_distance_df['center_x_compare'] = \
+        #    merged_distance_df['center_x_par'] - merged_distance_df['center_x_prev']
+        # merged_distance_df['center_y_compare'] = \
+        #    merged_distance_df['center_y_par'] - merged_distance_df['center_y_prev']
+        # if both stats are `natural` --> compare stat is True
         merged_distance_df['compare_stat'] = merged_distance_df['stat prev'] == merged_distance_df['stat par']
 
-        faulty_rows_df = merged_distance_df.loc[(merged_distance_df['compare_stat'] == False) |
-                                                (merged_distance_df['center_x_compare'] != 0) |
-                                                (merged_distance_df['center_y_compare'] != 0)]
+        # faulty_rows_df = merged_distance_df.loc[(merged_distance_df['compare_stat'] == False) |
+        #                                        (merged_distance_df['center_x_compare'] != 0) |
+        #                                        (merged_distance_df['center_y_compare'] != 0)]
 
-        correct_rows_df = merged_distance_df.loc[~merged_distance_df.index.isin(faulty_rows_df.index)]
+        # how it can be possible stat = False:
+        # 1. prev: Multi - particle: N
+        # 2. prev: Multi - particle: particle
+        # 3. prev: natural - particle: particle
+        faulty_rows_df = merged_distance_df.loc[merged_distance_df['compare_stat'] == False]
 
+        # correct_rows_df = merged_distance_df.loc[~merged_distance_df.index.isin(faulty_rows_df.index)]
+        correct_rows_df = merged_distance_df.loc[merged_distance_df['compare_stat'] == True]
+
+        # noise regions
         par_not_in_min_df = [idx for idx in distance_df_particles.index if idx not in
                              min_distance_particles_df['row idx par'].values]
 
@@ -110,28 +119,38 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
                 merged_distance_df.loc[(merged_distance_df['row idx par'] == faulty_row['row idx par']) &
                                        (merged_distance_df['Cost par'] < merged_distance_df['Cost prev'])].shape[0]
 
+            # (merged_distance_df['row idx prev'] == faulty_row['row idx prev'])
             second_cond_number_of_occ_par = \
                 merged_distance_df.loc[(merged_distance_df['row idx par'] == faulty_row['row idx par']) &
-                                       (merged_distance_df['stat prev'] == 'multi') &
-                                       (merged_distance_df['row idx prev'] == faulty_row['row idx prev'])].shape[0]
+                                       (merged_distance_df['stat prev'] == 'multi')].shape[0]
 
             if number_of_occ_par > 1 or second_cond_number_of_occ_par > 1:
                 df, img_array = \
                     remove_existing_object(df, faulty_row, img_array, regions_coordinates)
 
-            elif faulty_row['stat prev'] != 'multi':
-                number_of_occ = \
-                    merged_distance_df[merged_distance_df['row idx prev'] == faulty_row['row idx prev']].shape[0]
+            elif faulty_row['stat prev'] == 'natural':
 
-                if number_of_occ >= 2:
+                # stat prev : natural
+                # idea: Idea: There should be an object that maps to the natural region in both data frames.
+                # Otherwise, if all the records mapped to the natural region in the `prev` df are mapped to particles
+                # in the `particle` df, it can indicate an error. So we delete them.
+                number_of_occ = \
+                    merged_distance_df[
+                        (merged_distance_df['row idx prev'] == faulty_row['row idx prev']) &
+                        (merged_distance_df['stat par'] == 'natural')
+                        ].shape[0]
+
+                if number_of_occ >= 1:
                     df, img_array = \
                         modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
 
                 else:
-                    breakpoint()
+                    df, img_array = \
+                        remove_existing_object(df, faulty_row, img_array, regions_coordinates)
 
             elif faulty_row['Cost par'] < faulty_row['Cost prev']:
 
+                # stat prev: multi, stat par: particle or natural!
                 df, img_array = \
                     modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
 
@@ -154,6 +173,12 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
             this_region_color = regions_color[correct_bac_row['row idx par']]
             df.at[bac_ndx, 'color_mask'] = tuple(this_region_color)
             df.at[bac_ndx, 'coordinate'] = set(map(tuple, regions_coordinates[correct_bac_row['row idx par']]))
+
+        # now check correct_rows_df with duplicate
+        correct_rows_dup_df = correct_rows_df[correct_rows_df.duplicated('row idx par', keep=False)]
+        for row_idx, faulty_row in correct_rows_dup_df.iterrows():
+            df, img_array = \
+                remove_existing_object(df, faulty_row, img_array, regions_coordinates)
 
         # Save the modified img_array to a new .npy file
         # new_file_name = os.path.splitext(img_npy_file)[0] + '_modified.npy'
