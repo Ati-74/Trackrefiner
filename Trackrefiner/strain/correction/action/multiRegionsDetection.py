@@ -16,7 +16,8 @@ def generate_new_color(existing_colors, seed=None):
 
 
 def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinate_columns,
-                           all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, warn):
+                           all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, warn,
+                           img=None):
 
     for img_ndx, img_npy_file in enumerate(img_npy_file_list):
 
@@ -59,6 +60,7 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
 
                 labeled_mask_cp = labeled_mask.copy()
 
+                # convert to one connected region
                 labeled_mask_cp[labeled_mask_cp > 1] = 1
                 regions_cp = regionprops(labeled_mask_cp)
 
@@ -139,13 +141,13 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
             'center_y_prev': regions_center_raw_y,
         })
 
-        distance_df_particles = pd.DataFrame(distance_matrix(
-                    df_centers_particles[['center_x', 'center_y']].values,
-                    current_df[[center_coordinate_columns['x'], center_coordinate_columns['y']]].values,
-                ),
-                    index=df_centers_particles.index, columns=current_df.index)
-
         if multi_region_flag:
+
+            distance_df_particles = pd.DataFrame(distance_matrix(
+                df_centers_particles[['center_x', 'center_y']].values,
+                current_df[[center_coordinate_columns['x'], center_coordinate_columns['y']]].values,
+            ),
+                index=df_centers_particles.index, columns=current_df.index)
 
             df = \
                 multi_region_correction(df, img_array, img_npy_file, distance_df_particles, img_number,
