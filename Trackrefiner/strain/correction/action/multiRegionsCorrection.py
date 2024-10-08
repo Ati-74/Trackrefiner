@@ -59,7 +59,7 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
                             regions_center_particles_stat, regions_center_particles, regions_color,
                             regions_coordinates, regions_features, all_center_coordinate_columns,
                             parent_image_number_col, parent_object_number_col, min_distance_prev_objects_df):
-    rows_with_duplicates = distance_df_particles.T.apply(lambda row: row.duplicated().any(), axis=1)
+    rows_with_duplicates = distance_df_particles.T.apply(lambda row: (row == row.min()).sum() > 1, axis=1)
 
     # two same regions from multi regions
     if rows_with_duplicates.any():
@@ -141,8 +141,20 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
                         ].shape[0]
 
                 if number_of_occ >= 1:
-                    df, img_array = \
-                        modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
+                    if faulty_row['stat par'] == 'natural':
+
+                        num_row_in_corrected_rows = \
+                            correct_rows_df.loc[correct_rows_df['row idx par'] == faulty_row['row idx par']].shape[0]
+                        if num_row_in_corrected_rows > 0:
+                            # remove
+                            df, img_array = \
+                                remove_existing_object(df, faulty_row, img_array, regions_coordinates)
+                        else:
+                            df, img_array = \
+                                modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
+                    else:
+                        df, img_array = \
+                            modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
 
                 else:
                     df, img_array = \
@@ -150,16 +162,44 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
 
             elif faulty_row['Cost par'] < faulty_row['Cost prev']:
 
-                # stat prev: multi, stat par: particle or natural!
-                df, img_array = \
-                    modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
+                if faulty_row['stat par'] == 'natural':
+
+                    num_row_in_corrected_rows = \
+                        correct_rows_df.loc[correct_rows_df['row idx par'] == faulty_row['row idx par']].shape[0]
+                    if num_row_in_corrected_rows > 0:
+                        # remove
+                        df, img_array = \
+                            remove_existing_object(df, faulty_row, img_array, regions_coordinates)
+                    else:
+                        # stat prev: multi, stat par: particle or natural!
+                        df, img_array = \
+                            modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
+                else:
+                    # stat prev: multi, stat par: particle or natural!
+                    df, img_array = \
+                        modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
 
             elif faulty_row['Cost prev'] < faulty_row['Cost par']:
 
-                df, img_array, = \
-                    updating_records(df, faulty_row, img_array, regions_coordinates, regions_color,
-                                     regions_features, all_center_coordinate_columns,
-                                     parent_image_number_col, parent_object_number_col)
+                if faulty_row['stat par'] == 'natural':
+
+                    num_row_in_corrected_rows = \
+                        correct_rows_df.loc[correct_rows_df['row idx par'] == faulty_row['row idx par']].shape[0]
+                    if num_row_in_corrected_rows > 0:
+                        # remove
+                        df, img_array = \
+                            remove_existing_object(df, faulty_row, img_array, regions_coordinates)
+                    else:
+                        df, img_array, = \
+                            updating_records(df, faulty_row, img_array, regions_coordinates, regions_color,
+                                             regions_features, all_center_coordinate_columns,
+                                             parent_image_number_col, parent_object_number_col)
+                else:
+
+                    df, img_array, = \
+                        updating_records(df, faulty_row, img_array, regions_coordinates, regions_color,
+                                         regions_features, all_center_coordinate_columns,
+                                         parent_image_number_col, parent_object_number_col)
 
             elif faulty_row['Cost par'] == faulty_row['Cost prev']:
                 breakpoint()
