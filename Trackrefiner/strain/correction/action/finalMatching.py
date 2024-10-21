@@ -5,7 +5,7 @@ from Trackrefiner.strain.correction.action.compareBacteria import daughter_cost_
     same_link_cost_for_final_checking
 
 
-def adding_new_link(df, neighbors_df, stat, source_bac_idx, source_bac, target_bac_idx, target_bac,
+def adding_new_link(df, neighbors_df, neighbor_list_array, stat, source_bac_idx, source_bac, target_bac_idx, target_bac,
                     parent_image_number_col, parent_object_number_col, center_coordinate_columns, label_col,
                     all_bac_in_target_bac_time_step, prob_val):
 
@@ -22,15 +22,16 @@ def adding_new_link(df, neighbors_df, stat, source_bac_idx, source_bac, target_b
 
         df = bacteria_modification(df, source_bac, target_bac_life_history,
                                    all_bac_in_target_bac_time_step,
-                                   neighbors_df, parent_image_number_col, parent_object_number_col,
+                                   neighbors_df, neighbor_list_array, parent_image_number_col, parent_object_number_col,
                                    center_coordinate_columns, label_col)
 
     return df
 
 
-def final_matching(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
+def final_matching(df, neighbors_df, neighbor_list_array, min_life_history_of_bacteria, interval_time,
                    parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
-                   df_before_more_detection_and_removing, non_divided_bac_model, divided_bac_model):
+                   df_before_more_detection_and_removing, non_divided_bac_model, divided_bac_model, coordinate_array):
+
     # only we should check unexpected beginning bacteria and compare with previous links to make sure
     # it can be possible to restore links or not
 
@@ -111,12 +112,13 @@ def final_matching(raw_df, df, neighbors_df, min_life_history_of_bacteria, inter
 
     if division_df.shape[0] > 0:
 
-        division_cost_df = daughter_cost_for_final_step(raw_df, df, neighbors_df, division_df,
+        division_cost_df = daughter_cost_for_final_step(df, neighbors_df, neighbor_list_array, division_df,
                                                         center_coordinate_columns, col_source='_source',
                                                         col_target='', parent_image_number_col=parent_image_number_col,
                                                         parent_object_number_col=parent_object_number_col,
                                                         divided_bac_model=divided_bac_model,
-                                                        maintenance_cost_df=None, maintenance_to_be_check=None)
+                                                        maintenance_cost_df=None, maintenance_to_be_check=None,
+                                                        coordinate_array=coordinate_array)
 
         if division_cost_df.shape[0] > 0:
 
@@ -135,7 +137,7 @@ def final_matching(raw_df, df, neighbors_df, min_life_history_of_bacteria, inter
 
                 all_bac_in_target_bac_time_step = df.loc[df['ImageNumber'] == target_bac['ImageNumber']]
 
-                df = adding_new_link(df, neighbors_df, stat, source_bac_idx, source_bac,
+                df = adding_new_link(df, neighbors_df, neighbor_list_array, stat, source_bac_idx, source_bac,
                                      target_bac_idx, target_bac, parent_image_number_col,
                                      parent_object_number_col, center_coordinate_columns, label_col,
                                      all_bac_in_target_bac_time_step, cost_val)
@@ -145,12 +147,14 @@ def final_matching(raw_df, df, neighbors_df, min_life_history_of_bacteria, inter
         same_df['id_source'] = df.loc[df['index'].isin(same_df['index_source'].values), 'id'].values
         same_df['age_source'] = df.loc[df['index'].isin(same_df['index_source'].values), 'age'].values
 
-        same_cost_df = same_link_cost_for_final_checking(raw_df, df, neighbors_df, same_df, center_coordinate_columns,
+        same_cost_df = same_link_cost_for_final_checking(df, neighbors_df, neighbor_list_array, same_df,
+                                                         center_coordinate_columns,
                                                          col_source='_source', col_target='',
                                                          parent_image_number_col=parent_image_number_col,
                                                          parent_object_number_col=parent_object_number_col,
                                                          non_divided_bac_model=non_divided_bac_model,
-                                                         maintenance_cost_df=None, maintenance_to_be_check=None)
+                                                         maintenance_cost_df=None, maintenance_to_be_check=None,
+                                                         coordinate_array=coordinate_array)
 
         if same_cost_df.shape[0] > 0:
 
@@ -169,7 +173,7 @@ def final_matching(raw_df, df, neighbors_df, min_life_history_of_bacteria, inter
 
                 all_bac_in_target_bac_time_step = df.loc[df['ImageNumber'] == target_bac['ImageNumber']]
 
-                df = adding_new_link(df, neighbors_df, stat, source_bac_idx, source_bac,
+                df = adding_new_link(df, neighbors_df, neighbor_list_array, stat, source_bac_idx, source_bac,
                                      target_bac_idx, target_bac, parent_image_number_col,
                                      parent_object_number_col, center_coordinate_columns, label_col,
                                      all_bac_in_target_bac_time_step, cost_val)

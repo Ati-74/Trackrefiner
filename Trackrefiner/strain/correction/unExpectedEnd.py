@@ -4,7 +4,8 @@ from Trackrefiner.strain.correction.action.bacteriaModification import bacteria_
 import pandas as pd
 
 
-def adding_new_link(df, neighbors_df, stat, unexpected_end_bac_idx, unexpected_end_bac, target_bac_idx, target_bac,
+def adding_new_link(df, neighbors_df, neighbor_list_array, stat, unexpected_end_bac_idx, unexpected_end_bac,
+                    target_bac_idx, target_bac,
                     another_daughter_bac_idx, another_daughter_bac, parent_image_number_col,
                     parent_object_number_col, center_coordinate_columns, label_col,
                     all_bac_in_next_time_step_to_unexpected_end_bac, prob_val, another_daughter_bac_prob_val):
@@ -21,7 +22,7 @@ def adding_new_link(df, neighbors_df, stat, unexpected_end_bac_idx, unexpected_e
                     df.loc[(df['id'] == df.at[target_bac_idx, 'id']) &
                            (df['ImageNumber'] >= source_bac['ImageNumber'] + 1)]
 
-                df = remove_redundant_link(df, incorrect_bac_life_history_target_bac, neighbors_df,
+                df = remove_redundant_link(df, incorrect_bac_life_history_target_bac, neighbors_df, neighbor_list_array,
                                            parent_image_number_col,
                                            parent_object_number_col, center_coordinate_columns, label_col)
 
@@ -31,6 +32,7 @@ def adding_new_link(df, neighbors_df, stat, unexpected_end_bac_idx, unexpected_e
                            (df['ImageNumber'] >= source_bac['ImageNumber'] + 1)]
 
                 df = remove_redundant_link(df, incorrect_bac_life_history_another_target_bac, neighbors_df,
+                                           neighbor_list_array,
                                            parent_image_number_col,
                                            parent_object_number_col, center_coordinate_columns, label_col)
 
@@ -41,7 +43,8 @@ def adding_new_link(df, neighbors_df, stat, unexpected_end_bac_idx, unexpected_e
 
             df = bacteria_modification(df, source_bac, target_bac_life_history,
                                        all_bac_in_next_time_step_to_unexpected_end_bac,
-                                       neighbors_df, parent_image_number_col, parent_object_number_col,
+                                       neighbors_df, neighbor_list_array, parent_image_number_col,
+                                       parent_object_number_col,
                                        center_coordinate_columns, label_col)
 
             source_bac = df.loc[unexpected_end_bac_idx]
@@ -49,7 +52,8 @@ def adding_new_link(df, neighbors_df, stat, unexpected_end_bac_idx, unexpected_e
 
             df = bacteria_modification(df, source_bac, another_target_bac_life_history,
                                        all_bac_in_next_time_step_to_unexpected_end_bac,
-                                       neighbors_df, parent_image_number_col, parent_object_number_col,
+                                       neighbors_df, neighbor_list_array, parent_image_number_col,
+                                       parent_object_number_col,
                                        center_coordinate_columns, label_col)
 
     elif stat == 'same':
@@ -71,6 +75,7 @@ def adding_new_link(df, neighbors_df, stat, unexpected_end_bac_idx, unexpected_e
                            (df['ImageNumber'] >= source_bac['ImageNumber'] + 1)]
 
                 df = remove_redundant_link(df, incorrect_bac_life_history_target_bac, neighbors_df,
+                                           neighbor_list_array,
                                            parent_image_number_col,
                                            parent_object_number_col, center_coordinate_columns, label_col)
 
@@ -80,16 +85,17 @@ def adding_new_link(df, neighbors_df, stat, unexpected_end_bac_idx, unexpected_e
 
             df = bacteria_modification(df, source_bac, target_bac_life_history,
                                        all_bac_in_next_time_step_to_unexpected_end_bac,
-                                       neighbors_df, parent_image_number_col, parent_object_number_col,
+                                       neighbors_df, neighbor_list_array, parent_image_number_col,
+                                       parent_object_number_col,
                                        center_coordinate_columns, label_col)
 
     return df
 
 
-def unexpected_end_bacteria(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
+def unexpected_end_bacteria(df, neighbors_df, neighbor_list_array, min_life_history_of_bacteria, interval_time,
                             parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                             comparing_divided_non_divided_model, non_divided_bac_model,
-                            divided_bac_model):
+                            divided_bac_model, color_array, coordinate_array):
     num_incorrect_same_links = None
     prev_bacteria_with_wrong_same_link = None
     n_iterate = 0
@@ -126,22 +132,14 @@ def unexpected_end_bacteria(raw_df, df, neighbors_df, min_life_history_of_bacter
 
                 (raw_same_link_cost_df, new_link_cost_df, division_cost_df, final_division_cost_df_after_merge_prob,
                  final_division_cost_df, maintenance_cost_df) = \
-                    adding_new_link_to_unexpected_end(raw_df, df, neighbors_df,
+                    adding_new_link_to_unexpected_end(df, neighbors_df, neighbor_list_array,
                                                       unexpected_end_bac_in_current_time_step_df,
                                                       all_bac_in_unexpected_end_bac_time_step,
                                                       all_bac_in_next_time_step_to_unexpected_end_bac,
                                                       center_coordinate_columns, parent_image_number_col,
                                                       parent_object_number_col, min_life_history_of_bacteria,
                                                       comparing_divided_non_divided_model, non_divided_bac_model,
-                                                      divided_bac_model)
-
-                # if unexpected_end_bacteria_time_step == 69:
-                #    raw_same_link_cost_df.to_csv('raw_same_link_cost_df.' + str(n_iterate) + '.csv')
-                #    new_link_cost_df.to_csv('new_link_cost_df.' + str(n_iterate) + '.csv')
-                #    division_cost_df.to_csv('division_cost_df.' + str(n_iterate) + '.csv')
-                #    final_division_cost_df_after_merge_prob.to_csv(
-                #    'final_division_cost_df_after_merge_prob.' + str(n_iterate) + '.csv')
-                #    final_division_cost_df.to_csv('final_division_cost_df.' + str(n_iterate) + '.csv')
+                                                      divided_bac_model, color_array, coordinate_array)
 
                 if final_division_cost_df_after_merge_prob.shape[0] > 0 and new_link_cost_df.shape[0] > 0:
 
@@ -216,7 +214,8 @@ def unexpected_end_bacteria(raw_df, df, neighbors_df, min_life_history_of_bacter
                                 another_daughter_bac = None
                                 another_daughter_bac_prob_val = None
 
-                        df = adding_new_link(df, neighbors_df, stat, unexpected_end_bac_idx, unexpected_end_bac,
+                        df = adding_new_link(df, neighbors_df, neighbor_list_array, stat, unexpected_end_bac_idx,
+                                             unexpected_end_bac,
                                              target_bac_idx, target_bac, another_daughter_bac_idx,
                                              another_daughter_bac, parent_image_number_col,
                                              parent_object_number_col, center_coordinate_columns, label_col,

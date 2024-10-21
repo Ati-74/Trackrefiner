@@ -40,16 +40,18 @@ def optimize_assignment(df):
     return result_df
 
 
-def feature_space_adding_new_link_to_unexpected_beginning(raw_df, neighbors_df, unexpected_begging_bac,
+def feature_space_adding_new_link_to_unexpected_beginning(neighbors_df, unexpected_begging_bac,
                                                           all_bac_in_unexpected_beginning_bac_time_step_df,
                                                           all_bacteria_in_prev_time_step, center_coordinate_columns,
-                                                          parent_object_number_col):
+                                                          parent_object_number_col, color_array, coordinate_array):
 
-    overlap_df, distance_df = make_initial_distance_matrix(raw_df, all_bac_in_unexpected_beginning_bac_time_step_df,
+    overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_unexpected_beginning_bac_time_step_df,
                                                            unexpected_begging_bac,
                                                            all_bacteria_in_prev_time_step,
                                                            all_bacteria_in_prev_time_step,
-                                                           center_coordinate_columns)
+                                                           center_coordinate_columns,
+                                                           color_array=color_array,
+                                                           coordinate_array=coordinate_array)
 
     # remove columns with all values equal to zero
     overlap_df_replaced = overlap_df[(overlap_df != 0).any(axis=1)]
@@ -127,16 +129,18 @@ def feature_space_adding_new_link_to_unexpected_beginning(raw_df, neighbors_df, 
     return bac_under_invest, final_candidate_bac
 
 
-def feature_space_adding_new_link_to_unexpected_end(raw_df, neighbors_df, unexpected_end_bac,
+def feature_space_adding_new_link_to_unexpected_end(neighbors_df, unexpected_end_bac,
                                                     all_bac_in_unexpected_end_bac_time_step_df,
                                                     all_bacteria_in_next_time_step_to_unexpected_end_bac,
-                                                    center_coordinate_columns, parent_object_number_col):
-
-    overlap_df, distance_df = make_initial_distance_matrix(raw_df, all_bac_in_unexpected_end_bac_time_step_df,
+                                                    center_coordinate_columns, parent_object_number_col,
+                                                    color_array, coordinate_array):
+    overlap_df, distance_df = make_initial_distance_matrix(all_bac_in_unexpected_end_bac_time_step_df,
                                                            unexpected_end_bac,
                                                            all_bacteria_in_next_time_step_to_unexpected_end_bac,
                                                            all_bacteria_in_next_time_step_to_unexpected_end_bac,
-                                                           center_coordinate_columns)
+                                                           center_coordinate_columns,
+                                                           color_array=color_array,
+                                                           coordinate_array=coordinate_array)
 
     # remove columns with all values equal to zero
     overlap_df_replaced = overlap_df[(overlap_df != 0).any(axis=1)]
@@ -215,12 +219,13 @@ def feature_space_adding_new_link_to_unexpected_end(raw_df, neighbors_df, unexpe
     return bac_under_invest, final_candidate_bac
 
 
-def optimization_unexpected_beginning_cost(raw_df, df, all_bac_in_unexpected_begging_bac_time_step_df,
+def optimization_unexpected_beginning_cost(df, all_bac_in_unexpected_begging_bac_time_step_df,
                                            unexpected_begging_bacteria, all_bacteria_in_prev_time_step,
-                                           check_cell_type, neighbors_df, min_life_history_of_bacteria,
+                                           check_cell_type, neighbors_df, neighbor_list_array,
+                                           min_life_history_of_bacteria,
                                            parent_image_number_col, parent_object_number_col, center_coordinate_columns,
                                            comparing_divided_non_divided_model, non_divided_bac_model,
-                                           divided_bac_model):
+                                           divided_bac_model, color_array, coordinate_array):
     # note: check_fluorescent_intensity(unexpected_beginning_bac, candidate_parent_bacterium)
 
     max_daughter_len_to_mother_ratio_boundary = find_max_daughter_len_to_mother_ratio_boundary(df)
@@ -230,10 +235,12 @@ def optimization_unexpected_beginning_cost(raw_df, df, all_bac_in_unexpected_beg
     division_cost_dict = {}
 
     bac_under_invest_prev_time_step, final_candidate_bac = \
-        feature_space_adding_new_link_to_unexpected_beginning(raw_df, neighbors_df, unexpected_begging_bacteria,
+        feature_space_adding_new_link_to_unexpected_beginning(neighbors_df, unexpected_begging_bacteria,
                                                               all_bac_in_unexpected_begging_bac_time_step_df,
                                                               all_bacteria_in_prev_time_step, center_coordinate_columns,
-                                                              parent_object_number_col)
+                                                              parent_object_number_col,
+                                                              color_array=color_array,
+                                                              coordinate_array=coordinate_array)
 
     if final_candidate_bac.shape[0] > 0:
 
@@ -243,25 +250,27 @@ def optimization_unexpected_beginning_cost(raw_df, df, all_bac_in_unexpected_beg
                     bac_under_invest_prev_time_step['ObjectNumber'])]
 
         # now check the cost of maintaining the link
-        maintenance_cost_df = calc_maintenance_cost(raw_df, df, all_bacteria_in_prev_time_step,
+        maintenance_cost_df = calc_maintenance_cost(df, all_bacteria_in_prev_time_step,
                                                     bac_under_invest_prev_time_step,
                                                     all_bac_in_unexpected_begging_bac_time_step_df,
                                                     neighbors_df, receiver_of_bac_under_invest_link,
                                                     center_coordinate_columns, parent_image_number_col,
                                                     parent_object_number_col,
-                                                    comparing_divided_non_divided_model)
+                                                    comparing_divided_non_divided_model,
+                                                    coordinate_array=coordinate_array)
 
         same_link_cost_df = \
-            same_link_cost(raw_df, df, neighbors_df, final_candidate_bac.copy(), center_coordinate_columns,
+            same_link_cost(df, neighbors_df, neighbor_list_array, final_candidate_bac.copy(), center_coordinate_columns,
                            '_candidate', '', parent_image_number_col, parent_object_number_col,
                            non_divided_bac_model, comparing_divided_non_divided_model, maintenance_cost_df,
-                           maintenance_to_be_check='source')
+                           maintenance_to_be_check='source', coordinate_array=coordinate_array)
 
-        division_cost_df = daughter_cost(raw_df, df, neighbors_df, final_candidate_bac.copy(),
+        division_cost_df = daughter_cost(df, neighbors_df, neighbor_list_array, final_candidate_bac.copy(),
                                          center_coordinate_columns, '_candidate', '',
                                          parent_image_number_col, parent_object_number_col, divided_bac_model,
                                          comparing_divided_non_divided_model, min_life_history_of_bacteria,
-                                         maintenance_cost_df, maintenance_to_be_check='source')
+                                         maintenance_cost_df, maintenance_to_be_check='source',
+                                         coordinate_array=coordinate_array)
 
         if division_cost_df.shape[0] > 0:
 
@@ -330,33 +339,33 @@ def optimization_unexpected_beginning_cost(raw_df, df, all_bac_in_unexpected_beg
     return same_link_cost_df, division_cost_df, redundant_link_division_df, maintenance_cost_df
 
 
-def daughter_cost(raw_df, df, neighbors_df, df_source_daughter, center_coordinate_columns, col_source, col_target,
-                  parent_image_number_col, parent_object_number_col, divided_bac_model,
+def daughter_cost(df, neighbors_df, neighbor_list_array, df_source_daughter, center_coordinate_columns, col_source,
+                  col_target, parent_image_number_col, parent_object_number_col, divided_bac_model,
                   comparing_divided_non_divided_model, min_life_history_of_bacteria_time_step, maintenance_cost_df,
-                  maintenance_to_be_check='target', t=None):
-
+                  maintenance_to_be_check='target', coordinate_array=None):
     df_source_daughter['index_prev' + col_target] = df_source_daughter['index' + col_target]
-    df_source_daughter['index' + col_target] = df_source_daughter.index.values
+    df_source_daughter['index2' + col_target] = df_source_daughter.index.values
 
     df_source_daughter['LengthChangeRatio' + col_target] = \
         (df_source_daughter['AreaShape_MajorAxisLength' + col_target] /
          df_source_daughter['AreaShape_MajorAxisLength' + col_source])
 
-    df_source_daughter = iou_calc(raw_df, df_source_daughter, col_source='prev_index' + col_source,
-                                  col_target='prev_index' + col_target, stat='div')
+    df_source_daughter = iou_calc(df_source_daughter, col_source='prev_index' + col_source,
+                                  col_target='prev_index' + col_target, stat='div', coordinate_array=coordinate_array,
+                                  both=True)
 
     df_source_daughter = calc_distance(df_source_daughter, center_coordinate_columns, postfix_target=col_target,
                                        postfix_source=col_source, stat='div')
 
-    df_source_daughter['prev_time_step_NeighborIndexList' + col_target] = \
-        df_source_daughter['NeighborIndexList' + col_source]
+    df_source_daughter['prev_time_step_index' + col_target] = \
+        df_source_daughter['index' + col_source].astype('int64')
 
     df_source_daughter['difference_neighbors' + col_target] = np.nan
     df_source_daughter['other_daughter_index' + col_target] = np.nan
     df_source_daughter['parent_id' + col_target] = df_source_daughter['id' + col_source]
 
     df_source_daughter = \
-        neighbor_checking(df_source_daughter, neighbors_df,
+        neighbor_checking(df_source_daughter, neighbor_list_array,
                           parent_image_number_col, parent_object_number_col,
                           selected_rows_df=df_source_daughter, selected_time_step_df=df,
                           return_common_elements=True, col_target=col_target)
@@ -494,34 +503,34 @@ def daughter_cost(raw_df, df, neighbors_df, df_source_daughter, center_coordinat
     return division_cost_df
 
 
-def daughter_cost_for_final_step(raw_df, df, neighbors_df, df_source_daughter, center_coordinate_columns, col_source,
-                                 col_target,
+def daughter_cost_for_final_step(df, neighbors_df, neighbor_list_array, df_source_daughter, center_coordinate_columns,
+                                 col_source, col_target,
                                  parent_image_number_col, parent_object_number_col, divided_bac_model,
                                  maintenance_cost_df,
-                                 maintenance_to_be_check='target', t=None):
-
+                                 maintenance_to_be_check='target', coordinate_array=None):
     df_source_daughter['index_prev' + col_target] = df_source_daughter['index' + col_target]
-    df_source_daughter['index' + col_target] = df_source_daughter.index.values
+    df_source_daughter['index2' + col_target] = df_source_daughter.index.values
 
     df_source_daughter['LengthChangeRatio' + col_target] = \
         (df_source_daughter['AreaShape_MajorAxisLength' + col_target] /
          df_source_daughter['AreaShape_MajorAxisLength' + col_source])
 
-    df_source_daughter = iou_calc(raw_df, df_source_daughter, col_source='prev_index' + col_source,
-                                  col_target='prev_index' + col_target, stat='div')
+    df_source_daughter = iou_calc(df_source_daughter, col_source='prev_index' + col_source,
+                                  col_target='prev_index' + col_target, stat='div', coordinate_array=coordinate_array,
+                                  both=True)
 
     df_source_daughter = calc_distance(df_source_daughter, center_coordinate_columns, postfix_target=col_target,
                                        postfix_source=col_source, stat='div')
 
-    df_source_daughter['prev_time_step_NeighborIndexList' + col_target] = \
-        df_source_daughter['NeighborIndexList' + col_source]
+    df_source_daughter['prev_time_step_index' + col_target] = \
+        df_source_daughter['index' + col_source].fillna(-1).astype('int64')
 
     df_source_daughter['difference_neighbors' + col_target] = np.nan
     df_source_daughter['other_daughter_index' + col_target] = np.nan
     df_source_daughter['parent_id' + col_target] = df_source_daughter['id' + col_source]
 
     df_source_daughter = \
-        neighbor_checking(df_source_daughter, neighbors_df,
+        neighbor_checking(df_source_daughter, neighbor_list_array,
                           parent_image_number_col, parent_object_number_col,
                           selected_rows_df=df_source_daughter, selected_time_step_df=df,
                           return_common_elements=True, col_target=col_target)
@@ -627,10 +636,10 @@ def daughter_cost_for_final_step(raw_df, df, neighbors_df, df_source_daughter, c
     return division_cost_df
 
 
-def division_detection_cost(raw_df, df, neighbors_df, candidate_source_daughter_df,
+def division_detection_cost(df, neighbors_df, neighbor_list_array, candidate_source_daughter_df,
                             min_life_history_of_bacteria_time_step, center_coordinate_columns, parent_image_number_col,
                             parent_object_number_col, divided_bac_model, comparing_divided_non_divided_model,
-                            maintenance_cost_df):
+                            maintenance_cost_df, coordinate_array):
     # source has one link, and we check if we can add another link to source bacteria (mother  - daughter relation)
 
     max_daughter_len_to_mother_ratio_boundary = find_max_daughter_len_to_mother_ratio_boundary(df)
@@ -693,12 +702,12 @@ def division_detection_cost(raw_df, df, neighbors_df, candidate_source_daughter_
     if incorrect_same_link_in_this_time_step_with_candidate_neighbors.shape[0] > 0:
 
         cost_df = \
-            daughter_cost(raw_df, df, neighbors_df,
+            daughter_cost(df, neighbors_df, neighbor_list_array,
                           incorrect_same_link_in_this_time_step_with_candidate_neighbors.copy(),
                           center_coordinate_columns, '_source', '',
                           parent_image_number_col, parent_object_number_col, divided_bac_model,
                           comparing_divided_non_divided_model, min_life_history_of_bacteria_time_step,
-                          maintenance_cost_df, maintenance_to_be_check='target')
+                          maintenance_cost_df, maintenance_to_be_check='target', coordinate_array=coordinate_array)
 
     else:
         # result_df = pd.DataFrame()
@@ -707,16 +716,16 @@ def division_detection_cost(raw_df, df, neighbors_df, candidate_source_daughter_
     return cost_df
 
 
-def same_link_cost(raw_df, df, neighbors_df, source_bac_with_can_target, center_coordinate_columns, col_source,
-                   col_target, parent_image_number_col, parent_object_number_col, non_divided_bac_model,
-                   comparing_divided_non_divided_model, maintenance_cost_df, maintenance_to_be_check='target'):
-
+def same_link_cost(df, neighbors_df, neighbor_list_array, source_bac_with_can_target, center_coordinate_columns,
+                   col_source, col_target, parent_image_number_col, parent_object_number_col, non_divided_bac_model,
+                   comparing_divided_non_divided_model, maintenance_cost_df, maintenance_to_be_check='target',
+                   coordinate_array=None):
     bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
 
     lower_bound_threshold = find_lower_bound(bac_len_to_bac_ratio_boundary)
 
     source_bac_with_can_target['index_prev' + col_target] = source_bac_with_can_target['index' + col_target]
-    source_bac_with_can_target['index' + col_target] = source_bac_with_can_target.index.values
+    source_bac_with_can_target['index2' + col_target] = source_bac_with_can_target.index.values
 
     source_bac_with_can_target['LengthChangeRatio' + col_target] = (
             source_bac_with_can_target['AreaShape_MajorAxisLength' + col_target] /
@@ -728,21 +737,22 @@ def same_link_cost(raw_df, df, neighbors_df, source_bac_with_can_target, center_
 
     if source_bac_with_can_target.shape[0] > 0:
 
-        source_bac_with_can_target = iou_calc(raw_df, source_bac_with_can_target, col_source='prev_index' + col_source,
-                                              col_target='prev_index' + col_target, stat='same')
+        source_bac_with_can_target = iou_calc(source_bac_with_can_target, col_source='prev_index' + col_source,
+                                              col_target='prev_index' + col_target, stat='same',
+                                              coordinate_array=coordinate_array)
 
         source_bac_with_can_target = calc_distance(source_bac_with_can_target, center_coordinate_columns,
                                                    postfix_target=col_target, postfix_source=col_source, stat=None)
 
-        source_bac_with_can_target['prev_time_step_NeighborIndexList' + col_target] = \
-            source_bac_with_can_target['NeighborIndexList' + col_source]
+        source_bac_with_can_target['prev_time_step_index' + col_target] = \
+            source_bac_with_can_target['index' + col_source].astype('int64')
 
         source_bac_with_can_target['difference_neighbors' + col_target] = np.nan
         source_bac_with_can_target['other_daughter_index' + col_target] = np.nan
         source_bac_with_can_target['parent_id' + col_target] = source_bac_with_can_target['id' + col_source]
 
         source_bac_with_can_target = \
-            neighbor_checking(source_bac_with_can_target, neighbors_df,
+            neighbor_checking(source_bac_with_can_target, neighbor_list_array,
                               parent_image_number_col, parent_object_number_col,
                               selected_rows_df=source_bac_with_can_target, selected_time_step_df=df,
                               return_common_elements=True, col_target=col_target)
@@ -852,7 +862,6 @@ def same_link_cost(raw_df, df, neighbors_df, source_bac_with_can_target, center_
                 candidate_target_maintenance_cost[candidate_target_maintenance_cost.min(axis=1) > 0.5]
 
             for source_idx in selected_candidate_target_maintenance_cost.index.values:
-
                 max_probability_value = candidate_target_maintenance_cost.loc[source_idx].max()
 
                 same_link_cost_df.loc[source_idx, same_link_cost_df.loc[source_idx] <= max_probability_value] = np.nan
@@ -865,14 +874,15 @@ def same_link_cost(raw_df, df, neighbors_df, source_bac_with_can_target, center_
     return same_link_cost_df
 
 
-def same_link_cost_for_final_checking(raw_df, df, neighbors_df, source_bac_with_can_target, center_coordinate_columns,
-                                      col_source, col_target, parent_image_number_col, parent_object_number_col,
-                                      non_divided_bac_model, maintenance_cost_df, maintenance_to_be_check='target'):
-
+def same_link_cost_for_final_checking(df, neighbors_df, neighbor_list_array, source_bac_with_can_target,
+                                      center_coordinate_columns, col_source, col_target, parent_image_number_col,
+                                      parent_object_number_col,
+                                      non_divided_bac_model, maintenance_cost_df, maintenance_to_be_check='target',
+                                      coordinate_array=None):
     bac_len_to_bac_ratio_boundary = find_bac_len_to_bac_ratio_boundary(df)
 
     source_bac_with_can_target['index_prev' + col_target] = source_bac_with_can_target['index' + col_target]
-    source_bac_with_can_target['index' + col_target] = source_bac_with_can_target.index.values
+    source_bac_with_can_target['index2' + col_target] = source_bac_with_can_target.index.values
 
     source_bac_with_can_target['LengthChangeRatio' + col_target] = (
             source_bac_with_can_target['AreaShape_MajorAxisLength' + col_target] /
@@ -880,21 +890,22 @@ def same_link_cost_for_final_checking(raw_df, df, neighbors_df, source_bac_with_
 
     if source_bac_with_can_target.shape[0] > 0:
 
-        source_bac_with_can_target = iou_calc(raw_df, source_bac_with_can_target, col_source='prev_index' + col_source,
-                                              col_target='prev_index' + col_target, stat='same')
+        source_bac_with_can_target = iou_calc(source_bac_with_can_target, col_source='prev_index' + col_source,
+                                              col_target='prev_index' + col_target, stat='same',
+                                              coordinate_array=coordinate_array)
 
         source_bac_with_can_target = calc_distance(source_bac_with_can_target, center_coordinate_columns,
                                                    postfix_target=col_target, postfix_source=col_source, stat=None)
 
-        source_bac_with_can_target['prev_time_step_NeighborIndexList' + col_target] = \
-            source_bac_with_can_target['NeighborIndexList' + col_source]
+        source_bac_with_can_target['prev_time_step_index' + col_target] = \
+            source_bac_with_can_target['index' + col_source].fillna(-1).astype('int64')
 
         source_bac_with_can_target['difference_neighbors' + col_target] = np.nan
         source_bac_with_can_target['other_daughter_index' + col_target] = np.nan
         source_bac_with_can_target['parent_id' + col_target] = source_bac_with_can_target['id' + col_source]
 
         source_bac_with_can_target = \
-            neighbor_checking(source_bac_with_can_target, neighbors_df,
+            neighbor_checking(source_bac_with_can_target, neighbor_list_array,
                               parent_image_number_col, parent_object_number_col,
                               selected_rows_df=source_bac_with_can_target, selected_time_step_df=df,
                               return_common_elements=True, col_target=col_target)
@@ -1006,44 +1017,63 @@ def same_link_cost_for_final_checking(raw_df, df, neighbors_df, source_bac_with_
     return same_link_cost_df
 
 
-def adding_new_link_cost(raw_df, df, neighbors_df, incorrect_same_link_in_this_time_step_with_target_neighbors_features,
+def adding_new_link_cost(df, neighbors_df, neighbor_list_array,
+                         incorrect_same_link_in_this_time_step_with_target_neighbors_features,
                          center_coordinate_columns, parent_image_number_col, parent_object_number_col,
-                         non_divided_bac_model, comparing_divided_non_divided_model, maintenance_cost_df):
+                         non_divided_bac_model, comparing_divided_non_divided_model, maintenance_cost_df,
+                         coordinate_array):
     cost_df = \
-        same_link_cost(raw_df, df, neighbors_df,
+        same_link_cost(df, neighbors_df, neighbor_list_array,
                        incorrect_same_link_in_this_time_step_with_target_neighbors_features.copy(),
                        center_coordinate_columns,
                        '_source', '', parent_image_number_col, parent_object_number_col,
                        non_divided_bac_model, comparing_divided_non_divided_model, maintenance_cost_df,
-                       maintenance_to_be_check='target')
+                       maintenance_to_be_check='target', coordinate_array=coordinate_array)
 
     return cost_df
 
 
-def calc_maintenance_cost(raw_df, df, all_bac_in_source_time_step, sel_source_bacteria_info,
+def calc_maintenance_cost(df, all_bac_in_source_time_step, sel_source_bacteria_info,
                           all_bac_in_target_time_step, neighbor_df, sel_target_bacteria_info,
                           center_coordinate_columns, parent_image_number_col, parent_object_number_col,
-                          comparing_divided_non_divided_model):
-
+                          comparing_divided_non_divided_model, coordinate_array):
     if sel_target_bacteria_info.shape[0] > 0 and sel_source_bacteria_info.shape[0] > 0:
 
         # difference_neighbors,
         feature_list = ['iou', 'min_distance', 'neighbor_ratio', 'direction_of_motion',
                         'MotionAlignmentAngle', 'LengthChangeRatio']
 
+        important_cols_division = ['id', 'parent_id', 'prev_index',
+                                   center_coordinate_columns['x'], center_coordinate_columns['y'],
+                                   'endpoint1_X', 'endpoint1_Y', 'endpoint2_X', 'endpoint2_Y',
+                                   'AreaShape_MajorAxisLength', 'common_neighbors',
+                                   'difference_neighbors', 'direction_of_motion', 'MotionAlignmentAngle', 'index']
+
+        important_cols_same = ['id', 'parent_id', 'prev_index',
+                               center_coordinate_columns['x'], center_coordinate_columns['y'],
+                               'endpoint1_X', 'endpoint1_Y', 'endpoint2_X', 'endpoint2_Y',
+                               'AreaShape_MajorAxisLength', 'common_neighbors',
+                               'difference_neighbors', 'direction_of_motion', 'MotionAlignmentAngle', 'index',
+                               'LengthChangeRatio']
+
         division_merged_df = \
-            sel_source_bacteria_info.merge(sel_target_bacteria_info, left_on='id', right_on='parent_id', how='inner',
-                                           suffixes=('_parent', '_daughter'))
+            sel_source_bacteria_info[important_cols_division].merge(
+                sel_target_bacteria_info[important_cols_division],
+                left_on='id', right_on='parent_id', how='inner', suffixes=('_parent', '_daughter'))
 
         same_bac_merged_df = \
-            sel_source_bacteria_info.merge(sel_target_bacteria_info, left_on='id', right_on='id', how='inner',
-                                           suffixes=('_bac1', '_bac2'))
+            sel_source_bacteria_info[important_cols_same].merge(
+                sel_target_bacteria_info[important_cols_same], left_on='id', right_on='id', how='inner',
+                suffixes=('_bac1', '_bac2'))
 
         # IOU
-        division_merged_df = iou_calc(raw_df, division_merged_df,
-                                      col_source='prev_index_parent', col_target='prev_index_daughter', stat='div')
-        same_bac_merged_df = iou_calc(raw_df, same_bac_merged_df,
-                                      col_source='prev_index_bac1', col_target='prev_index_bac2', stat='same')
+        division_merged_df = iou_calc(division_merged_df,
+                                      col_source='prev_index_parent', col_target='prev_index_daughter', stat='div',
+                                      coordinate_array=coordinate_array, both=False)
+
+        same_bac_merged_df = iou_calc(same_bac_merged_df,
+                                      col_source='prev_index_bac1', col_target='prev_index_bac2', stat='same',
+                                      coordinate_array=coordinate_array)
 
         # distance
         division_merged_df = calc_distance(division_merged_df, center_coordinate_columns, '_daughter',
@@ -1226,13 +1256,12 @@ def feature_space_adding_new_link_to_unexpected(df, neighbors_df, unexpected_end
     return bac_under_invest, final_candidate_bac
 
 
-def adding_new_link_to_unexpected_end(raw_df, df, neighbors_df, unexpected_end_bac_in_current_time_step,
+def adding_new_link_to_unexpected_end(df, neighbors_df, neighbor_list_array, unexpected_end_bac_in_current_time_step,
                                       all_bac_in_unexpected_end_bac_time_step,
                                       all_bac_in_next_time_step_to_unexpected_end_bac, center_coordinate_columns,
                                       parent_image_number_col, parent_object_number_col,
                                       min_life_history_of_bacteria, comparing_divided_non_divided_model,
-                                      non_divided_bac_model, divided_bac_model):
-
+                                      non_divided_bac_model, divided_bac_model, color_array, coordinate_array):
     max_daughter_len_to_mother_ratio_boundary = find_max_daughter_len_to_mother_ratio_boundary(df)
     sum_daughter_len_to_mother_ratio_boundary = find_sum_daughter_len_to_mother_ratio_boundary(df)
 
@@ -1243,10 +1272,11 @@ def adding_new_link_to_unexpected_end(raw_df, df, neighbors_df, unexpected_end_b
     upper_bound_sum_daughter_len = find_upper_bound(sum_daughter_len_to_mother_ratio_boundary)
 
     bac_under_invest, final_candidate_bac = \
-        feature_space_adding_new_link_to_unexpected_end(raw_df, neighbors_df, unexpected_end_bac_in_current_time_step,
+        feature_space_adding_new_link_to_unexpected_end(neighbors_df, unexpected_end_bac_in_current_time_step,
                                                         all_bac_in_unexpected_end_bac_time_step,
                                                         all_bac_in_next_time_step_to_unexpected_end_bac,
-                                                        center_coordinate_columns, parent_object_number_col)
+                                                        center_coordinate_columns, parent_object_number_col,
+                                                        color_array, coordinate_array)
 
     if final_candidate_bac.shape[0] > 0:
 
@@ -1256,28 +1286,31 @@ def adding_new_link_to_unexpected_end(raw_df, df, neighbors_df, unexpected_end_b
                     bac_under_invest[parent_object_number_col].values)]
 
         # now check the cost of maintaining the link
-        maintenance_cost_df = calc_maintenance_cost(raw_df, df, all_bac_in_unexpected_end_bac_time_step,
+        maintenance_cost_df = calc_maintenance_cost(df, all_bac_in_unexpected_end_bac_time_step,
                                                     source_of_bac_under_invest_link,
                                                     all_bac_in_next_time_step_to_unexpected_end_bac,
                                                     neighbors_df, bac_under_invest,
                                                     center_coordinate_columns, parent_image_number_col,
-                                                    parent_object_number_col, comparing_divided_non_divided_model)
+                                                    parent_object_number_col, comparing_divided_non_divided_model,
+                                                    coordinate_array=coordinate_array)
 
         same_link_cost_df = \
-            same_link_cost(raw_df, df, neighbors_df, final_candidate_bac.copy(), center_coordinate_columns,
+            same_link_cost(df, neighbors_df, neighbor_list_array, final_candidate_bac.copy(), center_coordinate_columns,
                            col_source='', col_target='_candidate', parent_image_number_col=parent_image_number_col,
                            parent_object_number_col=parent_object_number_col,
                            non_divided_bac_model=non_divided_bac_model,
                            comparing_divided_non_divided_model=comparing_divided_non_divided_model,
-                           maintenance_cost_df=maintenance_cost_df, maintenance_to_be_check='target')
+                           maintenance_cost_df=maintenance_cost_df, maintenance_to_be_check='target',
+                           coordinate_array=coordinate_array)
 
         raw_same_link_cost_df = same_link_cost_df.copy()
 
-        division_cost_df = daughter_cost(raw_df, df, neighbors_df, final_candidate_bac.copy(),
+        division_cost_df = daughter_cost(df, neighbors_df, neighbor_list_array, final_candidate_bac.copy(),
                                          center_coordinate_columns, '', '_candidate',
                                          parent_image_number_col, parent_object_number_col, divided_bac_model,
                                          comparing_divided_non_divided_model, min_life_history_of_bacteria,
-                                         maintenance_cost_df=maintenance_cost_df, maintenance_to_be_check='target')
+                                         maintenance_cost_df=maintenance_cost_df, maintenance_to_be_check='target',
+                                         coordinate_array=coordinate_array)
 
         # now I want to check division chance
         # ba careful the probability reported in division_cost_df is 1 - probability
@@ -1368,7 +1401,6 @@ def adding_new_link_to_unexpected_end(raw_df, df, neighbors_df, unexpected_end_b
 
         if len(columns_with_multiple_non_nan) > 0:
             for col in columns_with_multiple_non_nan:
-
                 # if final_division_cost_df[col].count() > 1:
                 # I want to compare average probability
                 division_cost_check = final_division_cost_df.loc[~ final_division_cost_df[col].isna()]

@@ -55,11 +55,12 @@ def calc_neighbors_avg_dir_motion(df, source_bac, neighbor_df, center_coordinate
 
 def calc_neighbors_dir_motion_all(df, neighbor_df, division_df, parent_image_number_col,
                                   parent_object_number_col, selected_rows=None):
+
     temp_df = df[['ImageNumber', 'ObjectNumber', 'id', "TrajectoryX", "TrajectoryY",
                   "daughter_length_to_mother", 'avg_daughters_TrajectoryX', 'avg_daughters_TrajectoryY']].copy()
 
-    temp_df['source_target_TrajectoryX'] = temp_df.groupby('id')["TrajectoryX"].shift(-1)
-    temp_df['source_target_TrajectoryY'] = temp_df.groupby('id')["TrajectoryY"].shift(-1)
+    temp_df['source_target_TrajectoryX'] = df.groupby('id')["TrajectoryX"].shift(-1)
+    temp_df['source_target_TrajectoryY'] = df.groupby('id')["TrajectoryY"].shift(-1)
 
     temp_df.loc[~ temp_df['daughter_length_to_mother'].isna(), 'source_target_TrajectoryX'] = \
         temp_df.loc[~ temp_df['daughter_length_to_mother'].isna(), 'avg_daughters_TrajectoryX']

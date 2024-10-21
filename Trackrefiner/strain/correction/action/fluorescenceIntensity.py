@@ -58,6 +58,7 @@ def check_intensity(dataframe_col):
 def assign_cell_type(dataframe, intensity_threshold):
     # If the CSV file has two mean intensity columns, the cosine similarity is calculated
     intensity_col_names = check_intensity(dataframe.columns)
+
     # cell type
     if len(intensity_col_names) >= 1:
         dataframe['cellType'] = [[0] * len(intensity_col_names)] * len(dataframe)

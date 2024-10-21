@@ -3,6 +3,7 @@ import pandas as pd
 
 
 def check_len_ratio(df, selected_rows, col_target, col_source):
+
     selected_rows['LengthChangeRatio'] = \
         selected_rows['AreaShape_MajorAxisLength' + col_target] / selected_rows[
             'AreaShape_MajorAxisLength' + col_source]
@@ -69,67 +70,3 @@ def check_len_ratio(df, selected_rows, col_target, col_source):
         breakpoint()
 
     return selected_rows
-
-
-def zzznew_check_len_ratio(df, selected_rows, col_target, col_source):
-    result_df = pd.DataFrame(index=selected_rows.index)
-
-    result_df['LengthChangeRatio'] = \
-        selected_rows['AreaShape_MajorAxisLength' + col_target] / selected_rows[
-            'AreaShape_MajorAxisLength' + col_source]
-
-    condition1 = selected_rows['LengthChangeRatio'] >= 1
-    condition2 = selected_rows['LengthChangeRatio'] < 1
-    condition3 = selected_rows['age' + col_source] < 2
-    condition4 = selected_rows['age' + col_source] >= 2
-
-    result_df.loc[condition1, 'length_dynamic' + col_target] = 0
-
-    result_df.loc[condition2 & condition3, 'length_dynamic' + col_target] = \
-        1 - selected_rows.loc[condition2 & condition3, 'LengthChangeRatio']
-
-    other_bac_should_cal = selected_rows.loc[condition2 & condition4][['ImageNumber' + col_target,
-                                                                       'ObjectNumber' + col_target,
-                                                                       'ImageNumber' + col_source,
-                                                                       'ObjectNumber' + col_source,
-                                                                       'id' + col_source]].copy()
-    other_bac_should_cal['real_index'] = other_bac_should_cal.index.values
-
-    other_bac_should_cal = other_bac_should_cal.merge(df, left_on='id' + col_source, right_on='id', how='left',
-                                                      suffixes=('', '_org_df'))
-
-    other_bac_should_cal = other_bac_should_cal.loc[other_bac_should_cal['ImageNumber_org_df'] <
-                                                    other_bac_should_cal['ImageNumber' + col_target]].copy()
-
-    other_bac_should_cal['avg_source_bac_changes'] = \
-        other_bac_should_cal.groupby(['ImageNumber' + col_target, 'ObjectNumber' + col_target,
-                                      'id' + col_source])['LengthChangeRatio_org_df'].transform('mean')
-
-    # other_bac_should_cal = other_bac_should_cal.drop_duplicates(['ImageNumber' + col_target,
-    #                                                             'ObjectNumber' + col_target,
-    #                                                             'ImageNumber' + col_source,
-    #                                                             'ObjectNumber' + col_source
-    #                                                             ])
-
-    other_bac_should_cal = other_bac_should_cal.groupby(['ImageNumber' + col_target,
-                                                         'ObjectNumber' + col_target,
-                                                         'ImageNumber' + col_source,
-                                                         'ObjectNumber' + col_source
-                                                         ]).head(1)
-
-    other_bac_should_cal['final_changes'] = (other_bac_should_cal['avg_source_bac_changes'] -
-                                             other_bac_should_cal['LengthChangeRatio'])
-
-    other_bac_should_cal.loc[other_bac_should_cal['avg_source_bac_changes'] < 1, 'final_changes'] = \
-        1 - other_bac_should_cal['LengthChangeRatio']
-
-    result_df.loc[other_bac_should_cal['real_index'], 'length_dynamic' + col_target] = \
-        other_bac_should_cal['final_changes'].values
-
-    if np.isnan(selected_rows['length_dynamic' + col_target].values).any():
-        other_bac_should_cal.to_csv('other_bac_should_cal.csv')
-        result_df.to_csv('selected_rows.csv')
-        df.to_csv('df.csv')
-        breakpoint()
-
-    return result_df

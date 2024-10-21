@@ -5,7 +5,8 @@ from Trackrefiner.strain.correction.action.compareBacteria import optimization_u
 import pandas as pd
 
 
-def assign_new_link(df, neighbors_df, unexpected_beginning_bac_idx, unexpected_beginning_bac, prob_val, source_bac_idx,
+def assign_new_link(df, neighbors_df, neighbor_list_array, unexpected_beginning_bac_idx, unexpected_beginning_bac,
+                    prob_val, source_bac_idx,
                     stat, all_bac_in_unexpected_beginning_time_step, maintenance_cost, parent_image_number_col,
                     parent_object_number_col, label_col, center_coordinate_columns, redundant_link_division_df):
     if stat == 'div':
@@ -24,7 +25,8 @@ def assign_new_link(df, neighbors_df, unexpected_beginning_bac_idx, unexpected_b
 
                 df = bacteria_modification(df, source_bac, unexpected_beginning_bac_life_history,
                                            all_bac_in_unexpected_beginning_time_step,
-                                           neighbors_df, parent_image_number_col, parent_object_number_col,
+                                           neighbors_df, neighbor_list_array, parent_image_number_col,
+                                           parent_object_number_col,
                                            center_coordinate_columns, label_col)
             else:
 
@@ -36,7 +38,7 @@ def assign_new_link(df, neighbors_df, unexpected_beginning_bac_idx, unexpected_b
                 incorrect_daughter_life_history = df.loc[df['id'] == df.at[redundant_daughter_idx, 'id']]
 
                 if incorrect_daughter_life_history.shape[0] > 0:
-                    df = remove_redundant_link(df, incorrect_daughter_life_history, neighbors_df,
+                    df = remove_redundant_link(df, incorrect_daughter_life_history, neighbors_df, neighbor_list_array,
                                                parent_image_number_col,
                                                parent_object_number_col, center_coordinate_columns, label_col)
 
@@ -46,7 +48,8 @@ def assign_new_link(df, neighbors_df, unexpected_beginning_bac_idx, unexpected_b
 
                 df = bacteria_modification(df, source_bac, unexpected_beginning_bac_life_history,
                                            all_bac_in_unexpected_beginning_time_step,
-                                           neighbors_df, parent_image_number_col, parent_object_number_col,
+                                           neighbors_df, neighbor_list_array, parent_image_number_col,
+                                           parent_object_number_col,
                                            center_coordinate_columns, label_col)
 
     elif stat == 'same':
@@ -68,7 +71,7 @@ def assign_new_link(df, neighbors_df, unexpected_beginning_bac_idx, unexpected_b
                            (df['ImageNumber'] >= source_bac['ImageNumber'] + 1)]
 
                 if incorrect_bac_life_history.shape[0] > 0:
-                    df = remove_redundant_link(df, incorrect_bac_life_history, neighbors_df,
+                    df = remove_redundant_link(df, incorrect_bac_life_history, neighbors_df, neighbor_list_array,
                                                parent_image_number_col,
                                                parent_object_number_col, center_coordinate_columns, label_col)
 
@@ -78,15 +81,16 @@ def assign_new_link(df, neighbors_df, unexpected_beginning_bac_idx, unexpected_b
 
             df = bacteria_modification(df, source_bac, unexpected_beginning_bac_life_history,
                                        all_bac_in_unexpected_beginning_time_step,
-                                       neighbors_df, parent_image_number_col, parent_object_number_col,
+                                       neighbors_df, neighbor_list_array, parent_image_number_col,
+                                       parent_object_number_col,
                                        center_coordinate_columns, label_col)
     return df
 
 
-def correction_unexpected_beginning(raw_df, df, neighbors_df, number_of_gap, check_cell_type, interval_time,
+def correction_unexpected_beginning(df, neighbors_df, neighbor_list_array, number_of_gap, check_cell_type, interval_time,
                                     min_life_history_of_bacteria, parent_image_number_col, parent_object_number_col,
                                     label_col, center_coordinate_columns, comparing_divided_non_divided_model,
-                                    non_divided_bac_model, divided_bac_model):
+                                    non_divided_bac_model, divided_bac_model, color_array, coordinate_array):
     """
         goal: For bacteria without parent, assign labels, ParentImageNumber, and ParentObjectNumber
         @param df    dataframe   bacteria dataframe
@@ -118,14 +122,15 @@ def correction_unexpected_beginning(raw_df, df, neighbors_df, number_of_gap, che
         # optimized cost dataframe
         # (rows: next time step sudden bacteria, columns: consider time step bacteria)
         new_link_cost_df, division_cost_df, redundant_link_division_df, maintenance_cost_df = \
-            optimization_unexpected_beginning_cost(raw_df, df, all_bac_in_unexpected_beginning_bac_time_step,
+            optimization_unexpected_beginning_cost(df, all_bac_in_unexpected_beginning_bac_time_step,
                                                    sel_unexpected_beginning_bac, all_bac_in_source_time_step,
-                                                   check_cell_type, neighbors_df,
+                                                   check_cell_type, neighbors_df, neighbor_list_array,
                                                    min_life_history_of_bacteria_time_step,
                                                    parent_image_number_col, parent_object_number_col,
                                                    center_coordinate_columns,
                                                    comparing_divided_non_divided_model,
-                                                   non_divided_bac_model, divided_bac_model)
+                                                   non_divided_bac_model, divided_bac_model, color_array,
+                                                   coordinate_array)
 
         if division_cost_df.shape[0] > 0 and new_link_cost_df.shape[0] > 0:
 
@@ -190,7 +195,8 @@ def correction_unexpected_beginning(raw_df, df, neighbors_df, number_of_gap, che
                     if cost_val == 1:
                         stat = 'same'
 
-                df = assign_new_link(df, neighbors_df, unexpected_beginning_bac_idx, unexpected_beginning_bac, cost_val,
+                df = assign_new_link(df, neighbors_df, neighbor_list_array, unexpected_beginning_bac_idx,
+                                     unexpected_beginning_bac, cost_val,
                                      source_bac_idx, stat,
                                      all_bac_in_unexpected_beginning_bac_time_step, maintenance_cost_df,
                                      parent_image_number_col, parent_object_number_col, label_col,

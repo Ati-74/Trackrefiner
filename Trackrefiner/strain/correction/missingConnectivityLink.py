@@ -6,8 +6,8 @@ from Trackrefiner.strain.correction.action.bacteriaModification import bacteria_
 import pandas as pd
 
 
-def assign_new_link(df, neighbors_df, source_bac_index, source_bac, prob_val, new_target_bac_idx, stat,
-                    all_bac_in_target_time_step, parent_image_number_col, parent_object_number_col,
+def assign_new_link(df, neighbors_df, neighbor_list_array, source_bac_index, source_bac, prob_val, new_target_bac_idx,
+                    stat, all_bac_in_target_time_step, parent_image_number_col, parent_object_number_col,
                     label_col, center_coordinate_columns):
     if stat == 'div':
 
@@ -20,7 +20,7 @@ def assign_new_link(df, neighbors_df, source_bac_index, source_bac, prob_val, ne
                                                & (df['ImageNumber'] >= new_daughter['ImageNumber'])]
 
             if new_daughter[parent_image_number_col] != 0:
-                df = remove_redundant_link(df, new_daughter_life_history, neighbors_df,
+                df = remove_redundant_link(df, new_daughter_life_history, neighbors_df, neighbor_list_array,
                                            parent_image_number_col, parent_object_number_col,
                                            center_coordinate_columns, label_col)
 
@@ -28,7 +28,7 @@ def assign_new_link(df, neighbors_df, source_bac_index, source_bac, prob_val, ne
                 new_daughter_life_history = df.loc[new_daughter_life_history.index]
 
             df = bacteria_modification(df, df.loc[source_bac_index], new_daughter_life_history,
-                                       all_bac_in_target_time_step, neighbors_df,
+                                       all_bac_in_target_time_step, neighbors_df, neighbor_list_array,
                                        parent_image_number_col, parent_object_number_col,
                                        center_coordinate_columns, label_col)
 
@@ -49,7 +49,7 @@ def assign_new_link(df, neighbors_df, source_bac_index, source_bac, prob_val, ne
 
             if target_incorrect_same_link_life_history.shape[0] > 0:
                 df = remove_redundant_link(df, target_incorrect_same_link_life_history, neighbors_df,
-                                           parent_image_number_col,
+                                           neighbor_list_array, parent_image_number_col,
                                            parent_object_number_col, center_coordinate_columns, label_col)
 
             # update info
@@ -57,16 +57,17 @@ def assign_new_link(df, neighbors_df, source_bac_index, source_bac, prob_val, ne
 
             if new_bac[parent_image_number_col] != 0:
 
-                df = remove_redundant_link(df, new_bac_life_history, neighbors_df, parent_image_number_col,
-                                           parent_object_number_col, center_coordinate_columns, label_col)
+                df = remove_redundant_link(df, new_bac_life_history, neighbors_df, neighbor_list_array,
+                                           parent_image_number_col, parent_object_number_col,
+                                           center_coordinate_columns, label_col)
 
                 # update info
                 new_bac_life_history = df.loc[new_bac_life_history.index]
 
             df = bacteria_modification(df, df.loc[source_bac_index], new_bac_life_history,
                                        all_bac_in_target_time_step,
-                                       neighbors_df, parent_image_number_col, parent_object_number_col,
-                                       center_coordinate_columns, label_col)
+                                       neighbors_df, neighbor_list_array, parent_image_number_col,
+                                       parent_object_number_col, center_coordinate_columns, label_col)
 
     return df
 
@@ -104,9 +105,11 @@ def detect_missing_connectivity_link(df, parent_image_number_col, parent_object_
     return df
 
 
-def missing_connectivity_link(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
+def missing_connectivity_link(df, neighbors_df, neighbor_list_array, min_life_history_of_bacteria, interval_time,
                               parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
-                              comparing_divided_non_divided_model, non_divided_bac_model, divided_bac_model):
+                              comparing_divided_non_divided_model, non_divided_bac_model, divided_bac_model,
+                              coordinate_array):
+
     num_incorrect_same_links = None
     prev_bacteria_with_wrong_same_link = None
     n_iterate = 0
@@ -204,27 +207,27 @@ def missing_connectivity_link(raw_df, df, neighbors_df, min_life_history_of_bact
                     neighbors_target_bac = \
                         all_bac_in_target_time_step.loc[neighbors_bac_to_target_with_source['index_neighbor_target']]
 
-                    maintenance_cost_df = calc_maintenance_cost(raw_df, df, all_bac_in_source_time_step,
+                    maintenance_cost_df = calc_maintenance_cost(df, all_bac_in_source_time_step,
                                                                 neighbors_source_bac,
                                                                 all_bac_in_target_time_step, neighbors_df,
                                                                 neighbors_target_bac, center_coordinate_columns,
                                                                 parent_image_number_col, parent_object_number_col,
-                                                                comparing_divided_non_divided_model)
+                                                                comparing_divided_non_divided_model, coordinate_array)
                     # try to detect division
                     division_cost_df = \
-                        division_detection_cost(raw_df, df, neighbors_df,
+                        division_detection_cost(df, neighbors_df, neighbor_list_array,
                                                 incorrect_same_link_in_this_time_step_with_neighbors_features,
                                                 min_life_history_of_bacteria_time_step, center_coordinate_columns,
                                                 parent_image_number_col, parent_object_number_col,
                                                 divided_bac_model, comparing_divided_non_divided_model,
-                                                maintenance_cost_df)
+                                                maintenance_cost_df, coordinate_array)
 
                     new_link_cost_df = \
-                        adding_new_link_cost(raw_df, df, neighbors_df,
+                        adding_new_link_cost(df, neighbors_df, neighbor_list_array,
                                              incorrect_same_link_in_this_time_step_with_neighbors_features,
                                              center_coordinate_columns, parent_image_number_col,
                                              parent_object_number_col, non_divided_bac_model,
-                                             comparing_divided_non_divided_model, maintenance_cost_df)
+                                             comparing_divided_non_divided_model, maintenance_cost_df, coordinate_array)
 
                     # if incorrect_same_link_bacteria_time_step == 68:
                     #    incorrect_same_link_in_this_time_step_with_neighbors_features.to_csv(
@@ -295,8 +298,8 @@ def missing_connectivity_link(raw_df, df, neighbors_df, min_life_history_of_bact
                                 if cost_val == 1:
                                     stat = 'same'
 
-                            df = assign_new_link(df, neighbors_df, source_bac_index, source_bac, cost_val,
-                                                 new_target_bac_idx, stat,
+                            df = assign_new_link(df, neighbors_df, neighbor_list_array, source_bac_index, source_bac,
+                                                 cost_val, new_target_bac_idx, stat,
                                                  all_bac_in_target_time_step,
                                                  parent_image_number_col, parent_object_number_col, label_col,
                                                  center_coordinate_columns)

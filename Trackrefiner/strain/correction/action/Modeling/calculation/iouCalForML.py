@@ -1,93 +1,85 @@
 import pandas as pd
+import numpy as np
 
 
-def calculate_intersections_and_unions(raw_df, df, col1, col2, stat='same', chunk_size=5000, df_view=None):
-
+def calculate_intersections_and_unions(df, col1, col2, stat='same', df_view=None,
+                                       coordinate_array=None, both=True):
     # col1 , col2 refer to index
 
-    dataframe_len = df.shape[0]
-    intersection_list = []
-    union_list = []
-    unique_masks2_list = []
-
-    for i in range(0, dataframe_len, chunk_size):
-
-        # Define the bounds for the current chunk
-        start_idx = i
-        end_idx = min(i + chunk_size, dataframe_len)
-
-        if df_view is not None:
-            idx1_vals = df_view[col1].values[start_idx:end_idx]
-            idx2_vals = df_view[col2].values[start_idx:end_idx]
-        else:
-            idx1_vals = df[col1].values[start_idx:end_idx]
-            idx2_vals = df[col2].values[start_idx:end_idx]
-
-        if stat == 'same':
-            intersection_list.extend(
-                raw_df.loc[idx1_vals]['coordinate'].values & raw_df.loc[idx2_vals]['coordinate'].values)
-
-            union_list.extend(
-                raw_df.loc[idx1_vals]['coordinate'].values | raw_df.loc[idx2_vals]['coordinate'].values)
-
-        elif stat == 'div':
-
-            intersection_list.extend(
-                raw_df.loc[idx1_vals]['coordinate'].values & raw_df.loc[idx2_vals]['coordinate'].values)
-
-            union_list.extend(
-                raw_df.loc[idx1_vals]['coordinate'].values | raw_df.loc[idx2_vals]['coordinate'].values)
-
-            # Calculate unique areas for mask 2 (daughter)
-            unique_masks2_list.extend(
-                raw_df.loc[idx2_vals]['coordinate'].values - raw_df.loc[idx1_vals]['coordinate'].values)
+    if df_view is not None:
+        idx1_vals = df_view[col1].to_numpy(dtype='int64')
+        idx2_vals = df_view[col2].to_numpy(dtype='int64')
+    else:
+        idx1_vals = df[col1].to_numpy(dtype='int64')
+        idx2_vals = df[col2].to_numpy(dtype='int64')
 
     if stat == 'same':
 
-        df['intersection'] = intersection_list
+        # Perform element-wise concatenation
+        intersection_size_element_wise_concatenation = \
+            coordinate_array[idx1_vals].multiply(coordinate_array[idx2_vals])
 
-        df['union'] = union_list
+        union_size_element_wise_concatenation = \
+            coordinate_array[idx1_vals] + coordinate_array[idx2_vals]
 
-        df['intersection'] = df['intersection'].map(len)
-        df['union'] = df['union'].map(len)
+        # Count the number of True values in AND and OR results
+        intersection_lens = intersection_size_element_wise_concatenation.getnnz(axis=1)
+        union_lens = union_size_element_wise_concatenation.getnnz(axis=1)
 
-        df['intersection'] = df['intersection'].astype('int64')
-        df['union'] = df['union'].astype('int64')
+        # Preallocate the iou column in df
+        iou_values = (intersection_lens / union_lens).astype('float32')
 
-        df['iou'] = df['intersection'] / df['union']
+        # Create a new DataFrame with 'iou' as the column
+        df_iou = pd.DataFrame(index=df.index, data={'iou': iou_values})
+
+        df = pd.concat([df, df_iou], axis=1)
 
     elif stat == 'div':
 
-        df['intersection'] = intersection_list
+        # Perform element-wise concatenation
+        intersection_size_element_wise_concatenation = \
+            coordinate_array[idx1_vals].multiply(coordinate_array[idx2_vals])
 
-        df['union'] = union_list
-        df['unique_masks2'] = unique_masks2_list
-
-        df['intersection'] = df['intersection'].map(len)
-
-        df['union'] = df['union'].map(len)
+        # Count the number of True values in AND and OR results
+        intersection_lens = intersection_size_element_wise_concatenation.getnnz(axis=1)
 
         # Calculate unique areas for mask 2 (daughter)
-        df['unique_masks2'] = df['unique_masks2'].map(len)
+        masks2_lens = coordinate_array[idx2_vals].getnnz(axis=1)
 
-        df['intersection'] = df['intersection'].astype('int64')
-        df['unique_masks2'] = df['unique_masks2'].astype('int64')
-        df['union'] = df['union'].astype('int64')
+        unique_masks2_lens = masks2_lens - intersection_lens
 
         # Calculate IoU based on daughter_flag
-        df['iou'] = df['intersection'] / (df['intersection'] + df['unique_masks2'])
-        df['iou_same'] = df['intersection'] / df['union']
+        daughter_union = (intersection_lens + unique_masks2_lens)
+        # Correcting the sum operation
+        iou = intersection_lens / daughter_union
+
+        # Create a new DataFrame with 'iou' as the column
+        df_iou = pd.DataFrame(index=df.index, data={'iou': iou})
+
+        df = pd.concat([df, df_iou], axis=1)
+
+        if both:
+            union_size_element_wise_concatenation = \
+                coordinate_array[idx1_vals] + coordinate_array[idx2_vals]
+
+            union_lens = union_size_element_wise_concatenation.getnnz(axis=1)
+
+            iou_same = (intersection_lens / union_lens)
+            df_iou_same = pd.DataFrame(index=df.index, data={'iou_same': iou_same})
+            df = pd.concat([df, df_iou_same], axis=1)
 
     return df
 
 
-def iou_calc(raw_df, df, stat, col_source='prev_index_prev', col_target='prev_index', df_view=None):
+def iou_calc(df, stat, col_source='prev_index_prev', col_target='prev_index', df_view=None,
+             coordinate_array=None, both=True):
 
-    df = calculate_intersections_and_unions(raw_df, df, col1=col_source, col2=col_target, stat=stat, df_view=df_view)
+    df = calculate_intersections_and_unions(df, col1=col_source, col2=col_target, stat=stat,
+                                            df_view=df_view, coordinate_array=coordinate_array, both=both)
 
     df['iou'] = 1 - df['iou']
 
-    if stat == 'div':
+    if stat == 'div' and both:
         df['iou_same'] = 1 - df['iou_same']
 
     return df

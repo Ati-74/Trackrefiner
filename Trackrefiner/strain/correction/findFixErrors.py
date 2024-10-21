@@ -21,6 +21,7 @@ from Trackrefiner.strain.correction.action.finalMatching import final_matching
 from Trackrefiner.strain.correction.action.Modeling.trainingModels import training_models
 from Trackrefiner.strain.correction.action.wallCorrection import find_wall_objects
 from Trackrefiner.strain.correction.action.generateLogFile import generate_log_file
+from scipy.sparse import lil_matrix
 import warnings
 import logging
 import traceback
@@ -311,8 +312,8 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
     dataframe['checked'] = True
 
     # assign cell type
-    if check_cell_type:
-        dataframe = assign_cell_type(dataframe, intensity_threshold)
+    # if check_cell_type:
+    #    dataframe = assign_cell_type(dataframe, intensity_threshold)
 
     dataframe['division_time'] = dataframe['division_time'].fillna(0)
     dataframe['daughters_index'] = dataframe['daughters_index'].fillna('')
@@ -341,62 +342,51 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
 
     # now add neighbor index list
     # adding measured features of bacteria to neighbors_df
-    neighbor_df = neighbor_df.merge(dataframe[['ImageNumber', 'ObjectNumber', center_coordinate_columns['x'],
-                                               center_coordinate_columns['y'], 'AreaShape_MajorAxisLength',
-                                               'index', parent_image_number_col, parent_object_number_col]],
+    neighbor_df = neighbor_df.merge(dataframe[['ImageNumber', 'ObjectNumber', 'index']],
                                     left_on=['Second Image Number', 'Second Object Number'],
                                     right_on=['ImageNumber', 'ObjectNumber'], how='inner')
 
     df_bac_with_neighbors = \
-        dataframe.merge(neighbor_df, left_on=['ImageNumber', 'ObjectNumber'],
-                        right_on=['First Image Number', 'First Object Number'], how='left',
-                        suffixes=('', '_neighbor'))
+        dataframe[['ImageNumber', 'ObjectNumber', 'index']].merge(neighbor_df, left_on=['ImageNumber', 'ObjectNumber'],
+                                                                  right_on=['First Image Number',
+                                                                            'First Object Number'], how='left',
+                                                                  suffixes=('', '_neighbor'))
 
-    # list of id daughters for mother
-    idx_neighbors_for_each_bac = df_bac_with_neighbors.groupby(['ImageNumber', 'ObjectNumber']).agg({
-        'index_neighbor': list
-    }).reset_index()
+    neighbor_list_array = lil_matrix((df_bac_with_neighbors['index'].max().astype('int64') + 1,
+                                      df_bac_with_neighbors['index_neighbor'].max().astype('int64') + 1), dtype=bool)
 
-    # Rename the aggregated column for clarity
-    idx_neighbors_for_each_bac.rename(columns={'index_neighbor': 'NeighborIndexList'}, inplace=True)
+    # values shows:
+    # ImageNumber, ObjectNumber, index,	First Image Number,	First Object Number, Second Image Number,
+    # Second Object Number,	ImageNumber_neighbor, ObjectNumber_neighbor,	index_neighbor
+    df_bac_with_neighbors = df_bac_with_neighbors.fillna(-1)
+    df_bac_with_neighbors_values = df_bac_with_neighbors.to_numpy(dtype='int64')
 
-    # idx_neighbors_for_each_bac['NeighborIndexList'] = idx_neighbors_for_each_bac['NeighborIndexList'].apply(np.array)
+    for row in df_bac_with_neighbors_values:
 
-    # Merge the aggregated data back to the original DataFrame
-    # append the list od daughters id to mother
-    dataframe = dataframe.merge(idx_neighbors_for_each_bac, on=['ImageNumber', 'ObjectNumber'], how='left')
+        bac_idx = row[2]
+        neighbor_idx = row[-1]
+
+        if neighbor_idx != -1:
+            neighbor_list_array[bac_idx, neighbor_idx] = True
 
     dataframe['checked'] = True
 
     # dataframe.drop(labels='checked', axis=1, inplace=True)
-    return dataframe
-
-
-def data_cleaning(raw_df, label_col, parent_image_number_col, parent_object_number_col):
-    """
-    goal:   Correct the labels of bacteria whose labels are nan.
-
-    @param raw_df dataframe bacteria features value
-    """
-
-    modified_df = modify_nan_labels(raw_df, label_col, parent_image_number_col, parent_object_number_col)
-
-    return modified_df
+    return dataframe, neighbor_list_array
 
 
 def data_modification(dataframe, intensity_threshold, check_cell_type, neighbors_df, center_coordinate_columns,
                       parent_image_number_col, parent_object_number_col, label_col, without_tracking_correction):
-    # Correct the labels of bacteria whose labels are nan.
+    # for detecting each bacterium
     dataframe['index'] = dataframe.index
 
-    # dataframe = data_cleaning(dataframe, label_col, parent_image_number_col, parent_object_number_col)
+    dataframe, neighbor_list_array = assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type,
+                                                                neighbors_df,
+                                                                center_coordinate_columns, parent_image_number_col,
+                                                                parent_object_number_col,
+                                                                without_tracking_correction)
 
-    dataframe = assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, neighbors_df,
-                                           center_coordinate_columns, parent_image_number_col,
-                                           parent_object_number_col,
-                                           without_tracking_correction)
-
-    return dataframe
+    return dataframe, neighbor_list_array
 
 
 def redefine_ids(df, label_col):
@@ -470,8 +460,8 @@ def label_correction(df, parent_image_number_col, parent_object_number_col, labe
 
 def data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns):
     dataframe['noise_bac'] = False
-    dataframe['color_mask'] = ''
-    dataframe['coordinate'] = ''
+    # dataframe['color_mask'] = ''
+    # dataframe['coordinate'] = ''
     dataframe['mother_rpl'] = False
     dataframe['daughter_rpl'] = False
     dataframe['source_mcl'] = False
@@ -492,20 +482,18 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
 
     df = data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns)
 
+    # useful for only final comparison between original & modified dataframe
     df['prev_index'] = df.index
+
     raw_df = df.copy()
 
     if not without_tracking_correction:
         # correction of multi regions
-        df = multi_region_detection(df, sorted_npy_files_list, um_per_pixel, center_coordinate_columns,
-                                    all_center_coordinate_columns, parent_image_number_col,
-                                    parent_object_number_col, warn)
-
-        raw_df['coordinate'] = df['coordinate']
-        raw_df['color_mask'] = df['color_mask']
-
-        selected_cols = [col for col in df.columns.tolist() if col not in ['coordinate']]
-        df = df[selected_cols]
+        df, coordinate_array, color_array = multi_region_detection(df, sorted_npy_files_list, um_per_pixel,
+                                                                   center_coordinate_columns,
+                                                                   all_center_coordinate_columns,
+                                                                   parent_image_number_col, parent_object_number_col,
+                                                                   warn)
 
     if boundary_limits is not None:
         df, neighbors_df = \
@@ -546,9 +534,10 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
 
     df.to_csv(output_directory + '/20.percent.csv', index=False)
 
-    df = data_modification(df, intensity_threshold, check_cell_type, neighbors_df,
-                           center_coordinate_columns, parent_image_number_col, parent_object_number_col,
-                           label_col, without_tracking_correction)
+    df, neighbor_list_array = data_modification(df, intensity_threshold, check_cell_type, neighbors_df,
+                                                center_coordinate_columns, parent_image_number_col,
+                                                parent_object_number_col,
+                                                label_col, without_tracking_correction)
 
     print_progress_bar(3, prefix='Progress:', suffix='Complete', length=50)
 
@@ -575,7 +564,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         # df = merged_bacteria(df, check_cell_type)
 
         # check neighbors
-        df = neighbor_checking(df, neighbors_df, parent_image_number_col, parent_object_number_col)
+        df = neighbor_checking(df, neighbor_list_array, parent_image_number_col, parent_object_number_col)
 
         print_progress_bar(4, prefix='Progress:', suffix='Complete', length=50)
 
@@ -592,19 +581,19 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         df.to_csv(output_directory + '/40.percent.csv', index=False)
 
         # redundant links
-        df = detect_redundant_parent_link(df, neighbors_df, parent_image_number_col,
+        df = detect_redundant_parent_link(df, parent_image_number_col,
                                           parent_object_number_col, label_col, center_coordinate_columns)
 
         df = detect_missing_connectivity_link(df, parent_image_number_col, parent_object_number_col)
 
         comparing_divided_non_divided_model, non_divided_bac_model, divided_bac_model = \
-            training_models(raw_df, df, neighbors_df, center_coordinate_columns, parent_image_number_col,
-                            parent_object_number_col, output_directory, clf, n_cpu)
+            training_models(df, neighbors_df, neighbor_list_array, center_coordinate_columns, parent_image_number_col,
+                            parent_object_number_col, output_directory, clf, n_cpu, coordinate_array)
 
         # more than two daughters
-        df = remove_over_assigned_daughters_link(raw_df, df, neighbors_df, parent_image_number_col,
+        df = remove_over_assigned_daughters_link(df, parent_image_number_col,
                                                  parent_object_number_col, label_col, center_coordinate_columns,
-                                                 divided_bac_model)
+                                                 divided_bac_model, coordinate_array)
 
         df_before_more_detection_and_removing = df.copy()
 
@@ -623,9 +612,9 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         df.to_csv(output_directory + '/45.percent.csv', index=False)
 
         # remove redundant links
-        df = detect_and_remove_redundant_parent_link(raw_df, df, neighbors_df, parent_image_number_col,
+        df = detect_and_remove_redundant_parent_link(df, neighbors_df, neighbor_list_array, parent_image_number_col,
                                                      parent_object_number_col, label_col, center_coordinate_columns,
-                                                     non_divided_bac_model)
+                                                     non_divided_bac_model, coordinate_array)
         print_progress_bar(5, prefix='Progress:', suffix='Complete', length=50)
 
         end_tracking_errors_correction_time = time.time()
@@ -640,10 +629,10 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
 
         df.to_csv(output_directory + '/50.percent.csv', index=False)
 
-        df = missing_connectivity_link(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
-                                       parent_image_number_col, parent_object_number_col, label_col,
+        df = missing_connectivity_link(df, neighbors_df, neighbor_list_array, min_life_history_of_bacteria,
+                                       interval_time, parent_image_number_col, parent_object_number_col, label_col,
                                        center_coordinate_columns, comparing_divided_non_divided_model,
-                                       non_divided_bac_model, divided_bac_model)
+                                       non_divided_bac_model, divided_bac_model, coordinate_array)
 
         print_progress_bar(6, prefix='Progress:', suffix='Complete', length=50)
 
@@ -660,11 +649,11 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         df.to_csv(output_directory + '/60.percent.csv', index=False)
 
         # try to assign new link
-        df = correction_unexpected_beginning(raw_df, df, neighbors_df, number_of_gap, check_cell_type, interval_time,
-                                             min_life_history_of_bacteria, parent_image_number_col,
+        df = correction_unexpected_beginning(df, neighbors_df, neighbor_list_array, number_of_gap, check_cell_type,
+                                             interval_time, min_life_history_of_bacteria, parent_image_number_col,
                                              parent_object_number_col, label_col, center_coordinate_columns,
                                              comparing_divided_non_divided_model, non_divided_bac_model,
-                                             divided_bac_model)
+                                             divided_bac_model, color_array, coordinate_array)
 
         print_progress_bar(7, prefix='Progress:', suffix='Complete', length=50)
 
@@ -680,10 +669,10 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
 
         df.to_csv(output_directory + '/70.percent.csv', index=False)
 
-        df = unexpected_end_bacteria(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
+        df = unexpected_end_bacteria(df, neighbors_df, neighbor_list_array, min_life_history_of_bacteria, interval_time,
                                      parent_image_number_col, parent_object_number_col, label_col,
                                      center_coordinate_columns, comparing_divided_non_divided_model,
-                                     non_divided_bac_model, divided_bac_model)
+                                     non_divided_bac_model, divided_bac_model, color_array, coordinate_array)
 
         print_progress_bar(8, prefix='Progress:', suffix='Complete', length=50)
 
@@ -699,9 +688,10 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
 
         df.to_csv(output_directory + '/80.percent.csv', index=False)
 
-        df = final_matching(raw_df, df, neighbors_df, min_life_history_of_bacteria, interval_time,
+        df = final_matching(df, neighbors_df, neighbor_list_array, min_life_history_of_bacteria, interval_time,
                             parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
-                            df_before_more_detection_and_removing, non_divided_bac_model, divided_bac_model)
+                            df_before_more_detection_and_removing, non_divided_bac_model, divided_bac_model,
+                            coordinate_array)
 
         df = remove_rows(df, 'noise_bac', False)
 

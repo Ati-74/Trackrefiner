@@ -80,7 +80,9 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
 
         if not without_tracking_correction:
             neighbors_df = pd.read_csv(neighbors_file)
-            neighbors_df = neighbors_df.loc[neighbors_df['Relationship'] == 'Neighbors']
+            neighbors_df = neighbors_df.loc[
+                neighbors_df['Relationship'] == 'Neighbors'][['First Image Number', 'First Object Number',
+                                                              'Second Image Number', 'Second Object Number']]
         else:
             neighbors_df = pd.DataFrame()
 

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from skimage.measure import label, regionprops
 from scipy.spatial import distance_matrix
+from scipy.sparse import lil_matrix
 from Trackrefiner.strain.correction.action.multiRegionsCorrection import multi_region_correction
 
 
@@ -19,6 +20,8 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
                            all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, warn,
                            img=None):
 
+    # coordinate_array = np.zeros(df.shape[0], dtype=object)
+
     for img_ndx, img_npy_file in enumerate(img_npy_file_list):
 
         current_df = df.loc[df['ImageNumber'] == img_ndx + 1]
@@ -29,6 +32,13 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
 
         # Flatten the image to get a list of RGB values
         rgb_values = img_array.reshape(-1, 3)
+
+        if img_ndx == 0:
+            h, w, d = img_array.shape
+            encoded_number = (w + h) * (w + h + 1) // 2 + w
+            # coordinate_array = np.zeros((df.shape[0], encoded_number), dtype=bool)
+            coordinate_array = lil_matrix((df.shape[0], encoded_number), dtype=bool)
+            color_array = np.zeros((df.shape[0], 3))
 
         unique_colors, indices = np.unique(rgb_values, axis=0, return_index=True)
 
@@ -149,19 +159,29 @@ def multi_region_detection(df, img_npy_file_list, um_per_pixel, center_coordinat
             ),
                 index=df_centers_particles.index, columns=current_df.index)
 
-            df = \
+            df, coordinate_array, color_array = \
                 multi_region_correction(df, img_array, img_npy_file, distance_df_particles, img_number,
                                         regions_center_particles_stat, regions_center_particles, regions_color,
                                         regions_coordinates, regions_features, all_center_coordinate_columns,
                                         parent_image_number_col, parent_object_number_col,
-                                        min_distance_prev_objects_df)
+                                        min_distance_prev_objects_df, coordinate_array, color_array)
 
         else:
 
             for correct_bac_idx, correct_bac_row in min_distance_prev_objects_df.iterrows():
                 bac_ndx = correct_bac_row['cp index']
                 this_region_color = regions_color[correct_bac_row['row idx prev']]
-                df.at[bac_ndx, 'color_mask'] = tuple(this_region_color)
-                df.at[bac_ndx, 'coordinate'] = set(map(tuple, regions_coordinates[correct_bac_row['row idx prev']]))
+                # df.at[bac_ndx, 'color_mask'] = tuple(this_region_color)
+                color_array[bac_ndx] = this_region_color
+                coordinates_array = regions_coordinates[correct_bac_row['row idx prev']]
+                x, y = coordinates_array[:, 0], coordinates_array[:, 1]
+                # Cantor Pairing Function
+                encoded_numbers = (x + y) * (x + y + 1) // 2 + y
+                coordinate_array[bac_ndx, encoded_numbers] = True
+                # coordinate_array[bac_ndx] = encoded_numbers
+                # df.at[bac_ndx, 'coordinate'] = set(map(tuple, regions_coordinates[correct_bac_row['row idx prev']]))
 
-    return df
+    coordinate_array = coordinate_array.tocsr()
+
+    return df, coordinate_array, color_array
+

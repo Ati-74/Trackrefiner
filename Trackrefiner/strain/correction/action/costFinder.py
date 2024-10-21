@@ -85,10 +85,10 @@ def dist_for_maintain_division(division_df, center_coordinate_columns):
     return division_distance_df
 
 
-def make_initial_distance_matrix_unexpected(raw_df, final_candidate_bac, center_coordinate_columns):
+def make_initial_distance_matrix_unexpected(final_candidate_bac, center_coordinate_columns, coordinate_array):
 
     overlap_df = \
-        find_overlap_object_to_next_frame_unexpected(raw_df, final_candidate_bac)
+        find_overlap_object_to_next_frame_unexpected(final_candidate_bac, coordinate_array)
 
     # distance
     # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
@@ -120,9 +120,10 @@ def make_initial_distance_matrix_unexpected(raw_df, final_candidate_bac, center_
     return unexpected_bac_distance_df, overlap_df
 
 
-def make_initial_distance_matrix_bad_daughters(raw_df, mother_bad_daughters_df, center_coordinate_columns):
+def make_initial_distance_matrix_bad_daughters(mother_bad_daughters_df, center_coordinate_columns,
+                                               coordinate_array):
 
-    overlap_df = find_overlap_mother_bad_daughters(raw_df, mother_bad_daughters_df)
+    overlap_df = find_overlap_mother_bad_daughters(mother_bad_daughters_df, coordinate_array)
 
     # distance
     # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
@@ -153,11 +154,11 @@ def make_initial_distance_matrix_bad_daughters(raw_df, mother_bad_daughters_df, 
     return mother_bad_daughters_distance_df, overlap_df
 
 
-def make_initial_distance_matrix_for_division_chance(raw_df, source_with_candidate_neighbors, center_coordinate_columns,
-                                                     col1, col2, daughter_flag=True):
+def make_initial_distance_matrix_for_division_chance(source_with_candidate_neighbors, center_coordinate_columns,
+                                                     col1, col2, daughter_flag=True, coordinate_array=None):
     overlap_df = \
-        find_overlap_object_for_division_chance(raw_df, source_with_candidate_neighbors, center_coordinate_columns,
-                                                col1, col2, daughter_flag)
+        find_overlap_object_for_division_chance(source_with_candidate_neighbors, center_coordinate_columns,
+                                                col1, col2, daughter_flag, coordinate_array)
 
     # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
 
@@ -214,9 +215,9 @@ def make_initial_distance_matrix_for_division_chance(raw_df, source_with_candida
     return overlap_df, distance_df
 
 
-def make_initial_distance_matrix(raw_df, source_time_step_df, sel_source_bacteria, bacteria_in_target_time_step,
-                                 sel_target_bacteria, center_coordinate_columns,
-                                 daughter_flag=False, maintain=False):
+def make_initial_distance_matrix(source_time_step_df, sel_source_bacteria, bacteria_in_target_time_step,
+                                 sel_target_bacteria, center_coordinate_columns, color_array,
+                                 daughter_flag=False, maintain=False, coordinate_array=None):
 
     if sel_target_bacteria.shape[0] > 0 and sel_source_bacteria.shape[0] > 0:
 
@@ -231,7 +232,7 @@ def make_initial_distance_matrix(raw_df, source_time_step_df, sel_source_bacteri
             same_distance_df = dist_for_maintain_same(same_df, center_coordinate_columns)
 
             distance_df = pd.concat([division_distance_df, same_distance_df], axis=0)
-            overlap_df = find_overlap_object_to_next_frame_maintain(raw_df, division_df, same_df)
+            overlap_df = find_overlap_object_to_next_frame_maintain(division_df, same_df, coordinate_array)
 
             distance_df = distance_df.fillna(999)
             overlap_df = overlap_df.fillna(0)
@@ -239,10 +240,12 @@ def make_initial_distance_matrix(raw_df, source_time_step_df, sel_source_bacteri
         else:
 
             overlap_df, product_df = \
-                find_overlap_object_to_next_frame(raw_df, source_time_step_df, sel_source_bacteria,
+                find_overlap_object_to_next_frame(source_time_step_df, sel_source_bacteria,
                                                   bacteria_in_target_time_step, sel_target_bacteria,
                                                   center_coordinate_columns,
-                                                  daughter_flag)
+                                                  color_array=color_array,
+                                                  daughter_flag=daughter_flag,
+                                                  coordinate_array=coordinate_array)
 
             # create distance matrix (row: parent bacterium, column: candidate daughters in next time step)
 

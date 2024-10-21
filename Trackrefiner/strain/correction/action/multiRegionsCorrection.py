@@ -2,17 +2,24 @@ import numpy as np
 import pandas as pd
 
 
-def modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates):
+def modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates, coordinate_array,
+                           color_array):
     # It means that the Cellprofiler detected both multi-regions and particles
     this_region_color = regions_color[faulty_row['row idx par']]
 
     # Update the img_array with the new color for this region
     img_array[tuple(zip(*regions_coordinates[faulty_row['row idx par']]))] = this_region_color
 
-    df.at[faulty_row['cp index'], 'color_mask'] = tuple(this_region_color)
-    df.at[faulty_row['cp index'], 'coordinate'] = set(map(tuple, regions_coordinates[faulty_row['row idx par']]))
+    # df.at[faulty_row['cp index'], 'color_mask'] = tuple(this_region_color)
+    color_array[faulty_row['cp index']] = this_region_color
+    coordinates_array = regions_coordinates[faulty_row['row idx par']]
+    x, y = coordinates_array[:, 0], coordinates_array[:, 1]
+    # Cantor Pairing Function
+    encoded_numbers = (x + y) * (x + y + 1) // 2 + y
+    coordinate_array[faulty_row['cp index'], encoded_numbers] = True
+    # df.at[faulty_row['cp index'], 'coordinate'] = set(map(tuple, regions_coordinates[faulty_row['row idx par']]))
 
-    return df, img_array
+    return df, img_array, coordinate_array, color_array
 
 
 def remove_existing_object(df, faulty_row, img_array, regions_coordinates):
@@ -24,7 +31,9 @@ def remove_existing_object(df, faulty_row, img_array, regions_coordinates):
 
 
 def updating_records(df, faulty_row, img_array, regions_coordinates, regions_color, regions_features,
-                     all_center_coordinate_columns, parent_image_number_col, parent_object_number_col):
+                     all_center_coordinate_columns, parent_image_number_col, parent_object_number_col,
+                     coordinate_array, color_array):
+
     this_region_color = regions_color[faulty_row['row idx par']]
 
     # Update the img_array with the new color for this region
@@ -33,7 +42,6 @@ def updating_records(df, faulty_row, img_array, regions_coordinates, regions_col
 
     # update dataframe
     updates = {
-        'color_mask': tuple(this_region_color),
         **{x_center_col: regions_features[faulty_row['row idx par']]['center_x']
            for x_center_col in all_center_coordinate_columns['x']},
         **{y_center_col: regions_features[faulty_row['row idx par']]['center_y']
@@ -44,21 +52,30 @@ def updating_records(df, faulty_row, img_array, regions_coordinates, regions_col
             -(regions_features[faulty_row['row idx par']]['orientation'] + 90) * np.pi / 180,
         parent_image_number_col: 0,
         parent_object_number_col: 0,
-        'coordinate': set(map(tuple, regions_coordinates[faulty_row['row idx par']]))
+        # 'coordinate': set(map(tuple, regions_coordinates[faulty_row['row idx par']]))
     }
 
     this_bac_ndx = faulty_row['cp index']
 
+    coordinates_array = regions_coordinates[faulty_row['row idx par']]
+    x, y = coordinates_array[:, 0], coordinates_array[:, 1]
+    # Cantor Pairing Function
+    encoded_numbers = (x + y) * (x + y + 1) // 2 + y
+    coordinate_array[this_bac_ndx, encoded_numbers] = True
+    color_array[this_bac_ndx] = this_region_color
+
     # Update the DataFrame for the given index (bac_ndx) with all updates
     df.loc[this_bac_ndx, updates.keys()] = updates.values()
 
-    return df, img_array
+    return df, img_array, coordinate_array, color_array
 
 
 def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, img_number,
                             regions_center_particles_stat, regions_center_particles, regions_color,
                             regions_coordinates, regions_features, all_center_coordinate_columns,
-                            parent_image_number_col, parent_object_number_col, min_distance_prev_objects_df):
+                            parent_image_number_col, parent_object_number_col, min_distance_prev_objects_df,
+                            coordinate_array, color_array):
+
     rows_with_duplicates = distance_df_particles.T.apply(lambda row: (row == row.min()).sum() > 1, axis=1)
 
     # two same regions from multi regions
@@ -150,11 +167,13 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
                             df, img_array = \
                                 remove_existing_object(df, faulty_row, img_array, regions_coordinates)
                         else:
-                            df, img_array = \
-                                modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
+                            df, img_array, coordinate_array, color_array = \
+                                modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates,
+                                                       coordinate_array, color_array)
                     else:
-                        df, img_array = \
-                            modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
+                        df, img_array, coordinate_array, color_array = \
+                            modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates,
+                                                   coordinate_array, color_array)
 
                 else:
                     df, img_array = \
@@ -172,12 +191,14 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
                             remove_existing_object(df, faulty_row, img_array, regions_coordinates)
                     else:
                         # stat prev: multi, stat par: particle or natural!
-                        df, img_array = \
-                            modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
+                        df, img_array, coordinate_array, color_array = \
+                            modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates,
+                                                   coordinate_array, color_array)
                 else:
                     # stat prev: multi, stat par: particle or natural!
-                    df, img_array = \
-                        modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates)
+                    df, img_array, coordinate_array, color_array = \
+                        modify_existing_object(df, regions_color, faulty_row, img_array, regions_coordinates,
+                                               coordinate_array, color_array)
 
             elif faulty_row['Cost prev'] < faulty_row['Cost par']:
 
@@ -190,16 +211,18 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
                         df, img_array = \
                             remove_existing_object(df, faulty_row, img_array, regions_coordinates)
                     else:
-                        df, img_array, = \
+                        df, img_array, coordinate_array, color_array = \
                             updating_records(df, faulty_row, img_array, regions_coordinates, regions_color,
                                              regions_features, all_center_coordinate_columns,
-                                             parent_image_number_col, parent_object_number_col)
+                                             parent_image_number_col, parent_object_number_col, coordinate_array,
+                                             color_array)
                 else:
 
-                    df, img_array, = \
+                    df, img_array, coordinate_array, color_array = \
                         updating_records(df, faulty_row, img_array, regions_coordinates, regions_color,
                                          regions_features, all_center_coordinate_columns,
-                                         parent_image_number_col, parent_object_number_col)
+                                         parent_image_number_col, parent_object_number_col, coordinate_array,
+                                         color_array)
 
             elif faulty_row['Cost par'] == faulty_row['Cost prev']:
                 breakpoint()
@@ -211,8 +234,14 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
         for correct_bac_idx, correct_bac_row in correct_rows_df.iterrows():
             bac_ndx = correct_bac_row['cp index']
             this_region_color = regions_color[correct_bac_row['row idx par']]
-            df.at[bac_ndx, 'color_mask'] = tuple(this_region_color)
-            df.at[bac_ndx, 'coordinate'] = set(map(tuple, regions_coordinates[correct_bac_row['row idx par']]))
+            # df.at[bac_ndx, 'color_mask'] = tuple(this_region_color)
+            color_array[bac_ndx] = this_region_color
+            coordinates_array = regions_coordinates[correct_bac_row['row idx par']]
+            x, y = coordinates_array[:, 0], coordinates_array[:, 1]
+            # Cantor Pairing Function
+            encoded_numbers = (x + y) * (x + y + 1) // 2 + y
+            coordinate_array[bac_ndx, encoded_numbers] = True
+            # df.at[bac_ndx, 'coordinate'] = set(map(tuple, regions_coordinates[correct_bac_row['row idx par']]))
 
         # now check correct_rows_df with duplicate
         correct_rows_dup_df = correct_rows_df[correct_rows_df.duplicated('row idx par', keep=False)]
@@ -224,4 +253,4 @@ def multi_region_correction(df, img_array, img_npy_file, distance_df_particles, 
         # new_file_name = os.path.splitext(img_npy_file)[0] + '_modified.npy'
         # np.save(new_file_name, img_array)
 
-    return df
+    return df, coordinate_array, color_array
