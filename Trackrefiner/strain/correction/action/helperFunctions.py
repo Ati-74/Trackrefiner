@@ -559,7 +559,9 @@ def find_vertex(center, major, angle_rotation, angle_tolerance=1e-6):
 def find_vertex_batch(df, center_coordinate_columns, angle_tolerance=1e-6):
     # condition 1
     # Bacteria parallel to the vertical axis
-    condition1 = np.abs(df["AreaShape_Orientation"] - np.pi / 2) < angle_tolerance
+    condition1 = (np.abs(df["AreaShape_Orientation"] - np.pi / 2) < angle_tolerance) | \
+                 (np.abs(df["AreaShape_Orientation"] + np.pi / 2) < angle_tolerance)
+
     df.loc[condition1, 'endpoint1_X'] = df[center_coordinate_columns['x']]
     df.loc[condition1, 'endpoint1_Y'] = df[center_coordinate_columns['y']] + df["AreaShape_MajorAxisLength"]
     df.loc[condition1, 'endpoint2_X'] = df[center_coordinate_columns['x']]
