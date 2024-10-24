@@ -4,8 +4,8 @@ from Trackrefiner.strain.correction.action.calcGrowthRate import calculate_growt
 from Trackrefiner.strain.correction.action.fluorescenceIntensity import final_cell_type
 
 
-def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assigning_cell_type, label_col,
-                           center_coordinate_columns):
+def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assigning_cell_type, cell_type_array,
+                           label_col, center_coordinate_columns):
     """
     goal: assign
     """
@@ -85,7 +85,7 @@ def bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assign
 
     if assigning_cell_type:
         # determine final cell type of each bacterium
-        data_frame = final_cell_type(data_frame)
+        data_frame = final_cell_type(data_frame, cell_type_array)
 
     # rename some columns
     data_frame.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length',

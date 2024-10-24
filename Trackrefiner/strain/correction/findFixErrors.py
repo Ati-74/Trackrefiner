@@ -312,8 +312,10 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
     dataframe['checked'] = True
 
     # assign cell type
-    # if check_cell_type:
-    #    dataframe = assign_cell_type(dataframe, intensity_threshold)
+    if check_cell_type:
+        cell_type_array = assign_cell_type(dataframe, intensity_threshold)
+    else:
+        cell_type_array = np.array([])
 
     dataframe['division_time'] = dataframe['division_time'].fillna(0)
     dataframe['daughters_index'] = dataframe['daughters_index'].fillna('')
@@ -372,7 +374,7 @@ def assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type, 
     dataframe['checked'] = True
 
     # dataframe.drop(labels='checked', axis=1, inplace=True)
-    return dataframe, neighbor_list_array
+    return dataframe, neighbor_list_array, cell_type_array
 
 
 def data_modification(dataframe, intensity_threshold, check_cell_type, neighbors_df, center_coordinate_columns,
@@ -380,13 +382,15 @@ def data_modification(dataframe, intensity_threshold, check_cell_type, neighbors
     # for detecting each bacterium
     dataframe['index'] = dataframe.index
 
-    dataframe, neighbor_list_array = assign_feature_find_errors(dataframe, intensity_threshold, check_cell_type,
-                                                                neighbors_df,
-                                                                center_coordinate_columns, parent_image_number_col,
-                                                                parent_object_number_col,
-                                                                without_tracking_correction)
+    dataframe, neighbor_list_array, cell_type_array = assign_feature_find_errors(dataframe, intensity_threshold,
+                                                                                 check_cell_type,
+                                                                                 neighbors_df,
+                                                                                 center_coordinate_columns,
+                                                                                 parent_image_number_col,
+                                                                                 parent_object_number_col,
+                                                                                 without_tracking_correction)
 
-    return dataframe, neighbor_list_array
+    return dataframe, neighbor_list_array, cell_type_array
 
 
 def redefine_ids(df, label_col):
@@ -534,10 +538,10 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
 
     df.to_csv(output_directory + '/20.percent.csv', index=False)
 
-    df, neighbor_list_array = data_modification(df, intensity_threshold, check_cell_type, neighbors_df,
-                                                center_coordinate_columns, parent_image_number_col,
-                                                parent_object_number_col,
-                                                label_col, without_tracking_correction)
+    df, neighbor_list_array, cell_type_array = data_modification(df, intensity_threshold, check_cell_type, neighbors_df,
+                                                                 center_coordinate_columns, parent_image_number_col,
+                                                                 parent_object_number_col,
+                                                                 label_col, without_tracking_correction)
 
     print_progress_bar(3, prefix='Progress:', suffix='Complete', length=50)
 
@@ -725,4 +729,5 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         fixed_errors = pd.DataFrame()
         remaining_errors_df = pd.DataFrame()
 
-    return df, logs_list, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df, neighbors_df
+    return (df, logs_list, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df, neighbors_df,
+            cell_type_array)

@@ -97,7 +97,7 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
                 output_directory = output_directory + '/Trackrefiner/'
 
             (data_frame, find_fix_errors_log, logs_df, identified_tracking_errors_df, fixed_errors, remaining_errors_df,
-             neighbors_df) = \
+             neighbors_df, cell_type_array) = \
                 find_fix_errors(data_frame, sorted_npy_files_list, neighbors_df, center_coordinate_columns,
                                 all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, label_col,
                                 number_of_gap=number_of_gap, um_per_pixel=um_per_pixel,
@@ -119,9 +119,9 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
             log_list.append(start_calc_new_features_time_log)
 
             # process the tracking data
-            processed_df, processed_df_with_specific_cols = bacteria_analysis_func(data_frame, interval_time,
-                                                                                   growth_rate_method, assigning_cell_type,
-                                                                                   label_col, center_coordinate_columns)
+            processed_df, processed_df_with_specific_cols = \
+                bacteria_analysis_func(data_frame, interval_time, growth_rate_method, assigning_cell_type,
+                                       cell_type_array, label_col, center_coordinate_columns)
 
             end_calc_new_features_time = time.time()
             end_calc_new_features_time_str = \
