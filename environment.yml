@@ -13,3 +13,4 @@ dependencies:
   - setuptools
   - scikit-image
   - psutil
+  - seaborn
