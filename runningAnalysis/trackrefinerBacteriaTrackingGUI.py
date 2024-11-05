@@ -571,9 +571,22 @@ class TrackingGUI(tk.Tk):
         time_step_label = tk.Label(slide_window, text=f"Time Step {timestep1}")
         time_step_label.grid(row=3, column=0, sticky='ew')
 
+        # Variables to store zoom level and position
+        current_xlim = None
+        current_ylim = None
+
         # Function to update the image based on slider value
         def update_image(val):
+
+            nonlocal current_xlim, current_ylim
+
             time_step = int(val)
+
+            # Store the current zoom level if it's the first time switching
+            if current_xlim is None and current_ylim is None:
+                current_xlim = ax.get_xlim()
+                current_ylim = ax.get_ylim()
+
             ax.clear()
 
             # Choose image and dataframe based on slider value
@@ -598,6 +611,10 @@ class TrackingGUI(tk.Tk):
             else:
                 self.plot_bacteria_on_image(ax, current_df, specified_object_numbers, specified_ids.copy(),
                                             specified_parent_ids, neighbor_distance, df_neighbor)
+
+            # Reapply the stored zoom level
+            ax.set_xlim(current_xlim)
+            ax.set_ylim(current_ylim)
 
             canvas.draw()
 
@@ -799,10 +816,22 @@ class TrackingGUI(tk.Tk):
         time_step_label = tk.Label(slide_window, text=f"Time Step {available_time_steps[0]}")
         time_step_label.grid(row=3, column=0, sticky='ew')
 
+        # Variables to store zoom level and position
+        current_xlim = None
+        current_ylim = None
+
         # Function to update the image based on the slider value
         def update_image(val):
+
+            nonlocal current_xlim, current_ylim
+
             time_step_index = int(val)
             timestep = available_time_steps[time_step_index]
+
+            # Store the current zoom level if it's the first time switching
+            if current_xlim is None and current_ylim is None:
+                current_xlim = ax.get_xlim()
+                current_ylim = ax.get_ylim()
 
             # Clear the axes
             ax.clear()
@@ -821,6 +850,10 @@ class TrackingGUI(tk.Tk):
             ax.imshow(img_rgb)
             self.plot_bacteria_on_image(ax, df_current, [],[], [],
                                         None, None)
+
+            # Reapply the stored zoom level
+            ax.set_xlim(current_xlim)
+            ax.set_ylim(current_ylim)
 
             # Draw the updated canvas
             canvas.draw()
