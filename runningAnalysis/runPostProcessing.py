@@ -36,12 +36,12 @@ if __name__ == '__main__':
                         help="growth rate method. The value of this parameter can be `Average` or `Linear Regression`."
                              " Default value: Average")
 
-    parser.add_argument('-n', '--gap', default=0, help="number of gap. Default value: 0")
-
     parser.add_argument('-u', '--umPerPixel', default=0.144, help="convert pixel to um. "
                                                                   "Default value: 0.144")
 
-    parser.add_argument('-a', '--cellType', default=True, help="assigning cell type. Default value: True")
+    parser.add_argument('-a', '--cellType', default='True', help="assigning cell type. Default value: True."
+                                                                 "(Note: The value of this argument should be "
+                                                                 "T (or True) or F (or False).")
 
     parser.add_argument('-t', '--intensityThreshold', default=0.1, help="intensity threshold. "
                                                                         "This parameter is related to assigning the"
@@ -77,6 +77,25 @@ if __name__ == '__main__':
                              "and 323 for the upper Y, then any object with its center’s X or Y coordinates outside "
                              "these ranges will be identified as originating from the walls of the image.")
 
+    parser.add_argument('-b', '--boundary_limits_per_time_step', default=None,
+                        help="To identify objects that originate from the walls of an image, "
+                             "you only need to define the boundary limits for each time step to enable detection. "
+                             "Here’s how it works:"
+                             "For each time step, specify boundary limits in a CSV file with the following columns:"
+                             "`Time Step`, `Lower X Limit`, `Upper X Limit`, `Lower Y Limit`, `Upper Y Limit`."
+                             "Lower X Limit: Minimum X coordinate for objects to be considered as bacteria."
+                             "Upper X Limit: Maximum X coordinate for objects to be considered as bacteria."
+                             "Lower Y Limit: Minimum Y coordinate for objects to be considered as bacteria."
+                             "Upper Y Limit: Maximum Y coordinate for objects to be considered as bacteria."
+                             "Objects are recognized as walls if their center’s X coordinate is less than the "
+                             "lower X limit or greater than the upper X limit."
+                             "Similarly, objects are considered walls if their center’s Y coordinate is less than "
+                             "the lower Y limit or greater than the upper Y limit."
+                             "Example: `0, 112, 52, 323`"
+                             "If you set the limits as 0 for the lower X, 112 for the upper X, 52 for the lower Y, "
+                             "and 323 for the upper Y, then any object with its center’s X or Y coordinates outside "
+                             "these ranges will be identified as originating from the walls of the image.")
+
     # Parse the arguments
     args = parser.parse_args()
 
@@ -93,9 +112,6 @@ if __name__ == '__main__':
     # `Average` or `Linear Regression`
     growth_rate_method = args.growthRateMethod
 
-    # useful for fixing tracking errors
-    number_of_gap = int(args.gap)
-
     # convert pixel to um
     um_per_pixel = float(args.umPerPixel)
 
@@ -108,6 +124,12 @@ if __name__ == '__main__':
     without_tracking_correction = args.withoutTrackingCorrection
 
     boundary_limits = args.boundary_limits
+    boundary_limits_per_time_step = args.boundary_limits_per_time_step
+
+    if assigning_cell_type in ['T', 'True']:
+        assigning_cell_type = True
+    else:
+        assigning_cell_type = False
 
     if warn in ['T', 'True']:
         warn = True
@@ -125,7 +147,7 @@ if __name__ == '__main__':
     # run post-processing
     process_data(input_file=input_file, npy_files_dir=npy_files_dir, neighbors_file=neighbors_file,
                  output_directory=output_directory, interval_time=interval_time, growth_rate_method=growth_rate_method,
-                 number_of_gap=number_of_gap, um_per_pixel=um_per_pixel, intensity_threshold=intensity_threshold,
+                 um_per_pixel=um_per_pixel, intensity_threshold=intensity_threshold,
                  assigning_cell_type=assigning_cell_type, min_life_history_of_bacteria=min_life_history_of_bacteria,
                  warn=warn, without_tracking_correction=without_tracking_correction, clf=clf, n_cpu=n_cpu,
-                 boundary_limits=boundary_limits)
+                 boundary_limits=boundary_limits, boundary_limits_per_time_step=boundary_limits_per_time_step)
