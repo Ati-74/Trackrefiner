@@ -25,8 +25,8 @@ def monitor_system_usage(stats, interval=1, stop_event=None):
 
 
 def process_data(input_file, npy_files_dir, neighbors_file, output_directory, interval_time, growth_rate_method,
-                 number_of_gap, um_per_pixel, intensity_threshold, assigning_cell_type, min_life_history_of_bacteria,
-                 warn, without_tracking_correction, clf, n_cpu, boundary_limits):
+                 um_per_pixel, intensity_threshold, assigning_cell_type, min_life_history_of_bacteria,
+                 warn, without_tracking_correction, clf, n_cpu, boundary_limits, boundary_limits_per_time_step):
     """
     The main function that processes CellProfiler data.
     .pickle Files are exported to the same directory as input_file.
@@ -100,11 +100,13 @@ def process_data(input_file, npy_files_dir, neighbors_file, output_directory, in
              neighbors_df, cell_type_array) = \
                 find_fix_errors(data_frame, sorted_npy_files_list, neighbors_df, center_coordinate_columns,
                                 all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, label_col,
-                                number_of_gap=number_of_gap, um_per_pixel=um_per_pixel,
-                                intensity_threshold=intensity_threshold, check_cell_type=assigning_cell_type,
-                                interval_time=interval_time, min_life_history_of_bacteria=min_life_history_of_bacteria,
-                                warn=warn, without_tracking_correction=without_tracking_correction,
-                                output_directory=output_directory, clf=clf, n_cpu=n_cpu, boundary_limits=boundary_limits)
+                                um_per_pixel=um_per_pixel, intensity_threshold=intensity_threshold,
+                                check_cell_type=assigning_cell_type, interval_time=interval_time,
+                                min_life_history_of_bacteria=min_life_history_of_bacteria, warn=warn,
+                                without_tracking_correction=without_tracking_correction,
+                                output_directory=output_directory, clf=clf, n_cpu=n_cpu,
+                                boundary_limits=boundary_limits,
+                                boundary_limits_per_time_step=boundary_limits_per_time_step)
 
             log_list.extend(find_fix_errors_log)
 

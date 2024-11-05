@@ -463,13 +463,13 @@ def label_correction(df, parent_image_number_col, parent_object_number_col, labe
 
 
 def data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns):
+
     dataframe['noise_bac'] = False
-    # dataframe['color_mask'] = ''
-    # dataframe['coordinate'] = ''
     dataframe['mother_rpl'] = False
     dataframe['daughter_rpl'] = False
     dataframe['source_mcl'] = False
     dataframe['target_mcl'] = False
+
     dataframe = convert_to_um(dataframe, um_per_pixel, all_center_coordinate_columns)
     dataframe = angle_convert_to_radian(dataframe)
 
@@ -478,9 +478,11 @@ def data_conversion(dataframe, um_per_pixel, all_center_coordinate_columns):
 
 def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coordinate_columns,
                     all_center_coordinate_columns, parent_image_number_col, parent_object_number_col, label_col,
-                    number_of_gap=0, um_per_pixel=0.144, intensity_threshold=0.1, check_cell_type=True,
+                    um_per_pixel=0.144, intensity_threshold=0.1, check_cell_type=True,
                     interval_time=1, min_life_history_of_bacteria=20, warn=True, without_tracking_correction=False,
-                    output_directory=None, clf=None, n_cpu=-1, boundary_limits=None):
+                    output_directory=None, clf=None, n_cpu=-1, boundary_limits=None,
+                    boundary_limits_per_time_step=None):
+
     logs_list = []
     logs_df = pd.DataFrame(columns=dataframe.columns)
 
@@ -499,10 +501,10 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
                                                                    parent_image_number_col, parent_object_number_col,
                                                                    warn)
 
-    if boundary_limits is not None:
-        df, neighbors_df = \
-            find_wall_objects(boundary_limits, df, neighbors_df, center_coordinate_columns, parent_image_number_col,
-                              parent_object_number_col, um_per_pixel)
+    if boundary_limits is not None or boundary_limits_per_time_step is not None:
+        df = \
+            find_wall_objects(boundary_limits, boundary_limits_per_time_step, df, center_coordinate_columns,
+                              um_per_pixel)
 
     print_progress_bar(1, prefix='Progress:', suffix='Complete', length=50)
 
@@ -519,10 +521,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
     df.to_csv(output_directory + '/10.percent.csv', index=False)
 
     # remove noise objects
-    df, neighbors_df, noise_objects_log_list, logs_df = noise_remover(df, neighbors_df,
-                                                                      parent_image_number_col,
-                                                                      parent_object_number_col, logs_df)
-    logs_list.extend(noise_objects_log_list)
+    df, neighbors_df = noise_remover(df, neighbors_df, parent_image_number_col, parent_object_number_col)
 
     print_progress_bar(2, prefix='Progress:', suffix='Complete', length=50)
 
@@ -585,8 +584,8 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         df.to_csv(output_directory + '/40.percent.csv', index=False)
 
         # redundant links
-        df = detect_redundant_parent_link(df, parent_image_number_col,
-                                          parent_object_number_col, label_col, center_coordinate_columns)
+        # df = detect_redundant_parent_link(df, parent_image_number_col,
+        #                                  parent_object_number_col, label_col, center_coordinate_columns)
 
         df = detect_missing_connectivity_link(df, parent_image_number_col, parent_object_number_col)
 
@@ -653,7 +652,7 @@ def find_fix_errors(dataframe, sorted_npy_files_list, neighbors_df, center_coord
         df.to_csv(output_directory + '/60.percent.csv', index=False)
 
         # try to assign new link
-        df = correction_unexpected_beginning(df, neighbors_df, neighbor_list_array, number_of_gap, check_cell_type,
+        df = correction_unexpected_beginning(df, neighbors_df, neighbor_list_array, check_cell_type,
                                              interval_time, min_life_history_of_bacteria, parent_image_number_col,
                                              parent_object_number_col, label_col, center_coordinate_columns,
                                              comparing_divided_non_divided_model, non_divided_bac_model,

@@ -96,24 +96,24 @@ def unexpected_end_bacteria(df, neighbors_df, neighbor_list_array, min_life_hist
                             parent_image_number_col, parent_object_number_col, label_col, center_coordinate_columns,
                             comparing_divided_non_divided_model, non_divided_bac_model,
                             divided_bac_model, color_array, coordinate_array):
-    num_incorrect_same_links = None
-    prev_bacteria_with_wrong_same_link = None
+    num_unexpected_end_bac = None
+    prev_unexpected_end_bac = None
     n_iterate = 0
 
     # min life history of bacteria
     # min_life_history_of_bacteria_time_step = np.round_(min_life_history_of_bacteria / interval_time)
 
-    while num_incorrect_same_links != 0:
+    while num_unexpected_end_bac != 0:
 
         df_unexpected_end_bacteria = df.loc[df['unexpected_end']]
 
         if n_iterate > 0:
-            if prev_bacteria_with_wrong_same_link.values.all() == df_unexpected_end_bacteria.values.all():
-                num_incorrect_same_links = 0
+            if prev_unexpected_end_bac.values.all() == df_unexpected_end_bacteria.values.all():
+                num_unexpected_end_bac = 0
             else:
-                num_incorrect_same_links = df_unexpected_end_bacteria.shape[0]
+                num_unexpected_end_bac = df_unexpected_end_bacteria.shape[0]
 
-        prev_bacteria_with_wrong_same_link = df_unexpected_end_bacteria
+        prev_unexpected_end_bac = df_unexpected_end_bacteria
 
         if df_unexpected_end_bacteria.shape[0] > 0:
             for unexpected_end_bacteria_time_step in df_unexpected_end_bacteria['ImageNumber'].unique():
