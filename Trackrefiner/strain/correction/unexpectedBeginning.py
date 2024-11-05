@@ -87,7 +87,7 @@ def assign_new_link(df, neighbors_df, neighbor_list_array, unexpected_beginning_
     return df
 
 
-def correction_unexpected_beginning(df, neighbors_df, neighbor_list_array, number_of_gap, check_cell_type, interval_time,
+def correction_unexpected_beginning(df, neighbors_df, neighbor_list_array, check_cell_type, interval_time,
                                     min_life_history_of_bacteria, parent_image_number_col, parent_object_number_col,
                                     label_col, center_coordinate_columns, comparing_divided_non_divided_model,
                                     non_divided_bac_model, divided_bac_model, color_array, coordinate_array):
@@ -100,106 +100,122 @@ def correction_unexpected_beginning(df, neighbors_df, neighbor_list_array, numbe
         output: df   dataframe   modified dataframe (without any unexpected_beginnings)
     """
 
-    unexpected_beginning_bacteria = df.loc[df["unexpected_beginning"]]
-
     # min life history of bacteria
     min_life_history_of_bacteria_time_step = np.round(min_life_history_of_bacteria / interval_time)
 
-    for i, unexpected_beginning_bac_time_step in enumerate(unexpected_beginning_bacteria['ImageNumber'].unique()):
+    num_unexpected_beginning_bac = None
+    prev_unexpected_beginning_bac = None
+    n_iterate = 0
 
-        # all bacteria in selected unexpected_beginning bacteria time step
-        all_bac_in_unexpected_beginning_bac_time_step = \
-            df.loc[df['ImageNumber'] == unexpected_beginning_bac_time_step]
+    while num_unexpected_beginning_bac != 0:
 
-        # filter unexpected beginning bacteria features value
-        sel_unexpected_beginning_bac = \
-            unexpected_beginning_bacteria.loc[unexpected_beginning_bacteria['ImageNumber'] ==
-                                              unexpected_beginning_bac_time_step]
+        unexpected_beginning_bacteria = df.loc[df["unexpected_beginning"]]
 
-        # filter consider time step bacteria information
-        all_bac_in_source_time_step = df.loc[df['ImageNumber'] == (unexpected_beginning_bac_time_step - 1)]
+        if n_iterate > 0:
+            if prev_unexpected_beginning_bac.values.all() == unexpected_beginning_bacteria.values.all():
+                num_unexpected_beginning_bac = 0
+            else:
+                num_unexpected_beginning_bac = unexpected_beginning_bacteria.shape[0]
 
-        # optimized cost dataframe
-        # (rows: next time step sudden bacteria, columns: consider time step bacteria)
-        new_link_cost_df, division_cost_df, redundant_link_division_df, maintenance_cost_df = \
-            optimization_unexpected_beginning_cost(df, all_bac_in_unexpected_beginning_bac_time_step,
-                                                   sel_unexpected_beginning_bac, all_bac_in_source_time_step,
-                                                   check_cell_type, neighbors_df, neighbor_list_array,
-                                                   min_life_history_of_bacteria_time_step,
-                                                   parent_image_number_col, parent_object_number_col,
-                                                   center_coordinate_columns,
-                                                   comparing_divided_non_divided_model,
-                                                   non_divided_bac_model, divided_bac_model, color_array,
-                                                   coordinate_array)
+        prev_unexpected_beginning_bac = unexpected_beginning_bacteria
 
-        if division_cost_df.shape[0] > 0 and new_link_cost_df.shape[0] > 0:
+        for i, unexpected_beginning_bac_time_step in enumerate(unexpected_beginning_bacteria['ImageNumber'].unique()):
 
-            # Merge the dataframes using outer join to combine all columns and indices
-            df_combined = pd.concat([division_cost_df, new_link_cost_df], axis=1, sort=False).fillna(1)
+            # all bacteria in selected unexpected_beginning bacteria time step
+            all_bac_in_unexpected_beginning_bac_time_step = \
+                df.loc[df['ImageNumber'] == unexpected_beginning_bac_time_step]
 
-            # Create a third DataFrame to hold the max values for common rows and columns
-            total_cost_df = pd.DataFrame(index=df_combined.index, columns=df_combined.columns.unique())
+            # filter unexpected beginning bacteria features value
+            sel_unexpected_beginning_bac = \
+                unexpected_beginning_bacteria.loc[unexpected_beginning_bacteria['ImageNumber'] ==
+                                                  unexpected_beginning_bac_time_step]
 
-            # Iterate through the columns and fill the third DataFrame with max values
+            # filter consider time step bacteria information
+            all_bac_in_source_time_step = df.loc[df['ImageNumber'] == (unexpected_beginning_bac_time_step - 1)]
 
-            for column in df_combined.columns.unique():
-                total_cost_df[column] = df_combined[[column]].min(axis=1)
+            # optimized cost dataframe
+            # (rows: next time step sudden bacteria, columns: consider time step bacteria)
+            new_link_cost_df, division_cost_df, redundant_link_division_df, maintenance_cost_df = \
+                optimization_unexpected_beginning_cost(df, all_bac_in_unexpected_beginning_bac_time_step,
+                                                       sel_unexpected_beginning_bac, all_bac_in_source_time_step,
+                                                       check_cell_type, neighbors_df, neighbor_list_array,
+                                                       min_life_history_of_bacteria_time_step,
+                                                       parent_image_number_col, parent_object_number_col,
+                                                       center_coordinate_columns,
+                                                       comparing_divided_non_divided_model,
+                                                       non_divided_bac_model, divided_bac_model, color_array,
+                                                       coordinate_array)
 
-            continue_flag = True
+            if division_cost_df.shape[0] > 0 and new_link_cost_df.shape[0] > 0:
 
-        elif division_cost_df.shape[0] > 0:
+                # Merge the dataframes using outer join to combine all columns and indices
+                df_combined = pd.concat([division_cost_df, new_link_cost_df], axis=1, sort=False).fillna(1)
 
-            total_cost_df = division_cost_df
+                # Create a third DataFrame to hold the max values for common rows and columns
+                total_cost_df = pd.DataFrame(index=df_combined.index, columns=df_combined.columns.unique())
 
-            continue_flag = True
+                # Iterate through the columns and fill the third DataFrame with max values
 
-        elif new_link_cost_df.shape[0] > 0:
+                for column in df_combined.columns.unique():
+                    total_cost_df[column] = df_combined[[column]].min(axis=1)
 
-            total_cost_df = new_link_cost_df
+                continue_flag = True
 
-            continue_flag = True
-        else:
-            continue_flag = False
+            elif division_cost_df.shape[0] > 0:
 
-        if continue_flag:
+                total_cost_df = division_cost_df
 
-            total_cost_df = total_cost_df.fillna(1)
-            optimized_df = optimize_assignment(total_cost_df)
+                continue_flag = True
 
-            # try to modify the links
-            for row_index, row in optimized_df.iterrows():
-                source_bac_idx = row['without parent index']
+            elif new_link_cost_df.shape[0] > 0:
 
-                unexpected_beginning_bac_idx = int(row['Candida bacteria index in previous time step'])
-                unexpected_beginning_bac = df.loc[unexpected_beginning_bac_idx]
+                total_cost_df = new_link_cost_df
 
-                cost_val = row['Cost']
+                continue_flag = True
+            else:
+                continue_flag = False
 
-                find_stat = False
+            if continue_flag:
 
-                if unexpected_beginning_bac_idx in division_cost_df.columns.values.tolist() and \
-                        source_bac_idx in division_cost_df.index.values.tolist():
+                total_cost_df = total_cost_df.fillna(1)
+                optimized_df = optimize_assignment(total_cost_df)
 
-                    if cost_val == division_cost_df.at[source_bac_idx, unexpected_beginning_bac_idx]:
-                        stat = 'div'
-                        find_stat = True
+                # try to modify the links
+                for row_index, row in optimized_df.iterrows():
+                    source_bac_idx = row['without parent index']
 
-                if unexpected_beginning_bac_idx in new_link_cost_df.columns.values.tolist() and \
-                        source_bac_idx in new_link_cost_df.index.values.tolist():
+                    unexpected_beginning_bac_idx = int(row['Candida bacteria index in previous time step'])
+                    unexpected_beginning_bac = df.loc[unexpected_beginning_bac_idx]
 
-                    if cost_val == new_link_cost_df.at[source_bac_idx, unexpected_beginning_bac_idx]:
-                        stat = 'same'
-                        find_stat = True
+                    cost_val = row['Cost']
 
-                if not find_stat:
-                    if cost_val == 1:
-                        stat = 'same'
+                    find_stat = False
 
-                df = assign_new_link(df, neighbors_df, neighbor_list_array, unexpected_beginning_bac_idx,
-                                     unexpected_beginning_bac, cost_val,
-                                     source_bac_idx, stat,
-                                     all_bac_in_unexpected_beginning_bac_time_step, maintenance_cost_df,
-                                     parent_image_number_col, parent_object_number_col, label_col,
-                                     center_coordinate_columns, redundant_link_division_df)
+                    if unexpected_beginning_bac_idx in division_cost_df.columns.values.tolist() and \
+                            source_bac_idx in division_cost_df.index.values.tolist():
+
+                        if cost_val == division_cost_df.at[source_bac_idx, unexpected_beginning_bac_idx]:
+                            stat = 'div'
+                            find_stat = True
+
+                    if unexpected_beginning_bac_idx in new_link_cost_df.columns.values.tolist() and \
+                            source_bac_idx in new_link_cost_df.index.values.tolist():
+
+                        if cost_val == new_link_cost_df.at[source_bac_idx, unexpected_beginning_bac_idx]:
+                            stat = 'same'
+                            find_stat = True
+
+                    if not find_stat:
+                        if cost_val == 1:
+                            stat = 'same'
+
+                    df = assign_new_link(df, neighbors_df, neighbor_list_array, unexpected_beginning_bac_idx,
+                                         unexpected_beginning_bac, cost_val,
+                                         source_bac_idx, stat,
+                                         all_bac_in_unexpected_beginning_bac_time_step, maintenance_cost_df,
+                                         parent_image_number_col, parent_object_number_col, label_col,
+                                         center_coordinate_columns, redundant_link_division_df)
+
+        n_iterate += 1
 
     return df
