@@ -1,54 +1,63 @@
 import numpy as np
+import pandas as pd
 
 
-def find_wall_objects(boundary_limits, df, neighbors_df, center_coordinate_columns, parent_image_number_col,
-                      parent_object_number_col, um_per_pixel):
-
-    boundary_limits = [float(v.strip()) for v in boundary_limits.split(',')]
-    x_min, x_max, y_min, y_max = boundary_limits
-
+def remove_wall_objects_same_boundary(x_min, x_max, y_min, y_max, df, um_per_pixel, center_coordinate_columns):
     x_min = x_min * um_per_pixel
     x_max = x_max * um_per_pixel
     y_min = y_min * um_per_pixel
     y_max = y_max * um_per_pixel
 
-    correct_objects = df.loc[(df[center_coordinate_columns['x']] > x_min) &
-                             (df[center_coordinate_columns['x']] < x_max) &
-                             (df[center_coordinate_columns['y']] > y_min) &
-                             (df[center_coordinate_columns['y']] < y_max)
-                             ]
-
-    wall_objects = df.loc[(df[center_coordinate_columns['x']] <= x_min) |
-                          (df[center_coordinate_columns['x']] >= x_max) |
-                          (df[center_coordinate_columns['y']] <= y_min) |
-                          (df[center_coordinate_columns['y']] >= y_max)
+    wall_objects = df.loc[(df[center_coordinate_columns['x']] < x_min) |
+                          (df[center_coordinate_columns['x']] > x_max) |
+                          (df[center_coordinate_columns['y']] < y_min) |
+                          (df[center_coordinate_columns['y']] > y_max)
                           ]
 
-    correct_bac_with_wall_objects_as_parent = wall_objects.merge(correct_objects,
-                                                                 left_on=['ImageNumber', 'ObjectNumber'],
-                                                                 right_on=[parent_image_number_col,
-                                                                           parent_object_number_col],
-                                                                 suffixes=('', '_correct_obj'), how='inner')
+    df.loc[wall_objects['prev_index'].values, 'noise_bac'] = True
 
-    if correct_bac_with_wall_objects_as_parent.shape[0] > 0:
-        correct_objects.loc[correct_bac_with_wall_objects_as_parent['index_correct_obj'], [
-            parent_image_number_col, parent_object_number_col]] = 0
+    return df
 
-    # now we should correct relationship
 
-    neighbors_df['index_neighborhood'] = neighbors_df.index
+def remove_wall_objects_different_boundary(boundary_limits_per_time_step_df, df, um_per_pixel,
+                                           center_coordinate_columns):
 
-    neighbors_df_incorrect_source = neighbors_df.merge(wall_objects,
-                                                       left_on=['First Image Number', 'First Object Number'],
-                                                       right_on=['ImageNumber', 'ObjectNumber'], how='inner')
+    cols_related_to_boundary = ['Lower X Limit', 'Upper X Limit', 'Lower Y Limit', 'Upper Y Limit']
+    boundary_limits_per_time_step_df[cols_related_to_boundary] = \
+        boundary_limits_per_time_step_df[cols_related_to_boundary] * um_per_pixel
 
-    neighbors_df_incorrect_target = neighbors_df.merge(wall_objects,
-                                                       left_on=['Second Image Number', 'Second Object Number'],
-                                                       right_on=['ImageNumber', 'ObjectNumber'], how='inner')
+    incorrect_object_idx_list = []
 
-    incorrect_ndx = np.unique(np.concatenate((neighbors_df_incorrect_source['index_neighborhood'].values,
-                                              neighbors_df_incorrect_target['index_neighborhood'].values)))
+    for row_idx, row in boundary_limits_per_time_step_df.iterrows():
 
-    neighbors_df = neighbors_df.loc[~ neighbors_df['index_neighborhood'].isin(incorrect_ndx)]
+        sel_time_step = row['Time Step']
+        x_min, x_max, y_min, y_max = row[cols_related_to_boundary]
 
-    return correct_objects, neighbors_df
+        current_df = df.loc[df['ImageNumber'] == sel_time_step]
+        wall_objects = current_df.loc[(current_df[center_coordinate_columns['x']] < x_min) |
+                                      (current_df[center_coordinate_columns['x']] > x_max) |
+                                      (current_df[center_coordinate_columns['y']] < y_min) |
+                                      (current_df[center_coordinate_columns['y']] > y_max)]
+
+        incorrect_object_idx_list.extend(wall_objects['prev_index'].values)
+
+    df.loc[incorrect_object_idx_list, 'noise_bac'] = True
+
+    return df
+
+
+def find_wall_objects(boundary_limits, boundary_limits_per_time_step, df, center_coordinate_columns, um_per_pixel):
+
+    if boundary_limits is not None:
+        boundary_limits = [float(v.strip()) for v in boundary_limits.split(',')]
+        x_min, x_max, y_min, y_max = boundary_limits
+
+        df = remove_wall_objects_same_boundary(x_min, x_max, y_min, y_max, df, um_per_pixel, center_coordinate_columns)
+
+    else:
+        boundary_limits_per_time_step_df = pd.read_csv(boundary_limits_per_time_step)
+
+        df = remove_wall_objects_different_boundary(boundary_limits_per_time_step_df, df, um_per_pixel,
+                                                    center_coordinate_columns)
+
+    return df
