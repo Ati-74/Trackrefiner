@@ -23,9 +23,10 @@ def make_ml_model_for_non_divided_bacteria(df, connected_bac_high_chance_to_be_c
         connected_bac_high_chance_to_be_correct_with_neighbors_info['daughter_length_to_mother'].to_numpy()
 
     index_prev_neighbor_values = connected_bac_high_chance_to_be_correct_with_neighbors_info['index_prev_neighbor']
+    stat_ue_neighbor = connected_bac_high_chance_to_be_correct_with_neighbors_info['unexpected_end_prev_neighbor']
 
     life_continues_signal = np.isnan(daughter_length_to_mother_values)
-    valid_neighbor = ~ np.isnan(index_prev_neighbor_values)
+    valid_neighbor = (~ np.isnan(index_prev_neighbor_values)) & (stat_ue_neighbor == False)
 
     col_names = ['ImageNumber', 'ObjectNumber', 'index', 'prev_index', 'AreaShape_MajorAxisLength',
                  'difference_neighbors', 'common_neighbors', 'other_daughter_index', 'id', 'parent_id',

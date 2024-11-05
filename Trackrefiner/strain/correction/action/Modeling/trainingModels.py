@@ -45,8 +45,8 @@ def training_models(df, neighbors_df, neighbor_list_array, center_coordinate_col
     # (source_bac_with_neighbors_info['bad_division_flag_neighbor_source']) |
     #                                            (source_bac_with_neighbors_info['mother_rpl_neighbor_source']) |
     #                                            (source_bac_with_neighbors_info['source_mcl_neighbor_source'])
-    source_bac_near_to_unexpected_end = \
-        source_bac_with_neighbors_info.loc[(source_bac_with_neighbors_info['unexpected_end_neighbor_source'] == True)]
+    # source_bac_near_to_unexpected_end = \
+    #    source_bac_with_neighbors_info.loc[(source_bac_with_neighbors_info['unexpected_end_neighbor_source'] == True)]
 
     # (target_bac_with_neighbors_info['target_mcl_neighbor_target']) |
     #                                            (target_bac_with_neighbors_info['daughter_rpl_neighbor_target']) |
@@ -54,16 +54,20 @@ def training_models(df, neighbors_df, neighbor_list_array, center_coordinate_col
 
     # (target_bac_with_neighbors_info['daughter_rpl']) |
     #                                            (target_bac_with_neighbors_info['target_mcl'])
-    target_bac_near_to_unexpected_beginning = \
+
+    # (target_bac_with_neighbors_info['unexpected_beginning_neighbor_target'] == True) |
+
+    bad_daughters_target = \
         target_bac_with_neighbors_info.loc[
-            (target_bac_with_neighbors_info['unexpected_beginning_neighbor_target'] == True) |
             (target_bac_with_neighbors_info['bad_daughters_flag'] == True)]
 
     # in this situation, we ignore target bacteria : 1. daughter of bad division 2. daughter of rpl
     # 3. near to unexpected_beginning bac and also bacteria --> source of bacteria is near to unexpected end
+
+    # (~ connected_bac['index_prev'].isin(source_bac_near_to_unexpected_end['index_prev'].values))
+
     connected_bac_high_chance_to_be_correct = \
-        connected_bac.loc[(~ connected_bac['index'].isin(target_bac_near_to_unexpected_beginning['index'].values)) &
-                          (~ connected_bac['index_prev'].isin(source_bac_near_to_unexpected_end['index_prev'].values))]
+        connected_bac.loc[(~ connected_bac['index'].isin(bad_daughters_target['index'].values))]
 
     # now we should check daughters and remove division with one daughter (due to neighboring to unexpected end and
     # unexpected beginning)
