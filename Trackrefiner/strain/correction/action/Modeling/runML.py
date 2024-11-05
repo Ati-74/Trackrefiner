@@ -13,22 +13,38 @@ import pandas as pd
 import os
 import gzip
 import pickle
+import seaborn as sns
+import matplotlib.pyplot as plt
 import numpy as np
 
 
-def write_model(output_directory, stat, model, train_dat, test_dat, accuracy, specificity, sensitivity,
+def write_model(output_directory, stat, pos_class_prob_values, accuracy, specificity, sensitivity,
                 feature_importance_df, tp, tn, fp, fn, clf, n_positive, n_negative):
 
     output_directory = output_directory + '/ML/'
     os.makedirs(output_directory, exist_ok=True)
 
     # saving the trained model
-    model_file_name = output_directory + stat + '.' + clf + '.model.gz'
-    with gzip.open(model_file_name, 'wb') as f:
-        pickle.dump(model, f)
+    # model_file_name = output_directory + stat + '.' + clf + '.model.gz'
+    # with gzip.open(model_file_name, 'wb') as f:
+    #    pickle.dump(model, f)
 
-    train_dat.to_csv(output_directory + '/' + stat + '.' + clf + '.training.csv', index=False)
-    test_dat.to_csv(output_directory + '/' + stat + '.' + clf + '.test.csv', index=False)
+    # train_dat.to_csv(output_directory + '/' + stat + '.' + clf + '.training.csv', index=False)
+    # test_dat.to_csv(output_directory + '/' + stat + '.' + clf + '.test.csv', index=False)
+
+    # Create a density plot with seaborn
+    plt.figure(figsize=(8, 6))
+    sns.kdeplot(pos_class_prob_values, fill=True, color='skyblue', alpha=0.6)
+
+    # Limit x-axis from 0 to 1
+    plt.xlim(0, 1)
+
+    # Add labels and title
+    plt.xlabel('Probability')
+    plt.ylabel('Density')
+    plt.title(stat + '.' + clf + 'probability distribution for correct links with high chance')
+    plt.savefig(output_directory + '/' + stat + '.' + clf + 'probability_distribution.jpg', dpi=600)
+    plt.close()
 
     with open(output_directory + '/' + stat + '.' + clf + '.performance.log.txt', "w") as file:
         # Write the outputs to the file
@@ -86,17 +102,23 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
     ])
 
     # Split the data using stratified sampling
-    x_train, x_test, y_train, y_test = train_test_split(x_dat, y_dat, test_size=0.3, stratify=y_dat,
-                                                        random_state=42)
+    #x_train, x_test, y_train, y_test = train_test_split(x_dat, y_dat, test_size=0, stratify=y_dat,
+    #                                                    random_state=42)
+
+    x_train = x_dat.copy()
+    # x_test = x_dat.copy()
+    y_train = y_dat.copy()
+    # y_test = y_dat.copy()
+
 
     # Apply SMOTE to the training data
     # smote = SMOTE(random_state=42)
     # X_train, y_train = smote.fit_resample(X_train, y_train)
 
     train_dat = x_train.copy()
-    train_dat['label'] = y_train.copy()
+    train_dat['real_label'] = y_train.copy()
 
-    test_dat = merged_df.loc[merged_df.index.isin(x_test.index.values)]
+    # test_dat = merged_df.loc[merged_df.index.isin(x_test.index.values)]
 
     # X_train_scaled = X_train
     # X_test_scaled = X_test
@@ -106,23 +128,26 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
     pipeline.fit(x_train, y_train)
 
     # Predict on the test set
-    y_predicted_test = pipeline.predict(x_test)
+    # y_predicted_test = pipeline.predict(x_test)
+    y_predicted_train = pipeline.predict(x_train)
 
     y_prob_train = pipeline.predict_proba(x_train)[:, 1]
-    y_prob_test = pipeline.predict_proba(x_test)[:, 1]
+    # y_prob_test = pipeline.predict_proba(x_test)[:, 1]
 
     # Convert the numpy array to a DataFrame
     y_predicted_train_df = pd.DataFrame(y_prob_train, index=x_train.index, columns=['probability'])
-    y_predicted_test_df = pd.DataFrame(y_prob_test, index=x_test.index, columns=['probability'])
+    # y_predicted_test_df = pd.DataFrame(y_prob_test, index=x_test.index, columns=['probability'])
 
     train_dat = pd.concat([train_dat, y_predicted_train_df], axis=1)
-    test_dat = pd.concat([test_dat, y_predicted_test_df], axis=1)
+    train_dat_class_positive = train_dat.loc[train_dat['real_label'] == 'positive']
+    pos_class_prob_values = train_dat_class_positive['probability'].values
+    # test_dat = pd.concat([test_dat, y_predicted_test_df], axis=1)
 
     # Calculate accuracy
-    accuracy = accuracy_score(y_test, y_predicted_test)
+    accuracy = accuracy_score(y_train, y_predicted_train)
 
     # Generate confusion matrix
-    conf_matrix = confusion_matrix(y_test, y_predicted_test)
+    conf_matrix = confusion_matrix(y_train, y_predicted_train)
 
     # Calculate specificity and sensitivity from confusion matrix
     tn, fp, fn, tp = conf_matrix.ravel()
@@ -167,7 +192,7 @@ def run_ml_model(merged_df, feature_list, columns_to_scale, stat, output_directo
         feature_importance_df = pd.DataFrame()
 
     # Report results
-    write_model(output_directory, stat, model, train_dat, test_dat, accuracy, specificity, sensitivity,
+    write_model(output_directory, stat, pos_class_prob_values, accuracy, specificity, sensitivity,
                 feature_importance_df, tp, tn, fp, fn, clf, n_positive, n_negative)
 
     return pipeline
