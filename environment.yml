@@ -14,3 +14,4 @@ dependencies:
   - scikit-image
   - psutil
   - seaborn
+  - PyQt5
