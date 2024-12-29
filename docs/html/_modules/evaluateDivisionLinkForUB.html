@@ -1,0 +1,671 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>evaluateDivisionLinkForUB - Trackrefiner 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">Trackrefiner 2025 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">Trackrefiner 2025 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Modules</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <h1>Source code for evaluateDivisionLinkForUB</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.findOutlier</span> <span class="kn">import</span> <span class="p">(</span><span class="n">calculate_upper_statistical_bound</span><span class="p">,</span>
+                                                        <span class="n">calculate_lower_statistical_bound</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="evaluate_division_link_feasibility">
+<a class="viewcode-back" href="../modules.html#evaluateDivisionLinkForUB.evaluate_division_link_feasibility">[docs]</a>
+<span class="k">def</span> <span class="nf">evaluate_division_link_feasibility</span><span class="p">(</span><span class="n">df_source_daughter_cost</span><span class="p">,</span> <span class="n">division_cost_dict</span><span class="p">,</span> <span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">source_bac</span><span class="p">,</span>
+                                       <span class="n">target_bac_ndx</span><span class="p">,</span> <span class="n">target_bac</span><span class="p">,</span> <span class="n">source_bac_next_time_step</span><span class="p">,</span>
+                                       <span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span>
+                                       <span class="n">max_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span> <span class="n">min_life_history_of_bacteria</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluates the feasibility of replacing a continuity link with a division link between a source bacterium</span>
+<span class="sd">    and a target bacterium by checking specific biological and statistical conditions. Updates the division</span>
+<span class="sd">    cost dictionary with the evaluated cost.</span>
+
+<span class="sd">    **Logic**:</span>
+<span class="sd">        - Computes the length ratios between the source bacterium and its potential daughters to validate</span>
+<span class="sd">          whether a division event is biologically plausible.</span>
+<span class="sd">        - Compares these ratios against statistically derived boundaries to ensure the division adheres to</span>
+<span class="sd">          expected patterns.</span>
+<span class="sd">        - Evaluates the age of the source bacterium.</span>
+<span class="sd">        - If all conditions pass, retrieves the precomputed division cost from the input DataFrame.</span>
+<span class="sd">        - If any condition fails, assigns a high cost (`1`), indicating that the link is highly improbable.</span>
+
+<span class="sd">    :param pandas.DataFrame df_source_daughter_cost:</span>
+<span class="sd">        DataFrame containing the precomputed division costs between source and daughter bacteria.</span>
+<span class="sd">    :param dict division_cost_dict:</span>
+<span class="sd">        Dictionary storing division costs for source-target bacterium pairs.</span>
+<span class="sd">    :param int source_bac_ndx:</span>
+<span class="sd">        Index of the source bacterium in the DataFrame.</span>
+<span class="sd">    :param pandas.Series source_bac:</span>
+<span class="sd">        Attributes of the source bacterium.</span>
+<span class="sd">    :param int target_bac_ndx:</span>
+<span class="sd">        Index of the target bacterium in the DataFrame.</span>
+<span class="sd">    :param pandas.Series target_bac:</span>
+<span class="sd">        Attributes of the target bacterium.</span>
+<span class="sd">    :param pandas.DataFrame source_bac_next_time_step:</span>
+<span class="sd">        Attributes of the source bacterium in the next time step.</span>
+<span class="sd">    :param dict sum_daughter_len_to_mother_ratio_boundary:</span>
+<span class="sd">        Dictionary containing &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for</span>
+<span class="sd">        the sum of daughter-to-mother length ratios.</span>
+<span class="sd">    :param dict max_daughter_len_to_mother_ratio_boundary:</span>
+<span class="sd">        Dictionary containing &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for</span>
+<span class="sd">        the maximum daughter-to-mother length ratio.</span>
+<span class="sd">    :param int min_life_history_of_bacteria:</span>
+<span class="sd">        Minimum required life history frames for a valid bacterium.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        dict:</span>
+
+<span class="sd">        Updated `division_cost_dict` with the evaluated division cost for the source-target pair.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">daughters_bac_len_to_source</span> <span class="o">=</span> <span class="p">((</span><span class="n">target_bac</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">]</span> <span class="o">+</span>
+                                    <span class="n">source_bac_next_time_step</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span>
+                                   <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">])</span>
+
+    <span class="n">max_daughters_bac_len_to_source</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">target_bac</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">],</span>
+                                           <span class="n">source_bac_next_time_step</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span>
+                                       <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">])</span>
+
+    <span class="n">upper_bound_sum_daughter_len</span> <span class="o">=</span> <span class="n">calculate_upper_statistical_bound</span><span class="p">(</span><span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">)</span>
+
+    <span class="n">lower_bound_sum_daughter_len</span> <span class="o">=</span> <span class="n">calculate_lower_statistical_bound</span><span class="p">(</span><span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">)</span>
+
+    <span class="n">upper_bound_max_daughter_len</span> <span class="o">=</span> <span class="n">calculate_upper_statistical_bound</span><span class="p">(</span><span class="n">max_daughter_len_to_mother_ratio_boundary</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">lower_bound_sum_daughter_len</span> <span class="o">&lt;=</span> <span class="n">daughters_bac_len_to_source</span> <span class="o">&lt;=</span> <span class="n">upper_bound_sum_daughter_len</span> <span class="ow">and</span>
+            <span class="n">max_daughters_bac_len_to_source</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">max_daughters_bac_len_to_source</span> <span class="o">&lt;=</span> <span class="n">upper_bound_max_daughter_len</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">min_life_history_of_bacteria</span> <span class="ow">or</span> <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">calc_cost</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">calc_cost</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="n">calc_cost</span><span class="p">:</span>
+            <span class="n">division_cost</span> <span class="o">=</span> <span class="n">df_source_daughter_cost</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">target_bac_ndx</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># prob = 0 so 1 - prob = 1</span>
+            <span class="n">division_cost</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># prob = 0 so 1 - prob = 1</span>
+        <span class="n">division_cost</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># for new link cost</span>
+    <span class="n">division_cost_dict</span><span class="p">[</span><span class="n">target_bac_ndx</span><span class="p">][</span><span class="n">source_bac_ndx</span><span class="p">]</span> <span class="o">=</span> <span class="n">division_cost</span>
+
+    <span class="k">return</span> <span class="n">division_cost_dict</span></div>
+
+
+
+<div class="viewcode-block" id="evaluate_new_division_link">
+<a class="viewcode-back" href="../modules.html#evaluateDivisionLinkForUB.evaluate_new_division_link">[docs]</a>
+<span class="k">def</span> <span class="nf">evaluate_new_division_link</span><span class="p">(</span><span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">existing_daughters_idx</span><span class="p">,</span> <span class="n">target_bac_ndx</span><span class="p">,</span>
+                               <span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">new_daughter_prob</span><span class="p">,</span> <span class="n">redundant_link_dict_division</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluates whether an existing daughter link should be replaced with a new link to minimize the overall cost.</span>
+
+<span class="sd">    **Logic**:</span>
+<span class="sd">        - Compares the probabilities associated with maintaining the existing daughter links and the new link.</span>
+<span class="sd">        - Identifies the &quot;worst&quot; existing daughter (the one with the minimum probability).</span>
+<span class="sd">        - If the &quot;worst&quot; daughter is not the target bacterium, updates the cost to add the new link and marks</span>
+<span class="sd">          the redundant link in the `redundant_link_dict_division`.</span>
+<span class="sd">        - If the target bacterium is already the &quot;worst&quot; link, assigns a high cost (`1`) to indicate an</span>
+<span class="sd">          improbable replacement.</span>
+
+<span class="sd">    :param pandas.DataFrame maintenance_cost_df:</span>
+<span class="sd">        DataFrame containing the maintenance costs for existing daughter links.</span>
+<span class="sd">    :param list existing_daughters_idx:</span>
+<span class="sd">        Indices of the existing daughters.</span>
+<span class="sd">    :param int target_bac_ndx:</span>
+<span class="sd">        Index of the target bacterium (the new daughter candidate).</span>
+<span class="sd">    :param int source_bac_ndx:</span>
+<span class="sd">        Index of the source bacterium.</span>
+<span class="sd">    :param float new_daughter_prob:</span>
+<span class="sd">        Probability of establishing a new daughter link with the target bacterium.</span>
+<span class="sd">    :param dict redundant_link_dict_division:</span>
+<span class="sd">        Dictionary storing redundant links for division events.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        tuple:</span>
+<span class="sd">            - float: Cost of adding the new daughter link.</span>
+<span class="sd">            - dict: Updated `redundant_link_dict_division` with the identified redundant link.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">all_bac_prob_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">existing_daughters_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">maintenance_cost_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">existing_daughters_idx</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span>
+        <span class="n">existing_daughters_idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">maintenance_cost_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">existing_daughters_idx</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span>
+        <span class="n">target_bac_ndx</span><span class="p">:</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">new_daughter_prob</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># bac with minimum probability</span>
+    <span class="n">wrong_daughter_index</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">all_bac_prob_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">all_bac_prob_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()))]</span>
+
+    <span class="k">if</span> <span class="n">wrong_daughter_index</span> <span class="o">!=</span> <span class="n">target_bac_ndx</span><span class="p">:</span>
+
+        <span class="n">adding_new_daughter_cost</span> <span class="o">=</span> <span class="n">new_daughter_prob</span>
+        <span class="n">redundant_link_dict_division</span><span class="p">[</span><span class="n">target_bac_ndx</span><span class="p">][</span><span class="n">source_bac_ndx</span><span class="p">]</span> <span class="o">=</span> <span class="n">wrong_daughter_index</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># probability = 0 so 1 - probability = 1</span>
+        <span class="n">adding_new_daughter_cost</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">adding_new_daughter_cost</span><span class="p">,</span> <span class="n">redundant_link_dict_division</span></div>
+
+
+
+<div class="viewcode-block" id="evaluate_replacement_daughter_link">
+<a class="viewcode-back" href="../modules.html#evaluateDivisionLinkForUB.evaluate_replacement_daughter_link">[docs]</a>
+<span class="k">def</span> <span class="nf">evaluate_replacement_daughter_link</span><span class="p">(</span><span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">source_bac</span><span class="p">,</span> <span class="n">target_bac_ndx</span><span class="p">,</span> <span class="n">target_bac</span><span class="p">,</span>
+                                       <span class="n">new_daughter_cost</span><span class="p">,</span> <span class="n">source_bac_daughters</span><span class="p">,</span>
+                                       <span class="n">max_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span>
+                                       <span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span> <span class="n">redundant_link_dict_division</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluates whether an existing division link can be replaced with a new link to minimize the overall cost,</span>
+<span class="sd">    while ensuring the replacement adheres to biological constraints.</span>
+
+<span class="sd">    **Logic**:</span>
+<span class="sd">        - Computes the new length ratios for the potential division link, incorporating the source bacterium,</span>
+<span class="sd">          its existing daughters, and the target bacterium.</span>
+<span class="sd">        - Compares the new ratios against statistical boundaries (`max_daughter_len_to_mother_ratio_boundary` and</span>
+<span class="sd">          `sum_daughter_len_to_mother_ratio_boundary`) to ensure the new division link is biologically plausible.</span>
+<span class="sd">        - If only one daughter satisfies the constraints, compares the probability of the target bacterium</span>
+<span class="sd">          against the least probable existing daughter link. If the new link is more probable, it replaces the</span>
+<span class="sd">          least probable link.</span>
+<span class="sd">        - If multiple daughters satisfy the constraints, delegates the decision to</span>
+<span class="sd">          `evaluate_replacement_daughter_link` to identify the best replacement.</span>
+<span class="sd">        - If no daughters meet the constraints, assigns a high cost (`1`), indicating the link is improbable.</span>
+
+<span class="sd">    :param pandas.DataFrame maintenance_cost_df:</span>
+<span class="sd">        DataFrame containing the maintenance costs for existing daughter links.</span>
+<span class="sd">    :param int source_bac_ndx:</span>
+<span class="sd">        Index of the source bacterium in the DataFrame.</span>
+<span class="sd">    :param pandas.Series source_bac:</span>
+<span class="sd">        Attributes of the source bacterium.</span>
+<span class="sd">    :param int target_bac_ndx:</span>
+<span class="sd">        Index of the target bacterium in the DataFrame.</span>
+<span class="sd">    :param pandas.Series target_bac:</span>
+<span class="sd">        Attributes of the target bacterium.</span>
+<span class="sd">    :param float new_daughter_cost:</span>
+<span class="sd">        Cost of establishing a new daughter link with the target bacterium.</span>
+<span class="sd">    :param pandas.DataFrame source_bac_daughters:</span>
+<span class="sd">        DataFrame containing attributes of the source bacterium&#39;s existing daughters.</span>
+<span class="sd">    :param dict max_daughter_len_to_mother_ratio_boundary:</span>
+<span class="sd">        Dictionary containing &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for</span>
+<span class="sd">        the maximum daughter-to-mother length ratio.</span>
+<span class="sd">    :param dict sum_daughter_len_to_mother_ratio_boundary:</span>
+<span class="sd">        Dictionary containing &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for</span>
+<span class="sd">        the sum of daughter-to-mother length ratios.</span>
+<span class="sd">    :param dict redundant_link_dict_division:</span>
+<span class="sd">        Dictionary storing redundant links for division events.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        tuple:</span>
+<span class="sd">            - float: Cost of adding the new daughter link.</span>
+<span class="sd">            - dict: Updated `redundant_link_dict_division` with the identified redundant link.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">upper_bound_max_daughter_len</span> <span class="o">=</span> <span class="n">calculate_upper_statistical_bound</span><span class="p">(</span><span class="n">max_daughter_len_to_mother_ratio_boundary</span><span class="p">)</span>
+
+    <span class="n">upper_bound_sum_daughter_len</span> <span class="o">=</span> <span class="n">calculate_upper_statistical_bound</span><span class="p">(</span><span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">)</span>
+
+    <span class="n">lower_bound_sum_daughter_len</span> <span class="o">=</span> <span class="n">calculate_lower_statistical_bound</span><span class="p">(</span><span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">)</span>
+
+    <span class="n">source_bac_daughters</span><span class="p">[</span><span class="s1">&#39;new_sum_daughters_len_to_source&#39;</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="p">(</span><span class="n">source_bac_daughters</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">target_bac</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">])</span> <span class="o">/</span> \
+        <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">]</span>
+
+    <span class="n">source_bac_daughters</span><span class="p">[</span><span class="s1">&#39;new_max_daughters_len_to_source&#39;</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">source_bac_daughters</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">],</span> <span class="n">target_bac</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">])</span> <span class="o">/</span> \
+        <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">]</span>
+
+    <span class="n">filtered_daughters</span> <span class="o">=</span> \
+        <span class="n">source_bac_daughters</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">source_bac_daughters</span><span class="p">[</span><span class="s1">&#39;new_max_daughters_len_to_source&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span>
+                                 <span class="p">(</span><span class="n">source_bac_daughters</span><span class="p">[</span><span class="s1">&#39;new_max_daughters_len_to_source&#39;</span><span class="p">]</span> <span class="o">&lt;=</span>
+                                  <span class="n">upper_bound_max_daughter_len</span><span class="p">)</span> <span class="o">&amp;</span>
+                                 <span class="p">(</span><span class="n">lower_bound_sum_daughter_len</span> <span class="o">&lt;=</span>
+                                  <span class="n">source_bac_daughters</span><span class="p">[</span><span class="s1">&#39;new_sum_daughters_len_to_source&#39;</span><span class="p">])</span> <span class="o">&amp;</span>
+                                 <span class="p">(</span><span class="n">source_bac_daughters</span><span class="p">[</span><span class="s1">&#39;new_sum_daughters_len_to_source&#39;</span><span class="p">]</span> <span class="o">&lt;=</span>
+                                  <span class="n">upper_bound_sum_daughter_len</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">filtered_daughters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">filtered_daughters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+
+            <span class="n">other_daughter_ndx</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">source_bac_daughters</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span>
+                                  <span class="n">filtered_daughters</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">other_daughter_prob</span> <span class="o">=</span> <span class="n">maintenance_cost_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">other_daughter_ndx</span><span class="p">]</span>
+            <span class="n">target_bac_prob</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">new_daughter_cost</span>
+
+            <span class="k">if</span> <span class="n">target_bac_prob</span> <span class="o">&gt;</span> <span class="n">other_daughter_prob</span><span class="p">:</span>
+                <span class="n">redundant_link_dict_division</span><span class="p">[</span><span class="n">target_bac_ndx</span><span class="p">][</span><span class="n">source_bac_ndx</span><span class="p">]</span> <span class="o">=</span> <span class="n">other_daughter_ndx</span>
+
+                <span class="n">adding_new_daughter_cost</span> <span class="o">=</span> <span class="n">new_daughter_cost</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># probability = 0 so 1 - probability = 1</span>
+                <span class="n">adding_new_daughter_cost</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">adding_new_daughter_cost</span><span class="p">,</span> <span class="n">redundant_link_dict_new_link</span> <span class="o">=</span> \
+                <span class="n">evaluate_new_division_link</span><span class="p">(</span><span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">filtered_daughters</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+                                           <span class="n">target_bac_ndx</span><span class="p">,</span> <span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">new_daughter_cost</span><span class="p">,</span>
+                                           <span class="n">redundant_link_dict_division</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># probability = 0 so 1 - probability = 1</span>
+        <span class="n">adding_new_daughter_cost</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">adding_new_daughter_cost</span><span class="p">,</span> <span class="n">redundant_link_dict_division</span></div>
+
+
+
+<div class="viewcode-block" id="handle_two_daughter_links">
+<a class="viewcode-back" href="../modules.html#evaluateDivisionLinkForUB.handle_two_daughter_links">[docs]</a>
+<span class="k">def</span> <span class="nf">handle_two_daughter_links</span><span class="p">(</span><span class="n">division_cost_df</span><span class="p">,</span> <span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">division_cost_dict</span><span class="p">,</span> <span class="n">source_bac_ndx</span><span class="p">,</span>
+                              <span class="n">source_bac</span><span class="p">,</span> <span class="n">target_bac_ndx</span><span class="p">,</span> <span class="n">target_bac</span><span class="p">,</span> <span class="n">redundant_link_dict_division</span><span class="p">,</span>
+                              <span class="n">source_bac_daughters</span><span class="p">,</span> <span class="n">max_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span>
+                              <span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles scenarios where a source bacterium already has two daughter links and evaluates the feasibility of</span>
+<span class="sd">    replacing one of the existing links with a new division link to minimize the overall cost.</span>
+
+<span class="sd">    **Logic**:</span>
+<span class="sd">        - Retrieves the cost of adding a new daughter link from the `division_cost_df`.</span>
+<span class="sd">        - Delegates the evaluation of replacing an existing link to</span>
+<span class="sd">          `evaluate_replacement_daughter_link`, which ensures biological constraints are satisfied and</span>
+<span class="sd">          identifies the most redundant link if applicable.</span>
+<span class="sd">        - Updates the `division_cost_dict` with the resulting cost for the new link.</span>
+<span class="sd">        - Updates the `redundant_link_dict_division` to mark any redundant links that were replaced.</span>
+
+<span class="sd">    :param pandas.DataFrame division_cost_df:</span>
+<span class="sd">        DataFrame containing precomputed division costs for source-target links.</span>
+<span class="sd">    :param pandas.DataFrame maintenance_cost_df:</span>
+<span class="sd">        DataFrame containing maintenance costs for existing daughter links.</span>
+<span class="sd">    :param dict division_cost_dict:</span>
+<span class="sd">        Dictionary storing division costs for source-target bacterium pairs.</span>
+<span class="sd">    :param int source_bac_ndx:</span>
+<span class="sd">        Index of the source bacterium in the DataFrame.</span>
+<span class="sd">    :param pandas.Series source_bac:</span>
+<span class="sd">        Attributes of the source bacterium.</span>
+<span class="sd">    :param int target_bac_ndx:</span>
+<span class="sd">        Index of the target bacterium in the DataFrame.</span>
+<span class="sd">    :param pandas.Series target_bac:</span>
+<span class="sd">        Attributes of the target bacterium.</span>
+<span class="sd">    :param dict redundant_link_dict_division:</span>
+<span class="sd">        Dictionary storing redundant links for division events.</span>
+<span class="sd">    :param pandas.DataFrame source_bac_daughters:</span>
+<span class="sd">        DataFrame containing attributes of the source bacterium&#39;s existing daughters.</span>
+<span class="sd">    :param dict max_daughter_len_to_mother_ratio_boundary:</span>
+<span class="sd">        Dictionary containing &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for</span>
+<span class="sd">        the maximum daughter-to-mother length ratio.</span>
+<span class="sd">    :param dict sum_daughter_len_to_mother_ratio_boundary:</span>
+<span class="sd">        Dictionary containing &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for</span>
+<span class="sd">        the sum of daughter-to-mother length ratios.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        tuple:</span>
+<span class="sd">            - dict: Updated `division_cost_dict` with the cost for the new link.</span>
+<span class="sd">            - dict: Updated `redundant_link_dict_division` with any redundant links replaced.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">new_daughter_cost</span> <span class="o">=</span> <span class="n">division_cost_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">target_bac_ndx</span><span class="p">]</span>
+
+    <span class="p">(</span><span class="n">adding_new_daughter_cost</span><span class="p">,</span> <span class="n">redundant_link_dict_division</span><span class="p">)</span> <span class="o">=</span> \
+        <span class="n">evaluate_replacement_daughter_link</span><span class="p">(</span><span class="n">maintenance_cost_df</span><span class="p">,</span>
+                                           <span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">source_bac</span><span class="p">,</span> <span class="n">target_bac_ndx</span><span class="p">,</span> <span class="n">target_bac</span><span class="p">,</span>
+                                           <span class="n">new_daughter_cost</span><span class="p">,</span> <span class="n">source_bac_daughters</span><span class="p">,</span>
+                                           <span class="n">max_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span>
+                                           <span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span>
+                                           <span class="n">redundant_link_dict_division</span><span class="p">)</span>
+
+    <span class="n">division_cost_dict</span><span class="p">[</span><span class="n">target_bac_ndx</span><span class="p">][</span><span class="n">source_bac_ndx</span><span class="p">]</span> <span class="o">=</span> <span class="n">adding_new_daughter_cost</span>
+
+    <span class="k">return</span> <span class="n">division_cost_dict</span><span class="p">,</span> <span class="n">redundant_link_dict_division</span></div>
+
+
+
+<div class="viewcode-block" id="update_division_cost_and_redundant_links">
+<a class="viewcode-back" href="../modules.html#evaluateDivisionLinkForUB.update_division_cost_and_redundant_links">[docs]</a>
+<span class="k">def</span> <span class="nf">update_division_cost_and_redundant_links</span><span class="p">(</span><span class="n">division_cost_df</span><span class="p">,</span> <span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">division_cost_dict</span><span class="p">,</span>
+                                             <span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">source_bac</span><span class="p">,</span> <span class="n">target_bac_ndx</span><span class="p">,</span> <span class="n">target_bac</span><span class="p">,</span>
+                                             <span class="n">redundant_link_dict_division</span><span class="p">,</span>
+                                             <span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span>
+                                             <span class="n">max_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span> <span class="n">min_life_history_of_bacteria</span><span class="p">,</span>
+                                             <span class="n">source_bac_next_time_step</span><span class="p">,</span> <span class="n">source_bac_daughters</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluates two scenarios for link feasibility:</span>
+<span class="sd">            1. **Single Link Scenario**: The source bacterium has one existing link. The function evaluates</span>
+<span class="sd">               the feasibility of adding a new link from the target bacterium to the source bacterium.</span>
+<span class="sd">            2. **Double Link Scenario**: The source bacterium has two existing links (daughter links).</span>
+<span class="sd">                The function evaluates the feasibility of removing one of the existing links and</span>
+<span class="sd">                replacing it with a new link from the target bacterium.</span>
+
+<span class="sd">    :param pandas.DataFrame division_cost_df:</span>
+<span class="sd">        DataFrame containing costs for potential division links.</span>
+<span class="sd">    :param pandas.DataFrame maintenance_cost_df:</span>
+<span class="sd">        DataFrame containing costs for maintaining current links of candidate source bacteria.</span>
+<span class="sd">    :param dict division_cost_dict:</span>
+<span class="sd">        Dictionary storing updated division costs for all bacteria.</span>
+<span class="sd">    :param int source_bac_ndx:</span>
+<span class="sd">        Index of the source bacterium being evaluated.</span>
+<span class="sd">    :param pandas.Series source_bac:</span>
+<span class="sd">        Data for the source bacterium being evaluated.</span>
+<span class="sd">    :param int target_bac_ndx:</span>
+<span class="sd">        Index of the target bacterium being evaluated.</span>
+<span class="sd">    :param pandas.Series target_bac:</span>
+<span class="sd">        Data for the target bacterium being evaluated.</span>
+<span class="sd">    :param dict redundant_link_dict_division:</span>
+<span class="sd">        Dictionary storing redundant links for division relationships.</span>
+<span class="sd">    :param dict sum_daughter_len_to_mother_ratio_boundary:</span>
+<span class="sd">        Dictionary containing &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for</span>
+<span class="sd">        the sum of daughter-to-mother length ratios.</span>
+<span class="sd">    :param dict max_daughter_len_to_mother_ratio_boundary:</span>
+<span class="sd">        Dictionary containing &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for</span>
+<span class="sd">        the maximum daughter-to-mother length ratio.</span>
+<span class="sd">    :param int min_life_history_of_bacteria:</span>
+<span class="sd">        Minimum number of life history frames required for a bacterium to be considered valid.</span>
+<span class="sd">    :param pandas.DataFrame source_bac_next_time_step:</span>
+<span class="sd">        DataFrame containing the next time step&#39;s candidate for the source bacterium.</span>
+<span class="sd">    :param pandas.DataFrame source_bac_daughters:</span>
+<span class="sd">        DataFrame containing the daughters of the source bacterium.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        tuple:</span>
+<span class="sd">            - **division_cost_dict** (*dict*): Updated dictionary of division costs for source-target pairs.</span>
+<span class="sd">            - **redundant_link_dict_division** (*dict*): Updated dictionary of redundant links.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">source_bac_next_time_step</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+        <span class="c1"># Maintain the previous link and create a new link (cell division)</span>
+        <span class="n">division_cost_dict</span> <span class="o">=</span> \
+            <span class="n">evaluate_division_link_feasibility</span><span class="p">(</span><span class="n">division_cost_df</span><span class="p">,</span> <span class="n">division_cost_dict</span><span class="p">,</span> <span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">source_bac</span><span class="p">,</span>
+                                               <span class="n">target_bac_ndx</span><span class="p">,</span> <span class="n">target_bac</span><span class="p">,</span> <span class="n">source_bac_next_time_step</span><span class="p">,</span>
+                                               <span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span>
+                                               <span class="n">max_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span> <span class="n">min_life_history_of_bacteria</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">source_bac_daughters</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+        <span class="c1"># my idea: at least one of a daughter-mother links can be wrong</span>
+        <span class="n">division_cost_dict</span><span class="p">,</span> <span class="n">redundant_link_dict_division</span> <span class="o">=</span> \
+            <span class="n">handle_two_daughter_links</span><span class="p">(</span><span class="n">division_cost_df</span><span class="p">,</span> <span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">division_cost_dict</span><span class="p">,</span>
+                                      <span class="n">source_bac_ndx</span><span class="p">,</span> <span class="n">source_bac</span><span class="p">,</span> <span class="n">target_bac_ndx</span><span class="p">,</span> <span class="n">target_bac</span><span class="p">,</span>
+                                      <span class="n">redundant_link_dict_division</span><span class="p">,</span> <span class="n">source_bac_daughters</span><span class="p">,</span>
+                                      <span class="n">max_daughter_len_to_mother_ratio_boundary</span><span class="p">,</span>
+                                      <span class="n">sum_daughter_len_to_mother_ratio_boundary</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">division_cost_dict</span><span class="p">,</span> <span class="n">redundant_link_dict_division</span></div>
+
+</pre></div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Atiyeh Ahmadi
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=cb975c41"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    </body>
+</html>
