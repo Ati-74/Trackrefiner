@@ -289,7 +289,11 @@
   <h2>C</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="modules.html#calcVelocity.calc_average_velocity">calc_average_velocity() (in module calcVelocity)</a>
+</li>
         <li><a href="modules.html#calculateCreateLinkCost.calc_continuity_link_cost">calc_continuity_link_cost() (in module calculateCreateLinkCost)</a>
+</li>
+        <li><a href="modules.html#calculateCreateLinkCost.calc_continuity_link_cost_for_restoring_links">calc_continuity_link_cost_for_restoring_links() (in module calculateCreateLinkCost)</a>
 </li>
         <li><a href="modules.html#calculateInitialCostTerms.calc_distance_and_overlap_matrices">calc_distance_and_overlap_matrices() (in module calculateInitialCostTerms)</a>
 </li>
@@ -300,6 +304,8 @@
         <li><a href="modules.html#calculateInitialCostTerms.calc_distance_term_for_maintain_division">calc_distance_term_for_maintain_division() (in module calculateInitialCostTerms)</a>
 </li>
         <li><a href="modules.html#calculateCreateLinkCost.calc_division_link_cost">calc_division_link_cost() (in module calculateCreateLinkCost)</a>
+</li>
+        <li><a href="modules.html#calculateCreateLinkCost.calc_division_link_cost_for_restoring_links">calc_division_link_cost_for_restoring_links() (in module calculateCreateLinkCost)</a>
 </li>
         <li><a href="modules.html#calculateMaintainingLinkCost.calc_maintain_exist_link_cost">calc_maintain_exist_link_cost() (in module calculateMaintainingLinkCost)</a>
 </li>
@@ -323,10 +329,10 @@
 </li>
         </ul></li>
         <li>
-    calcGrowthRate
+    calcElongationRate
 
         <ul>
-          <li><a href="modules.html#module-calcGrowthRate">module</a>
+          <li><a href="modules.html#module-calcElongationRate">module</a>
 </li>
         </ul></li>
         <li><a href="modules.html#helper.calculate_all_bac_endpoints">calculate_all_bac_endpoints() (in module helper)</a>
@@ -335,7 +341,7 @@
 </li>
         <li><a href="modules.html#helper.calculate_angles_between_slopes">calculate_angles_between_slopes() (in module helper)</a>
 </li>
-        <li><a href="modules.html#calcGrowthRate.calculate_average_growth_rate">calculate_average_growth_rate() (in module calcGrowthRate)</a>
+        <li><a href="modules.html#calcElongationRate.calculate_average_elongation_rate">calculate_average_elongation_rate() (in module calcElongationRate)</a>
 </li>
         <li><a href="modules.html#helper.calculate_bac_endpoints">calculate_bac_endpoints() (in module helper)</a>
 </li>
@@ -345,15 +351,17 @@
 </li>
         <li><a href="modules.html#helper.calculate_bacterial_life_history_features">calculate_bacterial_life_history_features() (in module helper)</a>
 </li>
+        <li><a href="modules.html#calcElongationRate.calculate_elongation_rate">calculate_elongation_rate() (in module calcElongationRate)</a>
+</li>
         <li><a href="modules.html#calculateOverlap.calculate_frame_existence_links">calculate_frame_existence_links() (in module calculateOverlap)</a>
 </li>
-        <li><a href="modules.html#calcGrowthRate.calculate_growth_rate">calculate_growth_rate() (in module calcGrowthRate)</a>
+        <li><a href="modules.html#drawDistributionPlot.calculate_frequency">calculate_frequency() (in module drawDistributionPlot)</a>
 </li>
         <li><a href="modules.html#iouCalForML.calculate_iou_ml">calculate_iou_ml() (in module iouCalForML)</a>
 </li>
         <li><a href="modules.html#findOutlier.calculate_length_change_ratio_boundary">calculate_length_change_ratio_boundary() (in module findOutlier)</a>
 </li>
-        <li><a href="modules.html#calcGrowthRate.calculate_linear_regression_growth_rate">calculate_linear_regression_growth_rate() (in module calcGrowthRate)</a>
+        <li><a href="modules.html#calcElongationRate.calculate_linear_regression_elongation_rate">calculate_linear_regression_elongation_rate() (in module calcElongationRate)</a>
 </li>
         <li><a href="modules.html#findOutlier.calculate_lower_statistical_bound">calculate_lower_statistical_bound() (in module findOutlier)</a>
 </li>
@@ -361,10 +369,10 @@
 </li>
         <li><a href="modules.html#helper.calculate_normalized_angle_between_motion_vectors">calculate_normalized_angle_between_motion_vectors() (in module helper)</a>
 </li>
-        <li><a href="modules.html#findOutlier.calculate_sum_daughter_to_mother_len_boundary">calculate_sum_daughter_to_mother_len_boundary() (in module findOutlier)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="modules.html#findOutlier.calculate_sum_daughter_to_mother_len_boundary">calculate_sum_daughter_to_mother_len_boundary() (in module findOutlier)</a>
+</li>
         <li><a href="modules.html#helper.calculate_trajectory_angles">calculate_trajectory_angles() (in module helper)</a>
 </li>
         <li><a href="modules.html#helper.calculate_trajectory_displacement">calculate_trajectory_displacement() (in module helper)</a>
@@ -418,6 +426,13 @@
 
         <ul>
           <li><a href="modules.html#module-calculateOverlap">module</a>
+</li>
+        </ul></li>
+        <li>
+    calcVelocity
+
+        <ul>
+          <li><a href="modules.html#module-calcVelocity">module</a>
 </li>
         </ul></li>
         <li>
@@ -476,16 +491,25 @@
 </li>
         <li><a href="modules.html#redundantParentLink.detect_and_resolve_redundant_parent_link">detect_and_resolve_redundant_parent_link() (in module redundantParentLink)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="modules.html#findOutlier.detect_daughter_to_mother_length_outliers">detect_daughter_to_mother_length_outliers() (in module findOutlier)</a>
 </li>
         <li><a href="modules.html#findOutlier.detect_length_change_ratio_outliers">detect_length_change_ratio_outliers() (in module findOutlier)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="modules.html#fluorescenceIntensity.determine_final_cell_type">determine_final_cell_type() (in module fluorescenceIntensity)</a>
 </li>
         <li><a href="modules.html#calculateCreateLinkCostMCC.division_detection_cost">division_detection_cost() (in module calculateCreateLinkCostMCC)</a>
 </li>
+        <li><a href="modules.html#drawDistributionPlot.draw_feature_distribution">draw_feature_distribution() (in module drawDistributionPlot)</a>
+</li>
+        <li>
+    drawDistributionPlot
+
+        <ul>
+          <li><a href="modules.html#module-drawDistributionPlot">module</a>
+</li>
+        </ul></li>
     </ul></td>
   </tr></table>
 </section>
@@ -510,6 +534,8 @@
 </li>
         </ul></li>
         <li><a href="modules.html#helper.extract_bacteria_features">extract_bacteria_features() (in module helper)</a>
+</li>
+        <li><a href="modules.html#helper.extract_bacteria_info">extract_bacteria_info() (in module helper)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -690,7 +716,7 @@
 </li>
           <li><a href="modules.html#module-calcDistanceForML">calcDistanceForML</a>
 </li>
-          <li><a href="modules.html#module-calcGrowthRate">calcGrowthRate</a>
+          <li><a href="modules.html#module-calcElongationRate">calcElongationRate</a>
 </li>
           <li><a href="modules.html#module-calculateCreateLinkCost">calculateCreateLinkCost</a>
 </li>
@@ -706,9 +732,13 @@
 </li>
           <li><a href="modules.html#module-calculateOverlap">calculateOverlap</a>
 </li>
+          <li><a href="modules.html#module-calcVelocity">calcVelocity</a>
+</li>
           <li><a href="modules.html#module-calMotionAlignmentAngle">calMotionAlignmentAngle</a>
 </li>
           <li><a href="modules.html#module-candidateBacteriaFeatureSpace">candidateBacteriaFeatureSpace</a>
+</li>
+          <li><a href="modules.html#module-drawDistributionPlot">drawDistributionPlot</a>
 </li>
           <li><a href="modules.html#module-evaluateDivisionLinkForUB">evaluateDivisionLinkForUB</a>
 </li>
@@ -828,6 +858,8 @@
   <h2>P</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="modules.html#drawDistributionPlot.plot_frequency_distribution">plot_frequency_distribution() (in module drawDistributionPlot)</a>
+</li>
         <li><a href="modules.html#bacterialLifeHistoryAnalysis.process_bacterial_life_and_family">process_bacterial_life_and_family() (in module bacterialLifeHistoryAnalysis)</a>
 </li>
         <li><a href="modules.html#processCellProfilerData.process_objects_data">process_objects_data() (in module processCellProfilerData)</a>

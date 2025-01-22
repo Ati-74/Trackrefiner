@@ -352,7 +352,9 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#module-calculateCreateLinkCost">Module: calculateCreateLinkCost</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#calculateCreateLinkCost.calc_continuity_link_cost"><code class="docutils literal notranslate"><span class="pre">calc_continuity_link_cost()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#calculateCreateLinkCost.calc_continuity_link_cost_for_restoring_links"><code class="docutils literal notranslate"><span class="pre">calc_continuity_link_cost_for_restoring_links()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#calculateCreateLinkCost.calc_division_link_cost"><code class="docutils literal notranslate"><span class="pre">calc_division_link_cost()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#calculateCreateLinkCost.calc_division_link_cost_for_restoring_links"><code class="docutils literal notranslate"><span class="pre">calc_division_link_cost_for_restoring_links()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#calculateCreateLinkCost.optimize_assignment_using_hungarian"><code class="docutils literal notranslate"><span class="pre">optimize_assignment_using_hungarian()</span></code></a></li>
 </ul>
 </li>
@@ -405,6 +407,7 @@
 <li class="toctree-l3"><a class="reference internal" href="modules.html#helper.convert_pixel_to_um"><code class="docutils literal notranslate"><span class="pre">convert_pixel_to_um()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#helper.convert_um_to_pixel"><code class="docutils literal notranslate"><span class="pre">convert_um_to_pixel()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#helper.extract_bacteria_features"><code class="docutils literal notranslate"><span class="pre">extract_bacteria_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#helper.extract_bacteria_info"><code class="docutils literal notranslate"><span class="pre">extract_bacteria_info()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#helper.identify_important_columns"><code class="docutils literal notranslate"><span class="pre">identify_important_columns()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#helper.update_dataframe_with_selected_rows"><code class="docutils literal notranslate"><span class="pre">update_dataframe_with_selected_rows()</span></code></a></li>
 </ul>
@@ -448,10 +451,14 @@
 <li class="toctree-l3"><a class="reference internal" href="modules.html#bacterialLifeHistoryAnalysis.process_bacterial_life_and_family"><code class="docutils literal notranslate"><span class="pre">process_bacterial_life_and_family()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="modules.html#module-calcGrowthRate">Module: calcGrowthRate</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="modules.html#calcGrowthRate.calculate_average_growth_rate"><code class="docutils literal notranslate"><span class="pre">calculate_average_growth_rate()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="modules.html#calcGrowthRate.calculate_growth_rate"><code class="docutils literal notranslate"><span class="pre">calculate_growth_rate()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="modules.html#calcGrowthRate.calculate_linear_regression_growth_rate"><code class="docutils literal notranslate"><span class="pre">calculate_linear_regression_growth_rate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#module-calcElongationRate">Module: calcElongationRate</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#calcElongationRate.calculate_average_elongation_rate"><code class="docutils literal notranslate"><span class="pre">calculate_average_elongation_rate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#calcElongationRate.calculate_elongation_rate"><code class="docutils literal notranslate"><span class="pre">calculate_elongation_rate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#calcElongationRate.calculate_linear_regression_elongation_rate"><code class="docutils literal notranslate"><span class="pre">calculate_linear_regression_elongation_rate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#module-calcVelocity">Module: calcVelocity</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#calcVelocity.calc_average_velocity"><code class="docutils literal notranslate"><span class="pre">calc_average_velocity()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="modules.html#module-fluorescenceIntensity">Module: fluorescenceIntensity</a><ul>
@@ -459,6 +466,12 @@
 <li class="toctree-l3"><a class="reference internal" href="modules.html#fluorescenceIntensity.determine_final_cell_type"><code class="docutils literal notranslate"><span class="pre">determine_final_cell_type()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#fluorescenceIntensity.get_fluorescence_intensity_columns"><code class="docutils literal notranslate"><span class="pre">get_fluorescence_intensity_columns()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="modules.html#fluorescenceIntensity.mark_cell_types_by_intensity"><code class="docutils literal notranslate"><span class="pre">mark_cell_types_by_intensity()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#module-drawDistributionPlot">Module: drawDistributionPlot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#drawDistributionPlot.calculate_frequency"><code class="docutils literal notranslate"><span class="pre">calculate_frequency()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#drawDistributionPlot.draw_feature_distribution"><code class="docutils literal notranslate"><span class="pre">draw_feature_distribution()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="modules.html#drawDistributionPlot.plot_frequency_distribution"><code class="docutils literal notranslate"><span class="pre">plot_frequency_distribution()</span></code></a></li>
 </ul>
 </li>
 </ul>

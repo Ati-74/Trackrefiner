@@ -243,6 +243,7 @@
 <span class="kn">from</span> <span class="nn">Trackrefiner.bacterialLifeHistoryAnalysis</span> <span class="kn">import</span> <span class="n">process_bacterial_life_and_family</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.correction.findFixTrackingErrors</span> <span class="kn">import</span> <span class="n">find_fix_tracking_errors</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.helper</span> <span class="kn">import</span> <span class="n">identify_important_columns</span><span class="p">,</span> <span class="n">print_progress_bar</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.drawDistributionPlot</span> <span class="kn">import</span> <span class="n">draw_feature_distribution</span>
 <span class="kn">import</span> <span class="nn">psutil</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 
@@ -326,9 +327,9 @@
 <div class="viewcode-block" id="process_objects_data">
 <a class="viewcode-back" href="../modules.html#processCellProfilerData.process_objects_data">[docs]</a>
 <span class="k">def</span> <span class="nf">process_objects_data</span><span class="p">(</span><span class="n">cp_output_csv</span><span class="p">,</span> <span class="n">segmentation_res_dir</span><span class="p">,</span> <span class="n">neighbor_csv</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">doubling_time</span><span class="p">,</span>
-                         <span class="n">growth_rate_method</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">assigning_cell_type</span><span class="p">,</span> <span class="n">intensity_threshold</span><span class="p">,</span>
+                         <span class="n">elongation_rate_method</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">assigning_cell_type</span><span class="p">,</span> <span class="n">intensity_threshold</span><span class="p">,</span>
                          <span class="n">disable_tracking_correction</span><span class="p">,</span> <span class="n">clf</span><span class="p">,</span> <span class="n">n_cpu</span><span class="p">,</span> <span class="n">image_boundaries</span><span class="p">,</span> <span class="n">dynamic_boundaries</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span>
-                         <span class="n">verbose</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
+                         <span class="n">save_npy</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">command</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Processes CellProfiler output data, performs tracking correction, assigns cell types,</span>
@@ -347,8 +348,8 @@
 <span class="sd">        Time interval between consecutive images (in minutes).</span>
 <span class="sd">    :param float doubling_time:</span>
 <span class="sd">        Minimum life history duration of bacteria (in minutes) for analysis.</span>
-<span class="sd">    :param str growth_rate_method:</span>
-<span class="sd">        Method for calculating the growth rate. Options:</span>
+<span class="sd">    :param str elongation_rate_method:</span>
+<span class="sd">        Method for calculating the elongation rate. Options:</span>
 <span class="sd">        - &#39;Average&#39;: Computes average growth rate.</span>
 <span class="sd">        - &#39;Linear Regression&#39;: Estimates growth rate using linear regression.</span>
 <span class="sd">    :param float pixel_per_micron:</span>
@@ -370,6 +371,8 @@
 <span class="sd">    :param str dynamic_boundaries:</span>
 <span class="sd">        Path to a CSV file specifying boundary limits for each time step. The file should contain columns:</span>
 <span class="sd">        `Time Step`, `Lower X Limit`, `Upper X Limit`, `Lower Y Limit`, `Upper Y Limit`.</span>
+<span class="sd">    :param bool save_npy:</span>
+<span class="sd">        If True, results are saved in `.npy` format.</span>
 <span class="sd">    :param bool verbose:</span>
 <span class="sd">        If True, displays warnings and additional details during processing.</span>
 <span class="sd">    :param str command:</span>
@@ -405,7 +408,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="n">start_time_log</span><span class="p">)</span>
         <span class="n">log_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">start_time_log</span><span class="p">)</span>
 
-        <span class="n">command_log</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;User&#39;s Command Statement: </span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">command_log</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;User&#39;s Command: </span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">command_log</span><span class="p">)</span>
         <span class="n">log_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">command_log</span><span class="p">)</span>
 
@@ -467,16 +470,34 @@
 
             <span class="c1"># process the tracking data</span>
             <span class="n">processed_df</span><span class="p">,</span> <span class="n">processed_df_with_specific_cols</span> <span class="o">=</span> \
-                <span class="n">process_bacterial_life_and_family</span><span class="p">(</span><span class="n">cp_output_df</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">growth_rate_method</span><span class="p">,</span> <span class="n">assigning_cell_type</span><span class="p">,</span>
+                <span class="n">process_bacterial_life_and_family</span><span class="p">(</span><span class="n">cp_output_df</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">elongation_rate_method</span><span class="p">,</span> <span class="n">assigning_cell_type</span><span class="p">,</span>
                                                   <span class="n">cell_type_array</span><span class="p">,</span> <span class="n">label_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">)</span>
+
+            <span class="n">sel_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">processed_df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span>
+                        <span class="p">[</span><span class="s1">&#39;noise_bac&#39;</span><span class="p">,</span> <span class="s1">&#39;mother_rpl&#39;</span><span class="p">,</span> <span class="s1">&#39;daughter_rpl&#39;</span><span class="p">,</span> <span class="s1">&#39;source_mcl&#39;</span><span class="p">,</span> <span class="s1">&#39;target_mcl&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_index&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;checked&#39;</span><span class="p">,</span> <span class="s1">&#39;bad_division_flag&#39;</span><span class="p">,</span> <span class="s1">&#39;ovd_flag&#39;</span><span class="p">,</span> <span class="s1">&#39;bad_daughters_flag&#39;</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">,</span> <span class="s1">&#39;ends&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;prev_id&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_label&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_index&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;daughters_index&#39;</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_time_step_index&#39;</span><span class="p">]]</span>
+
+            <span class="n">excluded_patterns</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;TrackObjects_Displacement&#39;</span><span class="p">,</span> <span class="s1">&#39;TrackObjects_DistanceTraveled&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;TrackObjects_FinalAge&#39;</span><span class="p">,</span> <span class="s1">&#39;TrackObjects_IntegratedDistance&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;TrackObjects_Lifetime&#39;</span><span class="p">,</span> <span class="s1">&#39;TrackObjects_Linearity&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;TrackObjects_TrajectoryX&#39;</span><span class="p">,</span> <span class="s1">&#39;TrackObjects_TrajectoryY&#39;</span>
+            <span class="p">]</span>
+
+            <span class="n">sel_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">sel_cols</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">pattern</span> <span class="ow">in</span> <span class="n">col</span> <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">excluded_patterns</span><span class="p">)]</span>
+
+            <span class="n">processed_df</span> <span class="o">=</span> <span class="n">processed_df</span><span class="p">[</span><span class="n">sel_cols</span><span class="p">]</span>
 
             <span class="n">print_progress_bar</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;Progress:&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
 
-            <span class="n">create_pickle_files</span><span class="p">(</span><span class="n">processed_df_with_specific_cols</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">assigning_cell_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">save_npy</span><span class="p">:</span>
+                <span class="n">create_pickle_files</span><span class="p">(</span><span class="n">processed_df_with_specific_cols</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">assigning_cell_type</span><span class="p">)</span>
 
             <span class="n">cp_out_base_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cp_output_csv</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="c1"># Common prefix for all output paths</span>
-            <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">/Trackrefiner.</span><span class="si">{</span><span class="n">cp_out_base_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">growth_rate_method</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">/Trackrefiner.</span><span class="si">{</span><span class="n">cp_out_base_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">elongation_rate_method</span><span class="si">}</span><span class="s2">&quot;</span>
 
             <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">_analysis&quot;</span>
             <span class="n">path_logs</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">_logs&quot;</span>
@@ -492,6 +513,18 @@
             <span class="n">output_log</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Output Directory: </span><span class="si">{</span><span class="n">out_dir</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">output_log</span><span class="p">)</span>
             <span class="n">log_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_log</span><span class="p">)</span>
+
+            <span class="c1"># draw plots</span>
+            <span class="n">features_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;LifeHistory&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Cell Cycle Duration (min)&quot;</span><span class="p">,</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;lifehistory_based&#39;</span><span class="p">],</span>
+                             <span class="s1">&#39;startVol&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Birth Length (um)&quot;</span><span class="p">,</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;lifehistory_based&#39;</span><span class="p">],</span>
+                             <span class="s1">&#39;targetVol&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Final Length (um)&quot;</span><span class="p">,</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;lifehistory_based&#39;</span><span class="p">],</span>
+                             <span class="s1">&#39;elongationRate&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Elongation Rate (um/min)&quot;</span><span class="p">,</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;lifehistory_based&#39;</span><span class="p">],</span>
+                             <span class="s1">&#39;velocity&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Velocity (um/min)&quot;</span><span class="p">,</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;lifehistory_based&#39;</span><span class="p">],</span>
+                             <span class="s1">&#39;AverageLength&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Average Length (um)&quot;</span><span class="p">,</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;lifehistory_based&#39;</span><span class="p">],</span>
+                             <span class="s1">&#39;NumberOfDivisionFamily&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Number of division per family&quot;</span><span class="p">,</span> <span class="s1">&#39;Number of Families&#39;</span><span class="p">,</span>
+                                                        <span class="s1">&#39;family_based&#39;</span><span class="p">],</span>
+                             <span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Length (um)&quot;</span><span class="p">,</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;bacteria_based&#39;</span><span class="p">]}</span>
+            <span class="n">draw_feature_distribution</span><span class="p">(</span><span class="n">processed_df</span><span class="p">,</span> <span class="n">features_dict</span><span class="p">,</span> <span class="n">label_col</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">doubling_time</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">log</span> <span class="o">=</span> <span class="s2">&quot;The segmentation result folder or neighbor file or both are not available!&quot;</span>

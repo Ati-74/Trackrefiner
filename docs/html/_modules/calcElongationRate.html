@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>Overview: module code - Trackrefiner 2025 documentation</title>
+        <title>calcElongationRate - Trackrefiner 2025 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
@@ -234,48 +234,113 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <h1>All modules for which code is available</h1>
-<ul><li><a href="bacteriaTrackingUpdate.html">bacteriaTrackingUpdate</a></li>
-<li><a href="bacterialBehaviorModelTraining.html">bacterialBehaviorModelTraining</a></li>
-<li><a href="bacterialLifeHistoryAnalysis.html">bacterialLifeHistoryAnalysis</a></li>
-<li><a href="calMotionAlignmentAngle.html">calMotionAlignmentAngle</a></li>
-<li><a href="calcDistanceForML.html">calcDistanceForML</a></li>
-<li><a href="calcElongationRate.html">calcElongationRate</a></li>
-<li><a href="calcVelocity.html">calcVelocity</a></li>
-<li><a href="calculateCreateLinkCost.html">calculateCreateLinkCost</a></li>
-<li><a href="calculateCreateLinkCostMCC.html">calculateCreateLinkCostMCC</a></li>
-<li><a href="calculateCreateLinkCostUB.html">calculateCreateLinkCostUB</a></li>
-<li><a href="calculateCreateLinkCostUE.html">calculateCreateLinkCostUE</a></li>
-<li><a href="calculateInitialCostTerms.html">calculateInitialCostTerms</a></li>
-<li><a href="calculateMaintainingLinkCost.html">calculateMaintainingLinkCost</a></li>
-<li><a href="calculateOverlap.html">calculateOverlap</a></li>
-<li><a href="candidateBacteriaFeatureSpace.html">candidateBacteriaFeatureSpace</a></li>
-<li><a href="drawDistributionPlot.html">drawDistributionPlot</a></li>
-<li><a href="evaluateDivisionLinkForUB.html">evaluateDivisionLinkForUB</a></li>
-<li><a href="findFixTrackingErrors.html">findFixTrackingErrors</a></li>
-<li><a href="findOutlier.html">findOutlier</a></li>
-<li><a href="fluorescenceIntensity.html">fluorescenceIntensity</a></li>
-<li><a href="helper.html">helper</a></li>
-<li><a href="iouCalForML.html">iouCalForML</a></li>
-<li><a href="lengthRatio.html">lengthRatio</a></li>
-<li><a href="machineLearningPipeline.html">machineLearningPipeline</a></li>
-<li><a href="missingConnectivityLink.html">missingConnectivityLink</a></li>
-<li><a href="mlModelDividedBacteria.html">mlModelDividedBacteria</a></li>
-<li><a href="mlModelDivisionVsNonDivision.html">mlModelDivisionVsNonDivision</a></li>
-<li><a href="mlModelNonDividedBacteria.html">mlModelNonDividedBacteria</a></li>
-<li><a href="multiRegionsCorrection.html">multiRegionsCorrection</a></li>
-<li><a href="multiRegionsDetection.html">multiRegionsDetection</a></li>
-<li><a href="neighborAnalysis.html">neighborAnalysis</a></li>
-<li><a href="noiseObjects.html">noiseObjects</a></li>
-<li><a href="overAssignedDaughters.html">overAssignedDaughters</a></li>
-<li><a href="processCellProfilerData.html">processCellProfilerData</a></li>
-<li><a href="propagateBacteriaLabels.html">propagateBacteriaLabels</a></li>
-<li><a href="redundantParentLink.html">redundantParentLink</a></li>
-<li><a href="regionOfInterestFilter.html">regionOfInterestFilter</a></li>
-<li><a href="restoringTrackingLinks.html">restoringTrackingLinks</a></li>
-<li><a href="unExpectedEnd.html">unExpectedEnd</a></li>
-<li><a href="unexpectedBeginning.html">unexpectedBeginning</a></li>
-</ul>
+          <h1>Source code for calcElongationRate</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LinearRegression</span>
+
+
+<div class="viewcode-block" id="calculate_average_elongation_rate">
+<a class="viewcode-back" href="../modules.html#calcElongationRate.calculate_average_elongation_rate">[docs]</a>
+<span class="k">def</span> <span class="nf">calculate_average_elongation_rate</span><span class="p">(</span><span class="n">division_length</span><span class="p">,</span> <span class="n">birth_length</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the average elongation rate of a bacterium over its lifecycle based on initial and final logarithm lengths.</span>
+
+<span class="sd">    :param float division_length:</span>
+<span class="sd">        The length of the bacterium at the time of division (final length).</span>
+<span class="sd">    :param float birth_length:</span>
+<span class="sd">        The length of the bacterium at birth (initial length).</span>
+<span class="sd">    :param float t:</span>
+<span class="sd">        The total time duration of the lifecycle (unit: minute).</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        float:</span>
+
+<span class="sd">        The calculated average elongation rate. This represents the logarithmic elongation rate per minute.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">elongation_rate</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">division_length</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">birth_length</span><span class="p">))</span> <span class="o">/</span> <span class="n">t</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">elongation_rate</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_linear_regression_elongation_rate">
+<a class="viewcode-back" href="../modules.html#calcElongationRate.calculate_linear_regression_elongation_rate">[docs]</a>
+<span class="k">def</span> <span class="nf">calculate_linear_regression_elongation_rate</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the elongation rate of a bacterium using linear regression on the logarithm of length</span>
+<span class="sd">    as a function of time.</span>
+
+<span class="sd">    :param numpy.ndarray time:</span>
+<span class="sd">        Array of time points corresponding to the bacterium&#39;s lifecycle.</span>
+<span class="sd">    :param numpy.ndarray length:</span>
+<span class="sd">        Array of major length measurements for the bacterium at the corresponding time points.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        float:</span>
+
+<span class="sd">        The calculated elongation rate (slope of the logarithm of length vs. time).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">linear_regressor</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">()</span>  <span class="c1"># create object for the class</span>
+    <span class="c1"># perform linear regression</span>
+    <span class="n">linear_regressor</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">time</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">length</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+    <span class="n">elongation_rate</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">linear_regressor</span><span class="o">.</span><span class="n">coef_</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">elongation_rate</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_elongation_rate">
+<a class="viewcode-back" href="../modules.html#calcElongationRate.calculate_elongation_rate">[docs]</a>
+<span class="k">def</span> <span class="nf">calculate_elongation_rate</span><span class="p">(</span><span class="n">df_life_history</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">elongation_rate_method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the elongation rate of a bacterium based on its life history data and the specified method.</span>
+
+<span class="sd">    :param pandas.DataFrame df_life_history:</span>
+<span class="sd">        Input DataFrame containing the life history of bacteria</span>
+<span class="sd">    :param float interval_time:</span>
+<span class="sd">        Time interval between consecutive images (in minutes).</span>
+<span class="sd">    :param str elongation_rate_method:</span>
+<span class="sd">        The method used for calculating the elongation rate. Options include:</span>
+<span class="sd">        - &quot;Average&quot;: Calculates the average elongation rate based on initial and final lengths.</span>
+<span class="sd">        - &quot;Linear Regression&quot;: Fits a linear regression to the length vs. time data to estimate the elongation rate.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        float:</span>
+
+<span class="sd">        The calculated elongation rate. If the bacterium is observed for only one time step, returns NaN.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">life_history_length</span> <span class="o">=</span> <span class="n">df_life_history</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># calculation of new feature</span>
+    <span class="n">division_length</span> <span class="o">=</span> <span class="n">df_life_history</span><span class="p">[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1"># length of bacteria when they are born</span>
+    <span class="n">birth_length</span> <span class="o">=</span> <span class="n">df_life_history</span><span class="p">[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># this condition checks the life history of bacteria</span>
+    <span class="c1"># If the bacterium exists only one time step: NaN will be reported.</span>
+    <span class="k">if</span> <span class="n">life_history_length</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">elongation_rate_method</span> <span class="o">==</span> <span class="s2">&quot;Average&quot;</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">life_history_length</span> <span class="o">*</span> <span class="n">interval_time</span>
+            <span class="n">elongation_rate</span> <span class="o">=</span> <span class="n">calculate_average_elongation_rate</span><span class="p">(</span><span class="n">division_length</span><span class="p">,</span> <span class="n">birth_length</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">elongation_rate_method</span> <span class="o">==</span> <span class="s2">&quot;Linear Regression&quot;</span><span class="p">:</span>
+            <span class="c1"># linear regression</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="n">df_life_history</span><span class="p">[</span><span class="s2">&quot;ImageNumber&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">*</span> <span class="n">interval_time</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">df_life_history</span><span class="p">[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">elongation_rate</span> <span class="o">=</span> <span class="n">calculate_linear_regression_elongation_rate</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid elongation rate method: </span><span class="si">{</span><span class="n">elongation_rate_method</span><span class="si">}</span><span class="s2">. &quot;</span>
+                             <span class="sa">f</span><span class="s2">&quot;Valid options are &#39;Average&#39; or &#39;Linear Regression&#39;.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">elongation_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># shows: bacterium is present for only one timestep.</span>
+
+    <span class="k">return</span> <span class="n">elongation_rate</span></div>
+
+</pre></div>
         </article>
       </div>
       <footer>

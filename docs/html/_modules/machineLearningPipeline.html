@@ -386,7 +386,7 @@
         <span class="n">remainder</span><span class="o">=</span><span class="s1">&#39;passthrough&#39;</span>
     <span class="p">)</span>
 
-    <span class="c1"># Define the pipeline with SMOTE</span>
+    <span class="c1"># Define the pipeline</span>
     <span class="n">pipeline</span> <span class="o">=</span> <span class="n">Pipeline</span><span class="p">(</span><span class="n">steps</span><span class="o">=</span><span class="p">[</span>
         <span class="p">(</span><span class="s1">&#39;preprocessor&#39;</span><span class="p">,</span> <span class="n">preprocessor</span><span class="p">),</span>
         <span class="p">(</span><span class="s1">&#39;classifier&#39;</span><span class="p">,</span> <span class="n">clf_dict</span><span class="p">[</span><span class="n">clf</span><span class="p">])</span>

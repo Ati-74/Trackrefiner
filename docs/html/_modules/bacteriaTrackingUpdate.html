@@ -249,20 +249,20 @@
 <span class="sd">    Modifies and updates bacterial tracking data by calculating various features related to bacterial life history.</span>
 
 <span class="sd">    **Calculated Features**:</span>
-<span class="sd">    - `id`: Unique identifier for each bacterium.</span>
-<span class="sd">    - `divideFlag`: Whether a bacterium has divided.</span>
-<span class="sd">    - `unexpected_end` and `unexpected_beginning`: Flags indicating unexpected lifecycle events.</span>
-<span class="sd">    - `daughters_index`: List of indices for daughter bacteria.</span>
-<span class="sd">    - `division_time`: Time of division.</span>
-<span class="sd">    - `LengthChangeRatio`: Ratio of daughter to mother length.</span>
-<span class="sd">    - `bacteria_movement`: Distance traveled between time steps.</span>
-<span class="sd">    - `TrajectoryX` and `TrajectoryY`: Components of movement trajectory.</span>
-<span class="sd">    - `MotionAlignmentAngle`: Angle of motion alignment.</span>
-<span class="sd">    - `LifeHistory`: Duration of a bacterium&#39;s lifecycle.</span>
-<span class="sd">    - `direction_of_motion`: Direction of movement in degrees.</span>
-<span class="sd">    - Neighbor-related features such as `difference_neighbors`.</span>
-<span class="sd">    - Slope and trajectory information (`bacteria_slope`, `prev_bacteria_slope`).</span>
-<span class="sd">    - Parent-daughter relationships and alignment angles.</span>
+<span class="sd">        - `id`: Unique identifier for each bacterium.</span>
+<span class="sd">        - `divideFlag`: Whether a bacterium has divided.</span>
+<span class="sd">        - `unexpected_end` and `unexpected_beginning`: Flags indicating unexpected lifecycle events.</span>
+<span class="sd">        - `daughters_index`: List of indices for daughter bacteria.</span>
+<span class="sd">        - `division_time`: Time of division.</span>
+<span class="sd">        - `LengthChangeRatio`: Ratio of daughter to mother length.</span>
+<span class="sd">        - `bacteria_movement`: Distance traveled between time steps.</span>
+<span class="sd">        - `TrajectoryX` and `TrajectoryY`: Components of movement trajectory.</span>
+<span class="sd">        - `MotionAlignmentAngle`: Angle of motion alignment.</span>
+<span class="sd">        - `LifeHistory`: Duration of a bacterium&#39;s lifecycle.</span>
+<span class="sd">        - `direction_of_motion`: Direction of movement in degrees.</span>
+<span class="sd">        - Neighbor-related features such as `difference_neighbors`.</span>
+<span class="sd">        - Slope and trajectory information (`bacteria_slope`, `prev_bacteria_slope`).</span>
+<span class="sd">        - Parent-daughter relationships and alignment angles.</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
 <span class="sd">        The main DataFrame containing tracking data and measured bacterial features for all bacteria.</span>

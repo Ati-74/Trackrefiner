@@ -236,16 +236,17 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for bacterialLifeHistoryAnalysis</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.helper</span> <span class="kn">import</span> <span class="n">calculate_bac_endpoints</span><span class="p">,</span> <span class="n">extract_bacteria_features</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.featuresCalculation.calcGrowthRate</span> <span class="kn">import</span> <span class="n">calculate_growth_rate</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.helper</span> <span class="kn">import</span> <span class="n">extract_bacteria_features</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.featuresCalculation.calcElongationRate</span> <span class="kn">import</span> <span class="n">calculate_elongation_rate</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.featuresCalculation.calcVelocity</span> <span class="kn">import</span> <span class="n">calc_average_velocity</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.featuresCalculation.fluorescenceIntensity</span> <span class="kn">import</span> <span class="n">determine_final_cell_type</span>
 
 
 <div class="viewcode-block" id="process_bacterial_life_and_family">
 <a class="viewcode-back" href="../modules.html#bacterialLifeHistoryAnalysis.process_bacterial_life_and_family">[docs]</a>
-<span class="k">def</span> <span class="nf">process_bacterial_life_and_family</span><span class="p">(</span><span class="n">processed_cp_out_df</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">growth_rate_method</span><span class="p">,</span> <span class="n">assigning_cell_type</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">process_bacterial_life_and_family</span><span class="p">(</span><span class="n">processed_cp_out_df</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">elongation_rate_method</span><span class="p">,</span> <span class="n">assigning_cell_type</span><span class="p">,</span>
                                       <span class="n">cell_type_array</span><span class="p">,</span> <span class="n">label_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates additional features related to the life history of bacteria from a processed</span>
 <span class="sd">    CellProfiler output DataFrame.</span>
@@ -257,10 +258,10 @@
 <span class="sd">    :param float interval_time:</span>
 <span class="sd">        Time interval between consecutive images (in minutes).</span>
 
-<span class="sd">    :param str growth_rate_method:</span>
-<span class="sd">        Method for calculating the growth rate. Options:</span>
-<span class="sd">        - &#39;Average&#39;: Computes the average growth rate.</span>
-<span class="sd">        - &#39;Linear Regression&#39;: Estimates the growth rate using linear regression.</span>
+<span class="sd">    :param str elongation_rate_method:</span>
+<span class="sd">        Method for calculating the Elongation rate. Options:</span>
+<span class="sd">        - &#39;Average&#39;: Computes the average elongation rate.</span>
+<span class="sd">        - &#39;Linear Regression&#39;: Estimates the elongation rate using linear regression.</span>
 
 <span class="sd">    :param bool assigning_cell_type:</span>
 <span class="sd">        If True, assigns cell types to objects based on intensity thresholds.</span>
@@ -283,8 +284,15 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">columns_to_initialize</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;growthRate&quot;</span><span class="p">,</span> <span class="s2">&quot;startVol&quot;</span><span class="p">,</span> <span class="s2">&quot;targetVol&quot;</span><span class="p">,</span> <span class="s2">&quot;pos&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;radius&quot;</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span><span class="p">,</span> <span class="s2">&quot;ends&quot;</span><span class="p">,</span>
-                             <span class="s2">&quot;strainRate&quot;</span><span class="p">,</span> <span class="s2">&quot;strainRate_rolling&quot;</span><span class="p">]</span>
+    <span class="n">processed_cp_out_df</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">processed_cp_out_df</span><span class="p">[</span><span class="s2">&quot;ImageNumber&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="n">interval_time</span>
+    <span class="n">processed_cp_out_df</span><span class="p">[</span><span class="s2">&quot;radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">processed_cp_out_df</span><span class="p">[</span><span class="s1">&#39;AreaShape_MinorAxisLength&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">processed_cp_out_df</span><span class="p">[</span><span class="s1">&#39;AverageLength&#39;</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span>
+
+    <span class="n">columns_to_initialize</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;elongationRate&quot;</span><span class="p">,</span> <span class="s2">&quot;startVol&quot;</span><span class="p">,</span> <span class="s2">&quot;targetVol&quot;</span><span class="p">,</span> <span class="s2">&quot;pos&quot;</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span><span class="p">,</span> <span class="s2">&quot;ends&quot;</span><span class="p">,</span>
+                             <span class="s2">&quot;strainRate&quot;</span><span class="p">,</span> <span class="s2">&quot;strainRate_rolling&quot;</span><span class="p">,</span> <span class="s1">&#39;velocity&#39;</span><span class="p">,</span> <span class="s1">&#39;InstantaneousElongationRate&#39;</span><span class="p">,</span>
+                             <span class="s1">&#39;InstantaneousVelocity&#39;</span><span class="p">,</span> <span class="s1">&#39;NumberOfDivisionFamily&#39;</span><span class="p">]</span>
+
     <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns_to_initialize</span><span class="p">:</span>
         <span class="n">processed_cp_out_df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
@@ -296,22 +304,28 @@
     <span class="k">for</span> <span class="n">bacterium_id</span> <span class="ow">in</span> <span class="n">bacteria_id</span><span class="p">:</span>
 
         <span class="n">bacterium_life_history</span> <span class="o">=</span> <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">processed_cp_out_df</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">bacterium_id</span><span class="p">]</span>
-        <span class="n">elongation_rate</span> <span class="o">=</span> <span class="n">calculate_growth_rate</span><span class="p">(</span><span class="n">bacterium_life_history</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">growth_rate_method</span><span class="p">)</span>
+        <span class="n">elongation_rate</span> <span class="o">=</span> <span class="n">calculate_elongation_rate</span><span class="p">(</span><span class="n">bacterium_life_history</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">elongation_rate_method</span><span class="p">)</span>
+        <span class="n">velocity</span> <span class="o">=</span> <span class="n">calc_average_velocity</span><span class="p">(</span><span class="n">bacterium_life_history</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">)</span>
 
         <span class="c1"># length of bacteria when they are born</span>
-        <span class="n">birth_length</span> <span class="o">=</span> <span class="n">bacterium_life_history</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span>
-        <span class="n">division_length</span> <span class="o">=</span> <span class="n">bacterium_life_history</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span>
+        <span class="n">birth_length</span> <span class="o">=</span> <span class="n">bacterium_life_history</span><span class="p">[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">division_length</span> <span class="o">=</span> <span class="n">bacterium_life_history</span><span class="p">[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="n">strain_rate_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">old_length</span> <span class="o">=</span> <span class="n">birth_length</span>
+        <span class="n">old_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">bacterium_life_history</span><span class="p">[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span>
+                               <span class="n">bacterium_life_history</span><span class="p">[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">bacterium_life_history</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;elongationRate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elongation_rate</span>
+        <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">bacterium_life_history</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;velocity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">velocity</span>
+        <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">bacterium_life_history</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;startVol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">birth_length</span>
+        <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">bacterium_life_history</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;targetVol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">division_length</span>
+
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">bacterium</span> <span class="ow">in</span> <span class="n">bacterium_life_history</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-            <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;growthRate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">elongation_rate</span>
-            <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;startVol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">birth_length</span>
-            <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;targetVol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">division_length</span>
+
             <span class="c1"># https://github.com/cellmodeller/CellModeller/blob/master/CellModeller/Biophysics/BacterialModels/CLBacterium.py#L674</span>
             <span class="n">strain_rate</span> <span class="o">=</span> <span class="p">(</span><span class="n">bacterium</span><span class="p">[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">old_length</span><span class="p">)</span> <span class="o">/</span> <span class="n">old_length</span>
             <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;strainRate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">strain_rate</span>
-            <span class="n">old_length</span> <span class="o">=</span> <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span>
 
             <span class="c1"># rolling average</span>
             <span class="n">strain_rate_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">strain_rate</span><span class="p">)</span>
@@ -320,40 +334,70 @@
                 <span class="n">strain_rate_rolling</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">strain_rate_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">strain_rate_rolling</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">strain_rate_list</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">bacterium</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">instantaneous_elongation_rate</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="nb">round</span><span class="p">((</span><span class="n">bacterium</span><span class="p">[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">old_length</span><span class="p">)</span> <span class="o">/</span> <span class="n">interval_time</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+                <span class="c1"># instantaneous velocity</span>
+                <span class="n">pos2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">bacterium</span><span class="p">[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">bacterium</span><span class="p">[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">instantaneous_velocity</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">pos2</span> <span class="o">-</span> <span class="n">old_position</span><span class="p">)</span> <span class="o">/</span> <span class="n">interval_time</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">instantaneous_elongation_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="n">instantaneous_velocity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+            <span class="n">old_length</span> <span class="o">=</span> <span class="n">bacterium</span><span class="p">[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span>
+            <span class="n">old_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">bacterium</span><span class="p">[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">bacterium</span><span class="p">[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
             <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;strainRate_rolling&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">strain_rate_rolling</span>
+            <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s1">&#39;InstantaneousElongationRate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">instantaneous_elongation_rate</span>
+            <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s1">&#39;InstantaneousVelocity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">instantaneous_velocity</span>
 
             <span class="n">bacterium_features</span> <span class="o">=</span> <span class="n">extract_bacteria_features</span><span class="p">(</span><span class="n">bacterium</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">)</span>
 
             <span class="n">bacterium_center_position</span> <span class="o">=</span> <span class="p">[</span><span class="n">bacterium_features</span><span class="p">[</span><span class="s1">&#39;center_x&#39;</span><span class="p">],</span> <span class="n">bacterium_features</span><span class="p">[</span><span class="s1">&#39;center_y&#39;</span><span class="p">]]</span>
             <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;pos&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bacterium_center_position</span>
 
-            <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bacterium</span><span class="p">[</span><span class="s2">&quot;ImageNumber&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">interval_time</span>
-
-            <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;radius&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bacterium_features</span><span class="p">[</span><span class="s1">&#39;radius&#39;</span><span class="p">]</span>
-
             <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">bacterium</span><span class="p">[</span><span class="s2">&quot;AreaShape_Orientation&quot;</span><span class="p">]),</span>
                                                   <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">bacterium</span><span class="p">[</span><span class="s2">&quot;AreaShape_Orientation&quot;</span><span class="p">])]</span>
 
             <span class="c1"># find end points</span>
-            <span class="n">end_points</span> <span class="o">=</span> <span class="n">calculate_bac_endpoints</span><span class="p">(</span><span class="n">bacterium_center_position</span><span class="p">,</span> <span class="n">bacterium_features</span><span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">],</span>
-                                                 <span class="n">bacterium_features</span><span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">])</span>
+            <span class="n">end_points</span> <span class="o">=</span> <span class="p">[[</span><span class="n">bacterium</span><span class="p">[</span><span class="s1">&#39;endpoint1_X&#39;</span><span class="p">],</span> <span class="n">bacterium</span><span class="p">[</span><span class="s1">&#39;endpoint1_Y&#39;</span><span class="p">]],</span>
+                          <span class="p">[</span><span class="n">bacterium</span><span class="p">[</span><span class="s1">&#39;endpoint2_X&#39;</span><span class="p">],</span> <span class="n">bacterium</span><span class="p">[</span><span class="s1">&#39;endpoint2_Y&#39;</span><span class="p">]]]</span>
 
             <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;ends&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">end_points</span>
+
+    <span class="n">processed_cp_out_df</span><span class="p">[</span><span class="s1">&#39;AverageInstantaneousVelocity&#39;</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)[</span><span class="s1">&#39;InstantaneousVelocity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">assigning_cell_type</span><span class="p">:</span>
         <span class="c1"># determine final cell type of each bacterium</span>
         <span class="n">processed_cp_out_df</span> <span class="o">=</span> <span class="n">determine_final_cell_type</span><span class="p">(</span><span class="n">processed_cp_out_df</span><span class="p">,</span> <span class="n">cell_type_array</span><span class="p">)</span>
 
+    <span class="c1"># Iterate over each unique label.</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">processed_cp_out_df</span><span class="p">[</span><span class="n">label_col</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+        <span class="c1"># Filter the DataFrame for rows corresponding to the current label.</span>
+        <span class="n">df_current_label</span> <span class="o">=</span> <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">processed_cp_out_df</span><span class="p">[</span><span class="n">label_col</span><span class="p">]</span> <span class="o">==</span> <span class="n">label</span><span class="p">]</span>
+
+        <span class="c1"># Find rows where division occurred.</span>
+        <span class="n">mothers_df</span> <span class="o">=</span> <span class="n">df_current_label</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">df_current_label</span><span class="p">[</span><span class="s2">&quot;max_daughter_len_to_mother&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
+
+        <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_current_label</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;NumberOfDivisionFamily&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mothers_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
     <span class="c1"># rename some columns</span>
-    <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">:</span> <span class="s1">&#39;stepNum&#39;</span><span class="p">,</span> <span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">:</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span>
-                                        <span class="n">label_col</span><span class="p">:</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span> <span class="s1">&#39;cellAge&#39;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">processed_cp_out_df</span> <span class="o">=</span> <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;age&#39;</span><span class="p">:</span> <span class="s1">&#39;cellAge&#39;</span><span class="p">})</span>
+
+    <span class="n">data_frame_with_selected_col</span> <span class="o">=</span> \
+        <span class="n">processed_cp_out_df</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">:</span> <span class="s1">&#39;stepNum&#39;</span><span class="p">,</span> <span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">:</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span>
+                                            <span class="n">label_col</span><span class="p">:</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">:</span> <span class="s1">&#39;cellAge&#39;</span><span class="p">,</span> <span class="s1">&#39;elongationRate&#39;</span><span class="p">:</span> <span class="s1">&#39;growthRate&#39;</span><span class="p">})</span>
     <span class="k">if</span> <span class="n">assigning_cell_type</span><span class="p">:</span>
-        <span class="n">data_frame_with_selected_col</span> <span class="o">=</span> <span class="n">processed_cp_out_df</span><span class="p">[</span>
+        <span class="n">data_frame_with_selected_col</span> <span class="o">=</span> <span class="n">data_frame_with_selected_col</span><span class="p">[</span>
             <span class="p">[</span><span class="s1">&#39;stepNum&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="s1">&#39;divideFlag&#39;</span><span class="p">,</span> <span class="s1">&#39;cellAge&#39;</span><span class="p">,</span> <span class="s1">&#39;growthRate&#39;</span><span class="p">,</span> <span class="s1">&#39;LifeHistory&#39;</span><span class="p">,</span> <span class="s1">&#39;startVol&#39;</span><span class="p">,</span>
              <span class="s1">&#39;targetVol&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;radius&#39;</span><span class="p">,</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span> <span class="s1">&#39;ends&#39;</span><span class="p">,</span> <span class="s1">&#39;dir&#39;</span><span class="p">,</span> <span class="s1">&#39;cellType&#39;</span><span class="p">,</span> <span class="s1">&#39;strainRate&#39;</span><span class="p">,</span>
              <span class="s1">&#39;strainRate_rolling&#39;</span><span class="p">]]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">data_frame_with_selected_col</span> <span class="o">=</span> <span class="n">processed_cp_out_df</span><span class="p">[</span>
+        <span class="n">data_frame_with_selected_col</span> <span class="o">=</span> <span class="n">data_frame_with_selected_col</span><span class="p">[</span>
             <span class="p">[</span><span class="s1">&#39;stepNum&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span> <span class="s1">&#39;divideFlag&#39;</span><span class="p">,</span> <span class="s1">&#39;cellAge&#39;</span><span class="p">,</span> <span class="s1">&#39;growthRate&#39;</span><span class="p">,</span> <span class="s1">&#39;LifeHistory&#39;</span><span class="p">,</span> <span class="s1">&#39;startVol&#39;</span><span class="p">,</span>
              <span class="s1">&#39;targetVol&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;pos&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;radius&#39;</span><span class="p">,</span> <span class="s1">&#39;length&#39;</span><span class="p">,</span> <span class="s1">&#39;ends&#39;</span><span class="p">,</span> <span class="s1">&#39;dir&#39;</span><span class="p">,</span> <span class="s1">&#39;strainRate&#39;</span><span class="p">,</span>
              <span class="s1">&#39;strainRate_rolling&#39;</span><span class="p">]]</span>

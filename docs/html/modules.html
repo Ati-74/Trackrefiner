@@ -247,7 +247,7 @@
 <span id="module-processcellprofilerdata"></span><h2>Module: processCellProfilerData<a class="headerlink" href="#module-processCellProfilerData" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="processCellProfilerData.process_objects_data">
-<span class="sig-prename descclassname"><span class="pre">processCellProfilerData.</span></span><span class="sig-name descname"><span class="pre">process_objects_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cp_output_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentation_res_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">growth_rate_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_per_micron</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assigning_cell_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disable_tracking_correction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/processCellProfilerData.html#process_objects_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#processCellProfilerData.process_objects_data" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">processCellProfilerData.</span></span><span class="sig-name descname"><span class="pre">process_objects_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cp_output_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentation_res_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elongation_rate_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_per_micron</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assigning_cell_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disable_tracking_correction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_npy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/processCellProfilerData.html#process_objects_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#processCellProfilerData.process_objects_data" title="Link to this definition">¶</a></dt>
 <dd><p>Processes CellProfiler output data, performs tracking correction, assigns cell types,
 and calculates additional features related to the life history of bacteria.</p>
 <dl class="field-list simple">
@@ -259,7 +259,7 @@ and calculates additional features related to the life history of bacteria.</p>
 <li><p><strong>out_dir</strong> (<em>str</em>) – Path to the directory where processed output files will be saved.</p></li>
 <li><p><strong>interval_time</strong> (<em>float</em>) – Time interval between consecutive images (in minutes).</p></li>
 <li><p><strong>doubling_time</strong> (<em>float</em>) – Minimum life history duration of bacteria (in minutes) for analysis.</p></li>
-<li><p><strong>growth_rate_method</strong> (<em>str</em>) – Method for calculating the growth rate. Options:
+<li><p><strong>elongation_rate_method</strong> (<em>str</em>) – Method for calculating the elongation rate. Options:
 - ‘Average’: Computes average growth rate.
 - ‘Linear Regression’: Estimates growth rate using linear regression.</p></li>
 <li><p><strong>pixel_per_micron</strong> (<em>float</em>) – Conversion factor for pixels to microns (e.g., default value is 0.144).</p></li>
@@ -273,6 +273,7 @@ Options: ‘LogisticRegression’, ‘GaussianProcessClassifier’, ‘C-Support
 <li><p><strong>image_boundaries</strong> (<em>str</em>) – Boundary limits defined for all time steps to filter out objects outside the image area.</p></li>
 <li><p><strong>dynamic_boundaries</strong> (<em>str</em>) – Path to a CSV file specifying boundary limits for each time step. The file should contain columns:
 <cite>Time Step</cite>, <cite>Lower X Limit</cite>, <cite>Upper X Limit</cite>, <cite>Lower Y Limit</cite>, <cite>Upper Y Limit</cite>.</p></li>
+<li><p><strong>save_npy</strong> (<em>bool</em>) – If True, results are saved in <cite>.npy</cite> format.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – If True, displays warnings and additional details during processing.</p></li>
 <li><p><strong>command</strong> (<em>str</em>) – User’s Command Statement</p></li>
 </ul>
@@ -491,7 +492,7 @@ and color array (<cite>color_array</cite>).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="multiRegionsCorrection.multi_region_correction">
-<span class="sig-prename descclassname"><span class="pre">multiRegionsCorrection.</span></span><span class="sig-name descname"><span class="pre">multi_region_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_df_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_center_particles_stat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_center_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_rel_center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance_prev_objects_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/multiRegionsCorrection.html#multi_region_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#multiRegionsCorrection.multi_region_correction" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">multiRegionsCorrection.</span></span><span class="sig-name descname"><span class="pre">multi_region_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_df_cp_connected_regions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_center_particles_stat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_center_particles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_coordinates</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_rel_center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance_prev_objects_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/multiRegionsCorrection.html#multi_region_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#multiRegionsCorrection.multi_region_correction" title="Link to this definition">¶</a></dt>
 <dd><p>Corrects multi-region objects by identifying mismatched or faulty associations and updating or removing objects
 as necessary. Ensures consistency between regions and objects while maintaining accurate data records.</p>
 <dl class="field-list simple">
@@ -499,7 +500,7 @@ as necessary. Ensures consistency between regions and objects while maintaining 
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – Input DataFrame containing object data.</p></li>
 <li><p><strong>img_array</strong> (<em>numpy.ndarray</em>) – Image array representing the current state of the image.</p></li>
-<li><p><strong>distance_df_particles</strong> (<em>pandas.DataFrame</em>) – DataFrame containing pairwise distances between objects (based on CellProfiler records) and regions.</p></li>
+<li><p><strong>distance_df_cp_connected_regions</strong> (<em>pandas.DataFrame</em>) – DataFrame containing pairwise distances between objects (based on CellProfiler records) and regions.</p></li>
 <li><p><strong>img_number</strong> (<em>int</em>) – Current image number</p></li>
 <li><p><strong>regions_center_particles_stat</strong> (<em>list</em>) – List of statistics for regions’ center points.</p></li>
 <li><p><strong>regions_center_particles</strong> (<em>list</em>) – List of coordinates for regions’ center points.</p></li>
@@ -1795,6 +1796,42 @@ candidate targets.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="calculateCreateLinkCost.calc_continuity_link_cost_for_restoring_links">
+<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_continuity_link_cost_for_restoring_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_bac_with_can_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_continuity_link_cost_for_restoring_links"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_continuity_link_cost_for_restoring_links" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the cost of restoring continuity link between a source bacterium and its potential UB target bacterium.
+This function evaluates continuity links by analyzing spatial, geometric, and neighborhood-based features.
+It determines the likelihood that a bacterium in one time step corresponds to the same bacterium in the next
+time step.</p>
+<p><strong>Behavior</strong>:
+- Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
+- Predicts continuity probabilities using a pre-trained model (<cite>non_divided_bac_model</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – Full DataFrame containing bacterial features for the current time step.</p></li>
+<li><p><strong>neighbors_df</strong> (<em>pandas.DataFrame</em>) – DataFrame describing relationships between neighboring bacteria.</p></li>
+<li><p><strong>neighbor_list_array</strong> (<em>lil_matrix</em>) – Sparse matrix representing neighbor relationships.</p></li>
+<li><p><strong>source_bac_with_can_target</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the source bacteria and their candidate UB target in the next time step.</p></li>
+<li><p><strong>center_coord_cols</strong> (<em>dict</em>) – Dictionary specifying column names for bacterial centroid coordinates
+(e.g., <cite>{“x”: “Center_X”, “y”: “Center_Y”}</cite>).</p></li>
+<li><p><strong>col_source</strong> (<em>str</em>) – Suffix for source bacterium columns.</p></li>
+<li><p><strong>col_target</strong> (<em>str</em>) – Suffix for target bacterium columns.</p></li>
+<li><p><strong>parent_image_number_col</strong> (<em>str</em>) – Column name for the parent image number.</p></li>
+<li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object number.</p></li>
+<li><p><strong>non_divided_bac_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict continuity probabilities.`.</p></li>
+<li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – spatial coordinate matrix for neighborhood and overlap calculations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>pandas.DataFrame:</p>
+<p>A cost matrix for potential continuity links, with rows as source bacteria and columns as their
+candidate targets (UB bacteria).</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="calculateCreateLinkCost.calc_division_link_cost">
 <span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_division_link_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_source_daughter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_vs_non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maintain_exist_link_cost_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_maintenance_for</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'target'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_division_link_cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_division_link_cost" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates the cost of establishing division links between a source bacterium and its potential daughter bacteria.
@@ -1823,6 +1860,42 @@ based on these features.</p>
 <li><p><strong>divided_vs_non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
 <li><p><strong>maintain_exist_link_cost_df</strong> (<em>pandas.DataFrame</em>) – Cost of maintaining current links between bacteria.</p></li>
 <li><p><strong>check_maintenance_for</strong> (<em>str</em>) – Specifies whether maintenance costs are evaluated for the <cite>target</cite> or <cite>source</cite>. Default is <cite>‘target’</cite>.</p></li>
+<li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – spatial coordinate matrix for neighborhood and overlap calculations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>pandas.DataFrame:</p>
+<p>A cost matrix for potential division links, with rows as source bacteria and columns as their
+candidate daughters.</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="calculateCreateLinkCost.calc_division_link_cost_for_restoring_links">
+<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_division_link_cost_for_restoring_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_source_daughter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_division_link_cost_for_restoring_links"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_division_link_cost_for_restoring_links" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the cost of restoring division links between a source bacterium and its potential daughter
+bacteria (UB bacteria). This function evaluates potential division links by calculating various spatial,
+geometric, and neighborhood-based features.
+It uses machine learning model to assess the likelihood of a division event based on these features.</p>
+<p><strong>Behavior</strong>:
+- Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
+- Predicts division probabilities using a pre-trained model (<cite>divided_bac_model</cite>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – Full DataFrame containing bacterial features for the current time step.</p></li>
+<li><p><strong>neighbors_df</strong> (<em>pandas.DataFrame</em>) – DataFrame describing relationships between neighboring bacteria.</p></li>
+<li><p><strong>neighbor_list_array</strong> (<em>lil_matrix</em>) – Sparse matrix representing neighbor relationships.</p></li>
+<li><p><strong>df_source_daughter</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the source bacteria and their candidate daughters.</p></li>
+<li><p><strong>center_coord_cols</strong> (<em>dict</em>) – Dictionary specifying column names for bacterial centroid coordinates
+(e.g., <cite>{“x”: “Center_X”, “y”: “Center_Y”}</cite>).</p></li>
+<li><p><strong>col_source</strong> (<em>str</em>) – Suffix for source bacterium columns.</p></li>
+<li><p><strong>col_target</strong> (<em>str</em>) – Suffix for target bacterium (daughter) columns.</p></li>
+<li><p><strong>parent_image_number_col</strong> (<em>str</em>) – Column name for the parent image number.</p></li>
+<li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object number.</p></li>
+<li><p><strong>divided_bac_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict division probabilities.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – spatial coordinate matrix for neighborhood and overlap calculations.</p></li>
 </ul>
 </dd>
@@ -2364,21 +2437,25 @@ This DataFrame is updated in place.</p></li>
 <dt class="sig sig-object py" id="bacteriaTrackingUpdate.calc_modified_features">
 <span class="sig-prename descclassname"><span class="pre">bacteriaTrackingUpdate.</span></span><span class="sig-name descname"><span class="pre">calc_modified_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">selected_bacteria</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bacteriaTrackingUpdate.html#calc_modified_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bacteriaTrackingUpdate.calc_modified_features" title="Link to this definition">¶</a></dt>
 <dd><p>Modifies and updates bacterial tracking data by calculating various features related to bacterial life history.</p>
-<p><strong>Calculated Features</strong>:
-- <cite>id</cite>: Unique identifier for each bacterium.
-- <cite>divideFlag</cite>: Whether a bacterium has divided.
-- <cite>unexpected_end</cite> and <cite>unexpected_beginning</cite>: Flags indicating unexpected lifecycle events.
-- <cite>daughters_index</cite>: List of indices for daughter bacteria.
-- <cite>division_time</cite>: Time of division.
-- <cite>LengthChangeRatio</cite>: Ratio of daughter to mother length.
-- <cite>bacteria_movement</cite>: Distance traveled between time steps.
-- <cite>TrajectoryX</cite> and <cite>TrajectoryY</cite>: Components of movement trajectory.
-- <cite>MotionAlignmentAngle</cite>: Angle of motion alignment.
-- <cite>LifeHistory</cite>: Duration of a bacterium’s lifecycle.
-- <cite>direction_of_motion</cite>: Direction of movement in degrees.
-- Neighbor-related features such as <cite>difference_neighbors</cite>.
-- Slope and trajectory information (<cite>bacteria_slope</cite>, <cite>prev_bacteria_slope</cite>).
-- Parent-daughter relationships and alignment angles.</p>
+<dl class="simple">
+<dt><strong>Calculated Features</strong>:</dt><dd><ul class="simple">
+<li><p><cite>id</cite>: Unique identifier for each bacterium.</p></li>
+<li><p><cite>divideFlag</cite>: Whether a bacterium has divided.</p></li>
+<li><p><cite>unexpected_end</cite> and <cite>unexpected_beginning</cite>: Flags indicating unexpected lifecycle events.</p></li>
+<li><p><cite>daughters_index</cite>: List of indices for daughter bacteria.</p></li>
+<li><p><cite>division_time</cite>: Time of division.</p></li>
+<li><p><cite>LengthChangeRatio</cite>: Ratio of daughter to mother length.</p></li>
+<li><p><cite>bacteria_movement</cite>: Distance traveled between time steps.</p></li>
+<li><p><cite>TrajectoryX</cite> and <cite>TrajectoryY</cite>: Components of movement trajectory.</p></li>
+<li><p><cite>MotionAlignmentAngle</cite>: Angle of motion alignment.</p></li>
+<li><p><cite>LifeHistory</cite>: Duration of a bacterium’s lifecycle.</p></li>
+<li><p><cite>direction_of_motion</cite>: Direction of movement in degrees.</p></li>
+<li><p>Neighbor-related features such as <cite>difference_neighbors</cite>.</p></li>
+<li><p>Slope and trajectory information (<cite>bacteria_slope</cite>, <cite>prev_bacteria_slope</cite>).</p></li>
+<li><p>Parent-daughter relationships and alignment angles.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2781,9 +2858,12 @@ The ratio of the major axis length between the current and previous time steps.<
 <li><p><strong>Movement</strong> (<cite>bacteria_movement</cite>):
 The minimum movement of the bacterium across time steps, calculated as the smallest
 displacement among the center and endpoints.</p></li>
-<li><p><strong>Direction of Motion</strong>:
-- <cite>direction_of_motion</cite>: The angle (in radians) representing the trajectory direction.
-- <cite>TrajectoryX</cite> and <cite>TrajectoryY</cite>: The x and y components of the trajectory displacement.</p></li>
+<li><p><strong>Direction of Motion</strong>:</p>
+<ul>
+<li><p><cite>direction_of_motion</cite>: The angle (in radians) representing the trajectory direction.</p></li>
+<li><p><cite>TrajectoryX</cite> and <cite>TrajectoryY</cite>: The x and y components of the trajectory displacement.</p></li>
+</ul>
+</li>
 <li><p><strong>Neighbor Interactions</strong>:
 Updates direction of motion (<cite>direction_of_motion</cite>) based on neighboring bacteria’s
 trajectories and interactions.</p></li>
@@ -3010,10 +3090,44 @@ and center coordinates of bacteria, organizing them into a dictionary for furthe
 <dd class="field-even"><p>dict: A dictionary containing the extracted features:
 - ‘major’: Major axis length of bacteria.
 - ‘minor’: Minor axis length of bacteria.
-- ‘radius’: Radius, calculated as half of the minor axis length.
 - ‘orientation’: Orientation of the bacteria (e.g., angle or direction).
 - ‘center_x’: X-coordinate of the bacteria’s center.
 - ‘center_y’: Y-coordinate of the bacteria’s center.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="helper.extract_bacteria_info">
+<span class="sig-prename descclassname"><span class="pre">helper.</span></span><span class="sig-name descname"><span class="pre">extract_bacteria_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bacteria_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixels_per_micron</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">major_axis_len_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_col</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/helper.html#extract_bacteria_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#helper.extract_bacteria_info" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts and converts bacterial object information and convert from micrometers (µm) to pixel.</p>
+<p>This function processes spatial and shape information of bacterial objects
+from a given DataFrame. The center coordinates and major axis length are
+converted from micrometers to pixel using the provided conversion factor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bacteria_data</strong> (<em>pandas.DataFrame</em>) – A DataFrame containing information about bacterial objects, including
+spatial measurements and orientation.</p></li>
+<li><p><strong>pixels_per_micron</strong> (<em>float</em>) – The conversion factor representing the number of pixels per micrometer.</p></li>
+<li><p><strong>center_coord_cols</strong> (<em>dict</em>) – A dictionary specifying the column names for x and y center coordinates.
+Example: {‘x’: ‘Location_Center_X’, ‘y’: ‘Location_Center_Y’}.</p></li>
+<li><p><strong>major_axis_len_col</strong> (<em>str</em>) – The name of the column representing the major axis length of the objects (in pixels).</p></li>
+<li><p><strong>orientation_col</strong> (<em>str</em>) – The name of the column representing the orientation of the objects
+(e.g., in degrees or radians, depending on the dataset).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>tuple: A tuple containing the following elements:</dt><dd><ul class="simple">
+<li><p>objects_center_x (pandas.Series): The x-coordinates of object centers in pixel.</p></li>
+<li><p>objects_center_y (pandas.Series): The y-coordinates of object centers in pixel.</p></li>
+<li><p>objects_major_axis (pandas.Series): The major axis length of objects in pixel.</p></li>
+<li><p>objects_orientation (pandas.Series): The orientation of objects.</p></li>
+</ul>
+</dd>
+</dl>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -3584,7 +3698,7 @@ Also adds a <cite>checked</cite> column to indicate whether a row has been proce
 <span id="module-bacteriallifehistoryanalysis"></span><h2>Module: bacterialLifeHistoryAnalysis<a class="headerlink" href="#module-bacterialLifeHistoryAnalysis" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="bacterialLifeHistoryAnalysis.process_bacterial_life_and_family">
-<span class="sig-prename descclassname"><span class="pre">bacterialLifeHistoryAnalysis.</span></span><span class="sig-name descname"><span class="pre">process_bacterial_life_and_family</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_cp_out_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">growth_rate_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assigning_cell_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bacterialLifeHistoryAnalysis.html#process_bacterial_life_and_family"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bacterialLifeHistoryAnalysis.process_bacterial_life_and_family" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">bacterialLifeHistoryAnalysis.</span></span><span class="sig-name descname"><span class="pre">process_bacterial_life_and_family</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">processed_cp_out_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elongation_rate_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assigning_cell_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bacterialLifeHistoryAnalysis.html#process_bacterial_life_and_family"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#bacterialLifeHistoryAnalysis.process_bacterial_life_and_family" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates additional features related to the life history of bacteria from a processed
 CellProfiler output DataFrame.</p>
 <dl class="field-list simple">
@@ -3592,9 +3706,9 @@ CellProfiler output DataFrame.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>processed_cp_out_df</strong> (<em>pandas.DataFrame</em>) – Processed CellProfiler output DataFrame containing measured bacterial features.</p></li>
 <li><p><strong>interval_time</strong> (<em>float</em>) – Time interval between consecutive images (in minutes).</p></li>
-<li><p><strong>growth_rate_method</strong> (<em>str</em>) – Method for calculating the growth rate. Options:
-- ‘Average’: Computes the average growth rate.
-- ‘Linear Regression’: Estimates the growth rate using linear regression.</p></li>
+<li><p><strong>elongation_rate_method</strong> (<em>str</em>) – Method for calculating the Elongation rate. Options:
+- ‘Average’: Computes the average elongation rate.
+- ‘Linear Regression’: Estimates the elongation rate using linear regression.</p></li>
 <li><p><strong>assigning_cell_type</strong> (<em>bool</em>) – If True, assigns cell types to objects based on intensity thresholds.</p></li>
 <li><p><strong>cell_type_array</strong> (<em>numpy.ndarray</em>) – A boolean array indicating the channel in which the intensity exceeds the threshold for each bacterium.</p></li>
 <li><p><strong>label_col</strong> (<em>str</em>) – Column name in the CellProfiler DataFrame that indicates the label of bacteria during tracking.</p></li>
@@ -3614,12 +3728,12 @@ CellProfiler output DataFrame.</p>
 </dd></dl>
 
 </section>
-<section id="module-calcGrowthRate">
-<span id="module-calcgrowthrate"></span><h2>Module: calcGrowthRate<a class="headerlink" href="#module-calcGrowthRate" title="Link to this heading">¶</a></h2>
+<section id="module-calcElongationRate">
+<span id="module-calcelongationrate"></span><h2>Module: calcElongationRate<a class="headerlink" href="#module-calcElongationRate" title="Link to this heading">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="calcGrowthRate.calculate_average_growth_rate">
-<span class="sig-prename descclassname"><span class="pre">calcGrowthRate.</span></span><span class="sig-name descname"><span class="pre">calculate_average_growth_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">division_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">birth_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calcGrowthRate.html#calculate_average_growth_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calcGrowthRate.calculate_average_growth_rate" title="Link to this definition">¶</a></dt>
-<dd><p>Calculates the average growth rate of a bacterium over its lifecycle based on initial and final lengths.</p>
+<dt class="sig sig-object py" id="calcElongationRate.calculate_average_elongation_rate">
+<span class="sig-prename descclassname"><span class="pre">calcElongationRate.</span></span><span class="sig-name descname"><span class="pre">calculate_average_elongation_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">division_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">birth_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calcElongationRate.html#calculate_average_elongation_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calcElongationRate.calculate_average_elongation_rate" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the average elongation rate of a bacterium over its lifecycle based on initial and final logarithm lengths.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3630,38 +3744,38 @@ CellProfiler output DataFrame.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><p>float:</p>
-<p>The calculated average growth rate. This represents the logarithmic elongation rate per minute.</p>
+<p>The calculated average elongation rate. This represents the logarithmic elongation rate per minute.</p>
 </p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="calcGrowthRate.calculate_growth_rate">
-<span class="sig-prename descclassname"><span class="pre">calcGrowthRate.</span></span><span class="sig-name descname"><span class="pre">calculate_growth_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_life_history</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">growth_rate_method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calcGrowthRate.html#calculate_growth_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calcGrowthRate.calculate_growth_rate" title="Link to this definition">¶</a></dt>
-<dd><p>Calculates the growth rate of a bacterium based on its life history data and the specified method.</p>
+<dt class="sig sig-object py" id="calcElongationRate.calculate_elongation_rate">
+<span class="sig-prename descclassname"><span class="pre">calcElongationRate.</span></span><span class="sig-name descname"><span class="pre">calculate_elongation_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_life_history</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elongation_rate_method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calcElongationRate.html#calculate_elongation_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calcElongationRate.calculate_elongation_rate" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the elongation rate of a bacterium based on its life history data and the specified method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>df_life_history</strong> (<em>pandas.DataFrame</em>) – Input DataFrame containing the life history of bacteria</p></li>
 <li><p><strong>interval_time</strong> (<em>float</em>) – Time interval between consecutive images (in minutes).</p></li>
-<li><p><strong>growth_rate_method</strong> (<em>str</em>) – The method used for calculating the growth rate. Options include:
+<li><p><strong>elongation_rate_method</strong> (<em>str</em>) – The method used for calculating the elongation rate. Options include:
 - “Average”: Calculates the average elongation rate based on initial and final lengths.
-- “Linear Regression”: Fits a linear regression to the length vs. time data to estimate the growth rate.</p></li>
+- “Linear Regression”: Fits a linear regression to the length vs. time data to estimate the elongation rate.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><p>float:</p>
-<p>The calculated growth rate. If the bacterium is observed for only one time step, returns NaN.</p>
+<p>The calculated elongation rate. If the bacterium is observed for only one time step, returns NaN.</p>
 </p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="calcGrowthRate.calculate_linear_regression_growth_rate">
-<span class="sig-prename descclassname"><span class="pre">calcGrowthRate.</span></span><span class="sig-name descname"><span class="pre">calculate_linear_regression_growth_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calcGrowthRate.html#calculate_linear_regression_growth_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calcGrowthRate.calculate_linear_regression_growth_rate" title="Link to this definition">¶</a></dt>
-<dd><p>Calculates the growth rate of a bacterium using linear regression on the logarithm of length
+<dt class="sig sig-object py" id="calcElongationRate.calculate_linear_regression_elongation_rate">
+<span class="sig-prename descclassname"><span class="pre">calcElongationRate.</span></span><span class="sig-name descname"><span class="pre">calculate_linear_regression_elongation_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calcElongationRate.html#calculate_linear_regression_elongation_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calcElongationRate.calculate_linear_regression_elongation_rate" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the elongation rate of a bacterium using linear regression on the logarithm of length
 as a function of time.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -3672,7 +3786,30 @@ as a function of time.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><p>float:</p>
-<p>The calculated growth rate (slope of the logarithm of length vs. time).</p>
+<p>The calculated elongation rate (slope of the logarithm of length vs. time).</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-calcVelocity">
+<span id="module-calcvelocity"></span><h2>Module: calcVelocity<a class="headerlink" href="#module-calcVelocity" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="calcVelocity.calc_average_velocity">
+<span class="sig-prename descclassname"><span class="pre">calcVelocity.</span></span><span class="sig-name descname"><span class="pre">calc_average_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_life_history</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calcVelocity.html#calc_average_velocity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calcVelocity.calc_average_velocity" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates the velocity of a bacterium based on its life history data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df_life_history</strong> (<em>pandas.DataFrame</em>) – Input DataFrame containing the life history of bacteria</p></li>
+<li><p><strong>center_coord_cols</strong> (<em>dict</em>) – A dictionary with keys ‘x’ and ‘y’, specifying the column names for center coordinates.</p></li>
+<li><p><strong>interval_time</strong> (<em>float</em>) – Time interval between consecutive images (in minutes).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>float:</p>
+<p>The calculated velocity. If the bacterium is observed for only one time step, returns NaN.</p>
 </p>
 </dd>
 </dl>
@@ -3719,8 +3856,9 @@ Updated DataFrame with a new column ‘cellType’ representing the final cell t
 classification for each bacterium:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>3: Assigned when there are at least 2 <cite>1</cite> values across the fluorescence intensity columns.</p></li>
-<li><p>Specific values (e.g., 2, 3, etc.): Assigned when only one cell type is strongly indicated.</p></li>
+<li><p>3: Assigned if the fluorescence intensities of at least two channels exceed the defined threshold.</p></li>
+<li><p>Specific values (e.g., 2, 3, etc.): Assigned if only one channel’s intensity exceeds the threshold.</p></li>
+<li><p>0: Assigned if none of the fluorescence intensities across all channels exceed the defined threshold.</p></li>
 <li><p>1: Default cell type assigned when only one intensity column exists.</p></li>
 </ul>
 </div></blockquote>
@@ -3763,6 +3901,72 @@ a cell type. This array will be updated with binary values (0 or 1) based on the
 <dd class="field-even"><p><p>numpy.ndarray:</p>
 <p>Updated 2D numpy array with binary marks indicating cell type presence for each bacterial cell.</p>
 </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-drawDistributionPlot">
+<span id="module-drawdistributionplot"></span><h2>Module: drawDistributionPlot<a class="headerlink" href="#module-drawDistributionPlot" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="drawDistributionPlot.calculate_frequency">
+<span class="sig-prename descclassname"><span class="pre">drawDistributionPlot.</span></span><span class="sig-name descname"><span class="pre">calculate_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_related_col_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawDistributionPlot.html#calculate_frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#drawDistributionPlot.calculate_frequency" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the frequency of unique values in a given array and return the result as a DataFrame.</p>
+<p>This function computes the frequency of each unique value in the input array and returns
+the results in a pandas DataFrame with columns for the unique values and their respective frequencies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> (<em>numpy.ndarray</em>) – A 1D array of values for which the frequency distribution is to be calculated.</p></li>
+<li><p><strong>feature_related_col_name</strong> (<em>str</em>) – The name to use for the column representing unique values in the output DataFrame.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame: A DataFrame with the following columns:
+- ‘&lt;feature_related_col_name&gt;’: The unique values from the array.
+- ‘Frequency’: The count of each unique value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="drawDistributionPlot.draw_feature_distribution">
+<span class="sig-prename descclassname"><span class="pre">drawDistributionPlot.</span></span><span class="sig-name descname"><span class="pre">draw_feature_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawDistributionPlot.html#draw_feature_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#drawDistributionPlot.draw_feature_distribution" title="Link to this definition">¶</a></dt>
+<dd><p>Generate and plot the distribution of selected features from a DataFrame.</p>
+<p>This function iterates through a dictionary of features, calculates their frequency distribution,
+assigns them to bins, and visualizes the distribution with bar plots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – The input DataFrame containing feature data to analyze.</p></li>
+<li><p><strong>features_dict</strong> (<em>dict</em>) – A dictionary mapping feature column names to descriptive labels and type of analysis for plotting.</p></li>
+<li><p><strong>label_col</strong> (<em>str</em>) – Name of the column for object labels.</p></li>
+<li><p><strong>interval_time</strong> (<em>float</em>) – Time interval to scale the ‘LifeHistory’ feature.</p></li>
+<li><p><strong>doubling_time</strong> (<em>float</em>) – Threshold for filtering ‘LifeHistory’ values.</p></li>
+<li><p><strong>output_path</strong> (<em>str</em>) – The directory path where the plots will be saved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None. The plots are saved as JPG files in the specified output directory.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="drawDistributionPlot.plot_frequency_distribution">
+<span class="sig-prename descclassname"><span class="pre">drawDistributionPlot.</span></span><span class="sig-name descname"><span class="pre">plot_frequency_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_positions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grouped_sel_feature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bin_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_axis_value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/drawDistributionPlot.html#plot_frequency_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#drawDistributionPlot.plot_frequency_distribution" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the frequency distribution of a selected feature and save the output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_positions</strong> (<em>numpy.ndarray</em>) – An array of x-axis positions for the grouped frequency bars.</p></li>
+<li><p><strong>grouped_sel_feature</strong> (<em>pandas.DataFrame</em>) – A DataFrame containing grouped frequency data to plot.</p></li>
+<li><p><strong>bin_labels</strong> (<em>list</em>) – Labels for the x-axis bins.</p></li>
+<li><p><strong>feature</strong> (<em>str</em>) – The name of the feature being plotted.</p></li>
+<li><p><strong>feature_name</strong> (<em>str</em>) – A descriptive label for the feature (used for x-axis labeling).</p></li>
+<li><p><strong>y_axis_value</strong> (<em>str</em>) – A descriptive label for y-axis labeling.</p></li>
+<li><p><strong>output_path</strong> (<em>str</em>) – The directory path where the plot will be saved.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -3923,7 +4127,9 @@ a cell type. This array will be updated with binary values (0 or 1) based on the
 </li>
 <li><a class="reference internal" href="#module-calculateCreateLinkCost">Module: calculateCreateLinkCost</a><ul>
 <li><a class="reference internal" href="#calculateCreateLinkCost.calc_continuity_link_cost"><code class="docutils literal notranslate"><span class="pre">calc_continuity_link_cost()</span></code></a></li>
+<li><a class="reference internal" href="#calculateCreateLinkCost.calc_continuity_link_cost_for_restoring_links"><code class="docutils literal notranslate"><span class="pre">calc_continuity_link_cost_for_restoring_links()</span></code></a></li>
 <li><a class="reference internal" href="#calculateCreateLinkCost.calc_division_link_cost"><code class="docutils literal notranslate"><span class="pre">calc_division_link_cost()</span></code></a></li>
+<li><a class="reference internal" href="#calculateCreateLinkCost.calc_division_link_cost_for_restoring_links"><code class="docutils literal notranslate"><span class="pre">calc_division_link_cost_for_restoring_links()</span></code></a></li>
 <li><a class="reference internal" href="#calculateCreateLinkCost.optimize_assignment_using_hungarian"><code class="docutils literal notranslate"><span class="pre">optimize_assignment_using_hungarian()</span></code></a></li>
 </ul>
 </li>
@@ -3976,6 +4182,7 @@ a cell type. This array will be updated with binary values (0 or 1) based on the
 <li><a class="reference internal" href="#helper.convert_pixel_to_um"><code class="docutils literal notranslate"><span class="pre">convert_pixel_to_um()</span></code></a></li>
 <li><a class="reference internal" href="#helper.convert_um_to_pixel"><code class="docutils literal notranslate"><span class="pre">convert_um_to_pixel()</span></code></a></li>
 <li><a class="reference internal" href="#helper.extract_bacteria_features"><code class="docutils literal notranslate"><span class="pre">extract_bacteria_features()</span></code></a></li>
+<li><a class="reference internal" href="#helper.extract_bacteria_info"><code class="docutils literal notranslate"><span class="pre">extract_bacteria_info()</span></code></a></li>
 <li><a class="reference internal" href="#helper.identify_important_columns"><code class="docutils literal notranslate"><span class="pre">identify_important_columns()</span></code></a></li>
 <li><a class="reference internal" href="#helper.update_dataframe_with_selected_rows"><code class="docutils literal notranslate"><span class="pre">update_dataframe_with_selected_rows()</span></code></a></li>
 </ul>
@@ -4019,10 +4226,14 @@ a cell type. This array will be updated with binary values (0 or 1) based on the
 <li><a class="reference internal" href="#bacterialLifeHistoryAnalysis.process_bacterial_life_and_family"><code class="docutils literal notranslate"><span class="pre">process_bacterial_life_and_family()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-calcGrowthRate">Module: calcGrowthRate</a><ul>
-<li><a class="reference internal" href="#calcGrowthRate.calculate_average_growth_rate"><code class="docutils literal notranslate"><span class="pre">calculate_average_growth_rate()</span></code></a></li>
-<li><a class="reference internal" href="#calcGrowthRate.calculate_growth_rate"><code class="docutils literal notranslate"><span class="pre">calculate_growth_rate()</span></code></a></li>
-<li><a class="reference internal" href="#calcGrowthRate.calculate_linear_regression_growth_rate"><code class="docutils literal notranslate"><span class="pre">calculate_linear_regression_growth_rate()</span></code></a></li>
+<li><a class="reference internal" href="#module-calcElongationRate">Module: calcElongationRate</a><ul>
+<li><a class="reference internal" href="#calcElongationRate.calculate_average_elongation_rate"><code class="docutils literal notranslate"><span class="pre">calculate_average_elongation_rate()</span></code></a></li>
+<li><a class="reference internal" href="#calcElongationRate.calculate_elongation_rate"><code class="docutils literal notranslate"><span class="pre">calculate_elongation_rate()</span></code></a></li>
+<li><a class="reference internal" href="#calcElongationRate.calculate_linear_regression_elongation_rate"><code class="docutils literal notranslate"><span class="pre">calculate_linear_regression_elongation_rate()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-calcVelocity">Module: calcVelocity</a><ul>
+<li><a class="reference internal" href="#calcVelocity.calc_average_velocity"><code class="docutils literal notranslate"><span class="pre">calc_average_velocity()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-fluorescenceIntensity">Module: fluorescenceIntensity</a><ul>
@@ -4030,6 +4241,12 @@ a cell type. This array will be updated with binary values (0 or 1) based on the
 <li><a class="reference internal" href="#fluorescenceIntensity.determine_final_cell_type"><code class="docutils literal notranslate"><span class="pre">determine_final_cell_type()</span></code></a></li>
 <li><a class="reference internal" href="#fluorescenceIntensity.get_fluorescence_intensity_columns"><code class="docutils literal notranslate"><span class="pre">get_fluorescence_intensity_columns()</span></code></a></li>
 <li><a class="reference internal" href="#fluorescenceIntensity.mark_cell_types_by_intensity"><code class="docutils literal notranslate"><span class="pre">mark_cell_types_by_intensity()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-drawDistributionPlot">Module: drawDistributionPlot</a><ul>
+<li><a class="reference internal" href="#drawDistributionPlot.calculate_frequency"><code class="docutils literal notranslate"><span class="pre">calculate_frequency()</span></code></a></li>
+<li><a class="reference internal" href="#drawDistributionPlot.draw_feature_distribution"><code class="docutils literal notranslate"><span class="pre">draw_feature_distribution()</span></code></a></li>
+<li><a class="reference internal" href="#drawDistributionPlot.plot_frequency_distribution"><code class="docutils literal notranslate"><span class="pre">plot_frequency_distribution()</span></code></a></li>
 </ul>
 </li>
 </ul>

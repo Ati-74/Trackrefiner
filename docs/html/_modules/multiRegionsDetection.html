@@ -257,7 +257,6 @@
 <a class="viewcode-back" href="../modules.html#multiRegionsDetection.map_and_detect_multi_regions">[docs]</a>
 <span class="k">def</span> <span class="nf">map_and_detect_multi_regions</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">sorted_seg_npy_files_list</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
                                  <span class="n">all_rel_center_coord_cols</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Map objects to segmentation files, detect multi-region areas, and prepare pixel data for tacking correction.</span>
 
@@ -317,11 +316,11 @@
         <span class="c1"># Exclude the background color (0,0,0)</span>
         <span class="n">unique_colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">unique_colors</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="n">regions_center_raw_objects</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">regions_center_prev_objects_stat</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">regions_center_particles</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">regions_center_particles_stat</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">regions_features</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mask_centeroid</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mask_stat</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">connected_region_centroid</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">connected_region_stat</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">connected_region_features</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">regions_color</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">regions_coordinates</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">multi_region_flag</span> <span class="o">=</span> <span class="kc">False</span>
@@ -346,12 +345,11 @@
 
                 <span class="n">y0_cp</span><span class="p">,</span> <span class="n">x0_cp</span> <span class="o">=</span> <span class="n">regions_cp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">centroid</span>
 
-                <span class="n">regions_center_raw_objects</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x0_cp</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">y0_cp</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">))</span>
-                <span class="n">regions_center_prev_objects_stat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;multi&#39;</span><span class="p">)</span>
+                <span class="n">mask_centeroid</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x0_cp</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">y0_cp</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">))</span>
+                <span class="n">mask_stat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;multi&#39;</span><span class="p">)</span>
 
                 <span class="c1"># Separate regions</span>
                 <span class="k">for</span> <span class="n">region_ndx</span><span class="p">,</span> <span class="n">region</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">regions</span><span class="p">):</span>
-
                     <span class="c1"># fetching information</span>
                     <span class="n">y0</span><span class="p">,</span> <span class="n">x0</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">centroid</span>
                     <span class="n">orientation</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">orientation</span>
@@ -359,11 +357,12 @@
                     <span class="n">major_length</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">major_axis_length</span> <span class="o">*</span> <span class="n">pixel_per_micron</span>
                     <span class="n">minor_length</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">minor_axis_length</span> <span class="o">*</span> <span class="n">pixel_per_micron</span>
 
-                    <span class="n">regions_center_particles</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">))</span>
-                    <span class="n">regions_center_particles_stat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;particle&#39;</span><span class="p">)</span>
+                    <span class="n">connected_region_centroid</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">))</span>
+                    <span class="n">connected_region_stat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;particle&#39;</span><span class="p">)</span>
 
-                    <span class="n">regions_features</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;center_x&#39;</span><span class="p">:</span> <span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">:</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span>
-                                             <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="n">orientation</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">:</span> <span class="n">major_length</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">:</span> <span class="n">minor_length</span><span class="p">})</span>
+                    <span class="n">connected_region_features</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">{</span><span class="s1">&#39;center_x&#39;</span><span class="p">:</span> <span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">:</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span>
+                         <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="n">orientation</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">:</span> <span class="n">major_length</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">:</span> <span class="n">minor_length</span><span class="p">})</span>
 
                     <span class="c1"># Generate a new color that&#39;s not already in unique_colors</span>
                     <span class="n">new_color</span> <span class="o">=</span> <span class="n">generate_new_color</span><span class="p">(</span><span class="n">all_colors</span><span class="p">)</span>
@@ -379,41 +378,42 @@
                 <span class="n">major_length</span> <span class="o">=</span> <span class="n">regions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">major_axis_length</span> <span class="o">*</span> <span class="n">pixel_per_micron</span>
                 <span class="n">minor_length</span> <span class="o">=</span> <span class="n">regions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">minor_axis_length</span> <span class="o">*</span> <span class="n">pixel_per_micron</span>
 
-                <span class="n">regions_center_raw_objects</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">))</span>
-                <span class="n">regions_center_particles</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">))</span>
+                <span class="n">mask_centeroid</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">))</span>
+                <span class="n">connected_region_centroid</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">))</span>
 
-                <span class="n">regions_center_prev_objects_stat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;natural&#39;</span><span class="p">)</span>
-                <span class="n">regions_center_particles_stat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;natural&#39;</span><span class="p">)</span>
+                <span class="n">mask_stat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;natural&#39;</span><span class="p">)</span>
+                <span class="n">connected_region_stat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;natural&#39;</span><span class="p">)</span>
 
-                <span class="n">regions_features</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;center_x&#39;</span><span class="p">:</span> <span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">:</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span>
-                                         <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="n">orientation</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">:</span> <span class="n">major_length</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">:</span> <span class="n">minor_length</span><span class="p">})</span>
+                <span class="n">connected_region_features</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;center_x&#39;</span><span class="p">:</span> <span class="n">x0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">:</span> <span class="n">y0</span> <span class="o">*</span> <span class="n">pixel_per_micron</span><span class="p">,</span>
+                                                  <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="n">orientation</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">:</span> <span class="n">major_length</span><span class="p">,</span>
+                                                  <span class="s1">&#39;minor&#39;</span><span class="p">:</span> <span class="n">minor_length</span><span class="p">})</span>
 
                 <span class="n">regions_color</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
                 <span class="n">regions_coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">regions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
 
         <span class="c1"># check objects</span>
-        <span class="n">df_centers_raw_objects</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">regions_center_raw_objects</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;center_x&#39;</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">])</span>
-        <span class="n">df_centers_particles</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">regions_center_particles</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;center_x&#39;</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">])</span>
+        <span class="n">df_centers_masks</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">mask_centeroid</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;center_x&#39;</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">])</span>
+        <span class="n">df_centers_connected_regions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">connected_region_centroid</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;center_x&#39;</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">])</span>
 
-        <span class="c1"># rows: index from df_centers_raw_objects</span>
+        <span class="c1"># rows: index from df_centers_masks</span>
         <span class="c1"># columns: index of cp records</span>
-        <span class="n">distance_df_raw_objects</span> <span class="o">=</span> \
+        <span class="n">distance_df_cp_masks</span> <span class="o">=</span> \
             <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">distance_matrix</span><span class="p">(</span>
-                <span class="n">df_centers_raw_objects</span><span class="p">[[</span><span class="s1">&#39;center_x&#39;</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                <span class="n">df_centers_masks</span><span class="p">[[</span><span class="s1">&#39;center_x&#39;</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
                 <span class="n">current_df</span><span class="p">[[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]]]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
             <span class="p">),</span>
-                <span class="n">index</span><span class="o">=</span><span class="n">df_centers_raw_objects</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">current_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="n">index</span><span class="o">=</span><span class="n">df_centers_masks</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">current_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
-        <span class="n">distance_df_raw_objects_min_val_idx</span> <span class="o">=</span> <span class="n">distance_df_raw_objects</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
-        <span class="n">distance_df_raw_objects_min_val</span> <span class="o">=</span> <span class="n">distance_df_raw_objects</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">distance_df_raw_objects_min_val_idx</span> <span class="o">=</span> <span class="n">distance_df_cp_masks</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
+        <span class="n">distance_df_raw_objects_min_val</span> <span class="o">=</span> <span class="n">distance_df_cp_masks</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
 
         <span class="c1"># Extracting corresponding values</span>
-        <span class="n">regions_center_prev_stat</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_prev_objects_stat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_raw_objects_min_val_idx</span><span class="p">]</span>
-        <span class="n">regions_center_raw_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_raw_objects</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_raw_objects_min_val_idx</span><span class="p">]</span>
-        <span class="n">regions_center_raw_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_raw_objects</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_raw_objects_min_val_idx</span><span class="p">]</span>
+        <span class="n">regions_center_prev_stat</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask_stat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_raw_objects_min_val_idx</span><span class="p">]</span>
+        <span class="n">regions_center_raw_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask_centeroid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_raw_objects_min_val_idx</span><span class="p">]</span>
+        <span class="n">regions_center_raw_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask_centeroid</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_raw_objects_min_val_idx</span><span class="p">]</span>
 
         <span class="n">min_distance_prev_objects_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
-            <span class="s1">&#39;cp index&#39;</span><span class="p">:</span> <span class="n">distance_df_raw_objects</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+            <span class="s1">&#39;cp index&#39;</span><span class="p">:</span> <span class="n">distance_df_cp_masks</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
             <span class="s1">&#39;row idx prev&#39;</span><span class="p">:</span> <span class="n">distance_df_raw_objects_min_val_idx</span><span class="p">,</span>
             <span class="s1">&#39;Cost prev&#39;</span><span class="p">:</span> <span class="n">distance_df_raw_objects_min_val</span><span class="p">,</span>
             <span class="s1">&#39;stat prev&#39;</span><span class="p">:</span> <span class="n">regions_center_prev_stat</span><span class="p">,</span>
@@ -423,16 +423,16 @@
 
         <span class="k">if</span> <span class="n">multi_region_flag</span><span class="p">:</span>
 
-            <span class="n">distance_df_particles</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">distance_matrix</span><span class="p">(</span>
-                <span class="n">df_centers_particles</span><span class="p">[[</span><span class="s1">&#39;center_x&#39;</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">distance_df_cp_connected_regions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">distance_matrix</span><span class="p">(</span>
+                <span class="n">df_centers_connected_regions</span><span class="p">[[</span><span class="s1">&#39;center_x&#39;</span><span class="p">,</span> <span class="s1">&#39;center_y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
                 <span class="n">current_df</span><span class="p">[[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]]]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
             <span class="p">),</span>
-                <span class="n">index</span><span class="o">=</span><span class="n">df_centers_particles</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">current_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+                <span class="n">index</span><span class="o">=</span><span class="n">df_centers_connected_regions</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">current_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
 
             <span class="n">df</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
-                <span class="n">multi_region_correction</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">distance_df_particles</span><span class="p">,</span> <span class="n">img_number</span><span class="p">,</span>
-                                        <span class="n">regions_center_particles_stat</span><span class="p">,</span> <span class="n">regions_center_particles</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span>
-                                        <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">regions_features</span><span class="p">,</span> <span class="n">all_rel_center_coord_cols</span><span class="p">,</span>
+                <span class="n">multi_region_correction</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">distance_df_cp_connected_regions</span><span class="p">,</span> <span class="n">img_number</span><span class="p">,</span>
+                                        <span class="n">connected_region_stat</span><span class="p">,</span> <span class="n">connected_region_centroid</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span>
+                                        <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">connected_region_features</span><span class="p">,</span> <span class="n">all_rel_center_coord_cols</span><span class="p">,</span>
                                         <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
                                         <span class="n">min_distance_prev_objects_df</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span><span class="p">)</span>
 

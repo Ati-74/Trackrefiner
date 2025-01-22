@@ -207,7 +207,7 @@ Module: calculateCreateLinkCost
     :members:
     :undoc-members:
     :show-inheritance:
-    :exclude-members: continuity_link_cost_for_final_checking, daughter_cost_for_final_step
+    :exclude-members:
 
 
 Module: calculateMaintainingLinkCost
@@ -359,10 +359,19 @@ Module: bacterialLifeHistoryAnalysis
     :show-inheritance:
 	
 
-Module: calcGrowthRate
-----------------------
+Module: calcElongationRate
+--------------------------
 
-.. automodule:: calcGrowthRate
+.. automodule:: calcElongationRate
+    :members:
+    :undoc-members:
+    :show-inheritance:	
+	
+
+Module: calcVelocity
+--------------------
+
+.. automodule:: calcVelocity
     :members:
     :undoc-members:
     :show-inheritance:	
@@ -375,4 +384,14 @@ Module: fluorescenceIntensity
     :members:
     :undoc-members:
     :show-inheritance:
+	
+
+Module: drawDistributionPlot
+----------------------------
+
+.. automodule:: drawDistributionPlot
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 

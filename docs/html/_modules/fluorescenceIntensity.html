@@ -346,8 +346,9 @@
 <span class="sd">        Updated DataFrame with a new column &#39;cellType&#39; representing the final cell type</span>
 <span class="sd">        classification for each bacterium:</span>
 
-<span class="sd">            - 3: Assigned when there are at least 2 `1` values across the fluorescence intensity columns.</span>
-<span class="sd">            - Specific values (e.g., 2, 3, etc.): Assigned when only one cell type is strongly indicated.</span>
+<span class="sd">            - 3: Assigned if the fluorescence intensities of at least two channels exceed the defined threshold.</span>
+<span class="sd">            - Specific values (e.g., 2, 3, etc.): Assigned if only one channel’s intensity exceeds the threshold.</span>
+<span class="sd">            - 0: Assigned if none of the fluorescence intensities across all channels exceed the defined threshold.</span>
 <span class="sd">            - 1: Default cell type assigned when only one intensity column exists.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 

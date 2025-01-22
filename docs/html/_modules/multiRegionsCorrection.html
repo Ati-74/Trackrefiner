@@ -400,7 +400,7 @@
 
 <div class="viewcode-block" id="multi_region_correction">
 <a class="viewcode-back" href="../modules.html#multiRegionsCorrection.multi_region_correction">[docs]</a>
-<span class="k">def</span> <span class="nf">multi_region_correction</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">distance_df_particles</span><span class="p">,</span> <span class="n">img_number</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">multi_region_correction</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">distance_df_cp_connected_regions</span><span class="p">,</span> <span class="n">img_number</span><span class="p">,</span>
                             <span class="n">regions_center_particles_stat</span><span class="p">,</span> <span class="n">regions_center_particles</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span>
                             <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">regions_features</span><span class="p">,</span> <span class="n">all_rel_center_coord_cols</span><span class="p">,</span>
                             <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">min_distance_prev_objects_df</span><span class="p">,</span>
@@ -414,7 +414,7 @@
 <span class="sd">        Input DataFrame containing object data.</span>
 <span class="sd">    :param numpy.ndarray img_array:</span>
 <span class="sd">        Image array representing the current state of the image.</span>
-<span class="sd">    :param pandas.DataFrame distance_df_particles:</span>
+<span class="sd">    :param pandas.DataFrame distance_df_cp_connected_regions:</span>
 <span class="sd">        DataFrame containing pairwise distances between objects (based on CellProfiler records) and regions.</span>
 <span class="sd">    :param int img_number:</span>
 <span class="sd">        Current image number</span>
@@ -445,7 +445,7 @@
 <span class="sd">        tuple: Updated DataFrame (`df`), coordinate array (`coordinate_array`), and color array (`color_array`).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">rows_with_duplicates</span> <span class="o">=</span> <span class="n">distance_df_particles</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="p">(</span><span class="n">row</span> <span class="o">==</span> <span class="n">row</span><span class="o">.</span><span class="n">min</span><span class="p">())</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">rows_with_duplicates</span> <span class="o">=</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="p">(</span><span class="n">row</span> <span class="o">==</span> <span class="n">row</span><span class="o">.</span><span class="n">min</span><span class="p">())</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># two same regions from multi regions</span>
     <span class="k">if</span> <span class="n">rows_with_duplicates</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
@@ -456,8 +456,8 @@
 
     <span class="k">else</span><span class="p">:</span>
 
-        <span class="n">distance_df_particles_min_val_idx</span> <span class="o">=</span> <span class="n">distance_df_particles</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
-        <span class="n">distance_df_particles_min_val</span> <span class="o">=</span> <span class="n">distance_df_particles</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+        <span class="n">distance_df_particles_min_val_idx</span> <span class="o">=</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
+        <span class="n">distance_df_particles_min_val</span> <span class="o">=</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
 
         <span class="c1"># Extracting corresponding values</span>
         <span class="n">regions_center_min_particles_stat</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_particles_stat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
@@ -466,7 +466,7 @@
         <span class="n">regions_center_particles_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_particles</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_particles_min_val_idx</span><span class="p">]</span>
 
         <span class="n">min_distance_particles_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
-            <span class="s1">&#39;cp index&#39;</span><span class="p">:</span> <span class="n">distance_df_particles</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+            <span class="s1">&#39;cp index&#39;</span><span class="p">:</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
             <span class="s1">&#39;row idx par&#39;</span><span class="p">:</span> <span class="n">distance_df_particles_min_val_idx</span><span class="p">,</span>
             <span class="s1">&#39;Cost par&#39;</span><span class="p">:</span> <span class="n">distance_df_particles_min_val</span><span class="p">,</span>
             <span class="s1">&#39;stat par&#39;</span><span class="p">:</span> <span class="n">regions_center_min_particles_stat</span><span class="p">,</span>
@@ -488,7 +488,7 @@
         <span class="n">correct_rows_df</span> <span class="o">=</span> <span class="n">merged_distance_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;compare_stat&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span>
 
         <span class="c1"># noise regions</span>
-        <span class="n">par_not_in_min_df</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">distance_df_particles</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span>
+        <span class="n">par_not_in_min_df</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span>
                              <span class="n">min_distance_particles_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">faulty_row_ndx</span><span class="p">,</span> <span class="n">faulty_row</span> <span class="ow">in</span> <span class="n">faulty_rows_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
@@ -508,7 +508,7 @@
             <span class="k">elif</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;stat prev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">:</span>
 
                 <span class="c1"># stat prev : natural</span>
-                <span class="c1"># idea: Idea: There should be an object that maps to the natural region in both data frames.</span>
+                <span class="c1"># Idea: There should be an object that maps to the natural region in both data frames.</span>
                 <span class="c1"># Otherwise, if all the records mapped to the natural region in the `prev` df are mapped to particles</span>
                 <span class="c1"># in the `particle` df, it can indicate an error. So we delete them.</span>
                 <span class="n">number_of_occ</span> <span class="o">=</span> \

@@ -311,23 +311,6 @@
     <span class="n">connected_bac_high_chance_to_be_correct</span> <span class="o">=</span> \
         <span class="n">connected_bac</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="o">~</span> <span class="n">connected_bac</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">bad_daughters_target</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))]</span>
 
-    <span class="c1"># now we should check daughters and remove division with one daughter (due to neighboring to unexpected end and</span>
-    <span class="c1"># unexpected beginning)</span>
-    <span class="n">division</span> <span class="o">=</span> \
-        <span class="n">connected_bac_high_chance_to_be_correct</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
-            <span class="o">~</span> <span class="n">connected_bac_high_chance_to_be_correct</span><span class="p">[</span><span class="s1">&#39;daughter_length_to_mother_prev&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
-
-    <span class="c1"># sometimes it can be possible one daughter filtered in prev steps and the other daughter is existing</span>
-    <span class="c1"># I want to remove another daughter</span>
-    <span class="n">mother_with_two_daughters</span> <span class="o">=</span> <span class="n">division</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">],</span>
-                                                    <span class="n">keep</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">mother_with_one_daughter</span> <span class="o">=</span> <span class="o">~</span> <span class="n">mother_with_two_daughters</span>
-    <span class="n">division_with_one_daughter</span> <span class="o">=</span> <span class="n">division</span><span class="p">[</span><span class="n">mother_with_one_daughter</span><span class="p">]</span>
-
-    <span class="n">connected_bac_high_chance_to_be_correct</span> <span class="o">=</span> \
-        <span class="n">connected_bac_high_chance_to_be_correct</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">connected_bac_high_chance_to_be_correct</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
-            <span class="n">division_with_one_daughter</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)]</span>
-
     <span class="n">divided_vs_non_divided_model</span> <span class="o">=</span> \
         <span class="n">train_division_vs_non_division_model</span><span class="p">(</span><span class="n">connected_bac_high_chance_to_be_correct</span><span class="p">,</span>
                                              <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>

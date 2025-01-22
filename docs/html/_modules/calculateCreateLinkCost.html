@@ -698,10 +698,53 @@
 
 
 
-<span class="k">def</span> <span class="nf">daughter_cost_for_final_step</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">df_source_daughter</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
-                                 <span class="n">col_source</span><span class="p">,</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
-                                 <span class="n">divided_bac_model</span><span class="p">,</span> <span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">maintenance_to_be_check</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span>
-                                 <span class="n">coordinate_array</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="calc_division_link_cost_for_restoring_links">
+<a class="viewcode-back" href="../modules.html#calculateCreateLinkCost.calc_division_link_cost_for_restoring_links">[docs]</a>
+<span class="k">def</span> <span class="nf">calc_division_link_cost_for_restoring_links</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">df_source_daughter</span><span class="p">,</span>
+                                                <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">col_source</span><span class="p">,</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
+                                                <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">divided_bac_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the cost of restoring division links between a source bacterium and its potential daughter</span>
+<span class="sd">    bacteria (UB bacteria). This function evaluates potential division links by calculating various spatial,</span>
+<span class="sd">    geometric, and neighborhood-based features.</span>
+<span class="sd">    It uses machine learning model to assess the likelihood of a division event based on these features.</span>
+
+<span class="sd">    **Behavior**:</span>
+<span class="sd">    - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.</span>
+<span class="sd">    - Predicts division probabilities using a pre-trained model (`divided_bac_model`).</span>
+
+<span class="sd">    :param pandas.DataFrame df:</span>
+<span class="sd">        Full DataFrame containing bacterial features for the current time step.</span>
+<span class="sd">    :param pandas.DataFrame neighbors_df:</span>
+<span class="sd">        DataFrame describing relationships between neighboring bacteria.</span>
+<span class="sd">    :param lil_matrix neighbor_list_array:</span>
+<span class="sd">        Sparse matrix representing neighbor relationships.</span>
+<span class="sd">    :param pandas.DataFrame df_source_daughter:</span>
+<span class="sd">        DataFrame containing the source bacteria and their candidate daughters.</span>
+<span class="sd">    :param dict center_coord_cols:</span>
+<span class="sd">        Dictionary specifying column names for bacterial centroid coordinates</span>
+<span class="sd">        (e.g., `{&quot;x&quot;: &quot;Center_X&quot;, &quot;y&quot;: &quot;Center_Y&quot;}`).</span>
+<span class="sd">    :param str col_source:</span>
+<span class="sd">        Suffix for source bacterium columns.</span>
+<span class="sd">    :param str col_target:</span>
+<span class="sd">        Suffix for target bacterium (daughter) columns.</span>
+<span class="sd">    :param str parent_image_number_col:</span>
+<span class="sd">        Column name for the parent image number.</span>
+<span class="sd">    :param str parent_object_number_col:</span>
+<span class="sd">        Column name for the parent object number.</span>
+<span class="sd">    :param sklearn.Model divided_bac_model:</span>
+<span class="sd">        Machine learning model to predict division probabilities.</span>
+<span class="sd">    :param csr_matrix coordinate_array:</span>
+<span class="sd">        spatial coordinate matrix for neighborhood and overlap calculations.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        pandas.DataFrame:</span>
+
+<span class="sd">        A cost matrix for potential division links, with rows as source bacteria and columns as their</span>
+<span class="sd">        candidate daughters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;index_prev&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span>
     <span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;index2&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_source_daughter</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
 
@@ -810,33 +853,63 @@
         <span class="n">division_cost_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">division_cost_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="n">maintenance_to_be_check</span> <span class="o">==</span> <span class="s1">&#39;target&#39;</span><span class="p">:</span>
-            <span class="c1"># I want to measure is it possible to remove the current link of target bacterium?</span>
-            <span class="n">candidate_target_maintenance_cost</span> <span class="o">=</span> \
-                <span class="n">maintenance_cost_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">maintenance_cost_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
-                    <span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;index_prev&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())]</span>
-
-            <span class="c1"># don&#39;t need to convert probability to 1 - probability</span>
-            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">candidate_target_maintenance_cost</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
-                <span class="n">non_na_probability</span> <span class="o">=</span> <span class="n">candidate_target_maintenance_cost</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">division_cost_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">division_cost_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">non_na_probability</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
-        <span class="c1"># for maintenance_to_be_check = source we can not check, and we should check it after</span>
-
         <span class="n">division_cost_df</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">division_cost_df</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="n">division_cost_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="n">division_cost_df</span>
+    <span class="k">return</span> <span class="n">division_cost_df</span></div>
 
 
-<span class="k">def</span> <span class="nf">continuity_link_cost_for_final_checking</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">source_bac_with_can_target</span><span class="p">,</span>
-                                            <span class="n">center_coordinate_columns</span><span class="p">,</span> <span class="n">col_source</span><span class="p">,</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
-                                            <span class="n">parent_object_number_col</span><span class="p">,</span>
-                                            <span class="n">non_divided_bac_model</span><span class="p">,</span> <span class="n">maintenance_cost_df</span><span class="p">,</span>
-                                            <span class="n">maintenance_to_be_check</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span>
-                                            <span class="n">coordinate_array</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="calc_continuity_link_cost_for_restoring_links">
+<a class="viewcode-back" href="../modules.html#calculateCreateLinkCost.calc_continuity_link_cost_for_restoring_links">[docs]</a>
+<span class="k">def</span> <span class="nf">calc_continuity_link_cost_for_restoring_links</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">source_bac_with_can_target</span><span class="p">,</span>
+                                                  <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">col_source</span><span class="p">,</span> <span class="n">col_target</span><span class="p">,</span>
+                                                  <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
+                                                  <span class="n">non_divided_bac_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates the cost of restoring continuity link between a source bacterium and its potential UB target bacterium.</span>
+<span class="sd">    This function evaluates continuity links by analyzing spatial, geometric, and neighborhood-based features.</span>
+<span class="sd">    It determines the likelihood that a bacterium in one time step corresponds to the same bacterium in the next</span>
+<span class="sd">    time step.</span>
+
+<span class="sd">    **Behavior**:</span>
+<span class="sd">    - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.</span>
+<span class="sd">    - Predicts continuity probabilities using a pre-trained model (`non_divided_bac_model`).</span>
+
+<span class="sd">    :param pandas.DataFrame df:</span>
+<span class="sd">        Full DataFrame containing bacterial features for the current time step.</span>
+<span class="sd">    :param pandas.DataFrame neighbors_df:</span>
+<span class="sd">        DataFrame describing relationships between neighboring bacteria.</span>
+<span class="sd">    :param lil_matrix neighbor_list_array:</span>
+<span class="sd">        Sparse matrix representing neighbor relationships.</span>
+<span class="sd">    :param pandas.DataFrame source_bac_with_can_target:</span>
+<span class="sd">        DataFrame containing the source bacteria and their candidate UB target in the next time step.</span>
+<span class="sd">    :param dict center_coord_cols:</span>
+<span class="sd">        Dictionary specifying column names for bacterial centroid coordinates</span>
+<span class="sd">        (e.g., `{&quot;x&quot;: &quot;Center_X&quot;, &quot;y&quot;: &quot;Center_Y&quot;}`).</span>
+<span class="sd">    :param str col_source:</span>
+<span class="sd">        Suffix for source bacterium columns.</span>
+<span class="sd">    :param str col_target:</span>
+<span class="sd">        Suffix for target bacterium columns.</span>
+<span class="sd">    :param str parent_image_number_col:</span>
+<span class="sd">        Column name for the parent image number.</span>
+<span class="sd">    :param str parent_object_number_col:</span>
+<span class="sd">        Column name for the parent object number.</span>
+<span class="sd">    :param sklearn.Model non_divided_bac_model:</span>
+<span class="sd">        Machine learning model to predict continuity probabilities.`.</span>
+<span class="sd">    :param csr_matrix coordinate_array:</span>
+<span class="sd">        spatial coordinate matrix for neighborhood and overlap calculations.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        pandas.DataFrame:</span>
+
+<span class="sd">        A cost matrix for potential continuity links, with rows as source bacteria and columns as their</span>
+<span class="sd">        candidate targets (UB bacteria).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;index_prev&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span>
     <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;index2&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">source_bac_with_can_target</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
 
@@ -850,7 +923,7 @@
                                                       <span class="n">col_target</span><span class="o">=</span><span class="s1">&#39;prev_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">link_type</span><span class="o">=</span><span class="s1">&#39;continuity&#39;</span><span class="p">,</span>
                                                       <span class="n">coordinate_array</span><span class="o">=</span><span class="n">coordinate_array</span><span class="p">)</span>
 
-        <span class="n">source_bac_with_can_target</span> <span class="o">=</span> <span class="n">calc_min_distance_ml</span><span class="p">(</span><span class="n">source_bac_with_can_target</span><span class="p">,</span> <span class="n">center_coordinate_columns</span><span class="p">,</span>
+        <span class="n">source_bac_with_can_target</span> <span class="o">=</span> <span class="n">calc_min_distance_ml</span><span class="p">(</span><span class="n">source_bac_with_can_target</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
                                                           <span class="n">postfix_target</span><span class="o">=</span><span class="n">col_target</span><span class="p">,</span> <span class="n">postfix_source</span><span class="o">=</span><span class="n">col_source</span><span class="p">,</span>
                                                           <span class="n">link_type</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
@@ -874,17 +947,17 @@
         <span class="c1"># calculated for original df and we should calc for new df</span>
         <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s2">&quot;MotionAlignmentAngle&quot;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
         <span class="n">source_bac_with_can_target</span> <span class="o">=</span> \
-            <span class="n">calc_motion_alignment_angle_ml</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">center_coordinate_columns</span><span class="p">,</span>
+            <span class="n">calc_motion_alignment_angle_ml</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
                                            <span class="n">selected_rows</span><span class="o">=</span><span class="n">source_bac_with_can_target</span><span class="p">,</span> <span class="n">col_target</span><span class="o">=</span><span class="n">col_target</span><span class="p">,</span>
                                            <span class="n">col_source</span><span class="o">=</span><span class="n">col_source</span><span class="p">)</span>
 
         <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;prev_time_step_center_x&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> \
-            <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="n">center_coordinate_columns</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_source</span><span class="p">]</span>
+            <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_source</span><span class="p">]</span>
         <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;prev_time_step_center_y&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> \
-            <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="n">center_coordinate_columns</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_source</span><span class="p">]</span>
+            <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">col_source</span><span class="p">]</span>
 
         <span class="n">direction_of_motion</span> <span class="o">=</span> <span class="n">calculate_trajectory_angles</span><span class="p">(</span><span class="n">source_bac_with_can_target</span><span class="p">,</span>
-                                                          <span class="n">center_coordinate_columns</span><span class="p">,</span> <span class="n">suffix1</span><span class="o">=</span><span class="n">col_target</span><span class="p">)</span>
+                                                          <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">suffix1</span><span class="o">=</span><span class="n">col_target</span><span class="p">)</span>
 
         <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;direction_of_motion&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">direction_of_motion</span>
 
@@ -939,41 +1012,13 @@
         <span class="n">continuity_link_cost_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">continuity_link_cost_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="n">maintenance_to_be_check</span> <span class="o">==</span> <span class="s1">&#39;target&#39;</span><span class="p">:</span>
-            <span class="c1"># I want to measure is it possible to remove the current link of target bacterium?</span>
-            <span class="n">candidate_target_maintenance_cost</span> <span class="o">=</span> \
-                <span class="n">maintenance_cost_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">maintenance_cost_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
-                    <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;index_prev&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())]</span>
-
-            <span class="c1"># don&#39;t need to convert probability to 1 - probability</span>
-            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">candidate_target_maintenance_cost</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
-                <span class="c1"># maintenance cost</span>
-                <span class="n">this_target_bac_maintenance_cost</span> <span class="o">=</span> <span class="n">candidate_target_maintenance_cost</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">continuity_link_cost_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
-                    <span class="n">continuity_link_cost_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">this_target_bac_maintenance_cost</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
-        <span class="k">elif</span> <span class="n">maintenance_to_be_check</span> <span class="o">==</span> <span class="s1">&#39;source&#39;</span><span class="p">:</span>
-
-            <span class="c1"># I want to measure is it possible to remove the current link of target bacterium?</span>
-            <span class="n">candidate_target_maintenance_cost</span> <span class="o">=</span> \
-                <span class="n">maintenance_cost_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">maintenance_cost_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
-                    <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_source</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())]</span>
-
-            <span class="n">selected_candidate_target_maintenance_cost</span> <span class="o">=</span> \
-                <span class="n">candidate_target_maintenance_cost</span><span class="p">[</span><span class="n">candidate_target_maintenance_cost</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">]</span>
-
-            <span class="k">for</span> <span class="n">source_idx</span> <span class="ow">in</span> <span class="n">selected_candidate_target_maintenance_cost</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
-                <span class="n">max_probability_value</span> <span class="o">=</span> <span class="n">candidate_target_maintenance_cost</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">source_idx</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
-
-                <span class="n">continuity_link_cost_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
-                    <span class="n">source_idx</span><span class="p">,</span> <span class="n">continuity_link_cost_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">source_idx</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">max_probability_value</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-
         <span class="n">continuity_link_cost_df</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">continuity_link_cost_df</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="n">continuity_link_cost_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="n">continuity_link_cost_df</span>
+    <span class="k">return</span> <span class="n">continuity_link_cost_df</span></div>
+
 </pre></div>
         </article>
       </div>
