@@ -24,8 +24,8 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--doubling_time',
                         help="Minimum lifespan of bacteria, in minutes")
 
-    parser.add_argument('-g', '--growth_rate_method', default="Average",
-                        help="Method to calculate growth rate. Options: `Average` or `Linear Regression`. "
+    parser.add_argument('-e', '--elongation_rate_method', default="Average",
+                        help="Method to calculate elongation rate. Options: `Average` or `Linear Regression`. "
                              "Default: `Average`.")
 
     parser.add_argument('-p', '--pixel_per_micron', default=0.144,
@@ -72,6 +72,10 @@ if __name__ == '__main__':
                         help="Enable warnings and detailed messages. Default: Enabled. "
                              "To set it to True, include '-v' in the command.")
 
+    parser.add_argument('-y', '--save_npy', action='store_true',
+                        help="Save results in .npy format. Default: Disabled. "
+                             "To enable saving as .npy, include '-y' in the command.")
+
     # Parse the arguments
     args = parser.parse_args()
 
@@ -94,7 +98,7 @@ if __name__ == '__main__':
     doubling_time_of_bacteria = float(args.doubling_time)
 
     # `Average` or `Linear Regression`
-    growth_rate_method = args.growth_rate_method
+    elongation_rate_method = args.elongation_rate_method
 
     # convert pixel to um
     pixel_per_micron = float(args.pixel_per_micron)
@@ -113,13 +117,14 @@ if __name__ == '__main__':
 
     clf = args.classifier.rstrip().lstrip()
     n_cpu = int(args.num_cpus)
+    save_npy = args.save_npy
 
     # run post-processing
     process_objects_data(cp_output_csv=cp_output_csv_file, segmentation_res_dir=segmentation_results_dir,
                          neighbor_csv=neighbor_csv, interval_time=interval_time,
-                         growth_rate_method=growth_rate_method, pixel_per_micron=pixel_per_micron,
+                         elongation_rate_method=elongation_rate_method, pixel_per_micron=pixel_per_micron,
                          intensity_threshold=intensity_threshold,
                          assigning_cell_type=assigning_cell_type, doubling_time=doubling_time_of_bacteria,
                          disable_tracking_correction=disable_tracking_correction, clf=clf, n_cpu=n_cpu,
                          image_boundaries=boundary_limits, dynamic_boundaries=dynamic_boundaries, out_dir=out_dir,
-                         verbose=verbose, command=command)
+                         save_npy=save_npy, verbose=verbose, command=command)

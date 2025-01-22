@@ -70,13 +70,13 @@ class TrackRefinerGUI(QWidget):
             self.doubling_time_of_bacteria
         )
 
-        # Growth rate method and Pixel per micron in one row
-        self.growth_rate_method = self.create_combobox(["Average", "Linear Regression"])
+        # Elongation rate method and Pixel per micron in one row
+        self.elongation_rate_method = self.create_combobox(["Average", "Linear Regression"])
         self.pixel_per_micron = self.create_double_spinbox(0.0, 10.0, 0.144)
         self.add_two_part_row(
-            "Growth Rate Method:",
-            "Method to calculate growth rate: Average or Linear Regression.",
-            self.growth_rate_method,
+            "Elongation Rate Method:",
+            "Method to calculate elongation rate: Average or Linear Regression.",
+            self.elongation_rate_method,
             "Pixel Per Micron:",
             "Conversion factor for pixels to micrometers.",
             self.pixel_per_micron
@@ -139,13 +139,17 @@ class TrackRefinerGUI(QWidget):
         # Disable tracking correction and Verbose Output in one row
         self.disable_tracking_correction = self.create_checkbox()
         self.verbose = self.create_checkbox()
-        self.add_two_part_row(
-            "Disable Tracking Correction:",
+        self.save_npy = self.create_checkbox()
+        self.add_three_part_row(
+            "Disable Tracking Correction",
             "Check to disable tracking correction on CellProfiler output.",
             self.disable_tracking_correction,
-            "Verbose Output:",
+            "Verbose Output",
             "Check to enable detailed log messages.",
-            self.verbose
+            self.verbose,
+            "Save in .npy format",
+            "Check to enable saving results in .npy format.",
+            self.save_npy
         )
 
         # Output folder
@@ -242,6 +246,30 @@ class TrackRefinerGUI(QWidget):
         # Add the row layout to the main layout
         self.layout.addLayout(row_layout)
 
+    def add_three_part_row(self, part1_label, part1_tooltip, part1_widget, part2_label, part2_tooltip, part2_widget,
+                           part3_label, part3_tooltip, part3_widget):
+
+        row_layout = QHBoxLayout()
+
+        # Left part
+        part1_layout = QHBoxLayout()
+        self.add_tooltipped_widget_inline(part1_label, part1_tooltip, part1_widget, part1_layout)
+
+        # Right part
+        part2_layout = QHBoxLayout()
+        self.add_tooltipped_widget_inline(part2_label, part2_tooltip, part2_widget, part2_layout)
+
+        part3_layout = QHBoxLayout()
+        self.add_tooltipped_widget_inline(part3_label, part3_tooltip, part3_widget, part3_layout)
+
+        # Combine both parts in the row
+        row_layout.addLayout(part1_layout)
+        row_layout.addLayout(part2_layout)
+        row_layout.addLayout(part3_layout)
+
+        # Add the row layout to the main layout
+        self.layout.addLayout(row_layout)
+
     def add_single_part_row(self, label_text, tooltip_text, widget):
         row_layout = QHBoxLayout()
 
@@ -330,24 +358,24 @@ class TrackRefinerGUI(QWidget):
             '--interval-time': str(self.interval_time.value()) if self.interval_time.value() > 0 else None,
             '--doubling-time': str(
                 self.doubling_time_of_bacteria.value()) if self.doubling_time_of_bacteria.value() > 0 else None,
-            '--growth-rate-method': self.growth_rate_method.currentText(),
+            '--elongation-rate-method': self.elongation_rate_method.currentText(),
             '--pixel-per-micron': str(self.pixel_per_micron.value()),
             '--intensity-threshold': str(
                 self.intensity_threshold.value()) if self.assigning_cell_type.isChecked() else None,
-            '--assign-cell-type': None if not self.assigning_cell_type.isChecked() else "--assign-cell-type",
-            '--disable-tracking-correction': None if not self.disable_tracking_correction.isChecked() else
-            "--disable-tracking-correction",
+            '--assign-cell-type': False if not self.assigning_cell_type.isChecked() else True,
+            '--disable-tracking-correction': False if not self.disable_tracking_correction.isChecked() else True,
             '--clf': self.clf.currentText(),
             '--num-cpus': str(self.n_cpu.value()),
             '--boundary-limits': self.boundary_limits.text().strip() if self.boundary_limits.text().strip() else None,
             '--dynamic-boundaries': get_text_or_none(self.dynamic_boundaries),
             '--output': get_text_or_none(self.out_dir),
-            '--verbose': None if not self.verbose.isChecked() else "--verbose",
+            '--save_npy': False if not self.save_npy.isChecked() else True,
+            '--verbose': False if not self.verbose.isChecked() else True,
         }
 
         # Build the command string
         for arg, value in arguments.items():
-            if value:
+            if value is not None:
                 if value == arg:  # For boolean flags (e.g., --verbose)
                     command += f" {value}"
                 else:  # For key-value pairs
@@ -395,7 +423,7 @@ class TrackRefinerGUI(QWidget):
             segmentation_res_dir=get_text_or_none(self.segmentation_results_dir),
             neighbor_csv=get_text_or_none(self.neighbor_csv),
             interval_time=self.interval_time.value() if self.interval_time.value() > 0 else None,
-            growth_rate_method=self.growth_rate_method.currentText(),
+            elongation_rate_method=self.elongation_rate_method.currentText(),
             pixel_per_micron=self.pixel_per_micron.value(),
             intensity_threshold=self.intensity_threshold.value() if self.assigning_cell_type.isChecked() else None,
             assigning_cell_type=self.assigning_cell_type.isChecked(),
@@ -407,6 +435,7 @@ class TrackRefinerGUI(QWidget):
             dynamic_boundaries=get_text_or_none(self.dynamic_boundaries),
             out_dir=get_text_or_none(self.out_dir),
             verbose=self.verbose.isChecked(),
+            save_npy=self.save_npy.isChecked(),
             command=command
         )
 
