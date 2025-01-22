@@ -1,12 +1,13 @@
 import numpy as np
-from Trackrefiner.correction.action.helper import calculate_bac_endpoints, extract_bacteria_features
-from Trackrefiner.correction.action.featuresCalculation.calcGrowthRate import calculate_growth_rate
+import pandas as pd
+from Trackrefiner.correction.action.helper import extract_bacteria_features
+from Trackrefiner.correction.action.featuresCalculation.calcElongationRate import calculate_elongation_rate
+from Trackrefiner.correction.action.featuresCalculation.calcVelocity import calc_average_velocity
 from Trackrefiner.correction.action.featuresCalculation.fluorescenceIntensity import determine_final_cell_type
 
 
-def process_bacterial_life_and_family(processed_cp_out_df, interval_time, growth_rate_method, assigning_cell_type,
+def process_bacterial_life_and_family(processed_cp_out_df, interval_time, elongation_rate_method, assigning_cell_type,
                                       cell_type_array, label_col, center_coord_cols):
-
     """
     Calculates additional features related to the life history of bacteria from a processed
     CellProfiler output DataFrame.
@@ -18,10 +19,10 @@ def process_bacterial_life_and_family(processed_cp_out_df, interval_time, growth
     :param float interval_time:
         Time interval between consecutive images (in minutes).
 
-    :param str growth_rate_method:
-        Method for calculating the growth rate. Options:
-        - 'Average': Computes the average growth rate.
-        - 'Linear Regression': Estimates the growth rate using linear regression.
+    :param str elongation_rate_method:
+        Method for calculating the Elongation rate. Options:
+        - 'Average': Computes the average elongation rate.
+        - 'Linear Regression': Estimates the elongation rate using linear regression.
 
     :param bool assigning_cell_type:
         If True, assigns cell types to objects based on intensity thresholds.
@@ -44,8 +45,15 @@ def process_bacterial_life_and_family(processed_cp_out_df, interval_time, growth
 
     """
 
-    columns_to_initialize = ["growthRate", "startVol", "targetVol", "pos", "time", "radius", "dir", "ends",
-                             "strainRate", "strainRate_rolling"]
+    processed_cp_out_df["time"] = pd.to_numeric(processed_cp_out_df["ImageNumber"]) * interval_time
+    processed_cp_out_df["radius"] = processed_cp_out_df['AreaShape_MinorAxisLength'] / 2
+    processed_cp_out_df['AverageLength'] = \
+        processed_cp_out_df.groupby('id')['AreaShape_MajorAxisLength'].transform('mean')
+
+    columns_to_initialize = ["elongationRate", "startVol", "targetVol", "pos", "dir", "ends",
+                             "strainRate", "strainRate_rolling", 'velocity', 'InstantaneousElongationRate',
+                             'InstantaneousVelocity', 'NumberOfDivisionFamily']
+
     for column in columns_to_initialize:
         processed_cp_out_df[column] = ''
 
@@ -57,22 +65,28 @@ def process_bacterial_life_and_family(processed_cp_out_df, interval_time, growth
     for bacterium_id in bacteria_id:
 
         bacterium_life_history = processed_cp_out_df.loc[processed_cp_out_df['id'] == bacterium_id]
-        elongation_rate = calculate_growth_rate(bacterium_life_history, interval_time, growth_rate_method)
+        elongation_rate = calculate_elongation_rate(bacterium_life_history, interval_time, elongation_rate_method)
+        velocity = calc_average_velocity(bacterium_life_history, center_coord_cols, interval_time)
 
         # length of bacteria when they are born
-        birth_length = bacterium_life_history.iloc[0]["AreaShape_MajorAxisLength"]
-        division_length = bacterium_life_history.iloc[-1]["AreaShape_MajorAxisLength"]
+        birth_length = bacterium_life_history["AreaShape_MajorAxisLength"].values[0]
+        division_length = bacterium_life_history["AreaShape_MajorAxisLength"].values[-1]
 
         strain_rate_list = []
         old_length = birth_length
+        old_position = np.sqrt(bacterium_life_history[center_coord_cols['x']].values[0] ** 2 +
+                               bacterium_life_history[center_coord_cols['y']].values[0] ** 2)
+
+        processed_cp_out_df.loc[bacterium_life_history.index, "elongationRate"] = elongation_rate
+        processed_cp_out_df.loc[bacterium_life_history.index, "velocity"] = velocity
+        processed_cp_out_df.loc[bacterium_life_history.index, "startVol"] = birth_length
+        processed_cp_out_df.loc[bacterium_life_history.index, "targetVol"] = division_length
+
         for idx, bacterium in bacterium_life_history.iterrows():
-            processed_cp_out_df.at[idx, "growthRate"] = elongation_rate
-            processed_cp_out_df.at[idx, "startVol"] = birth_length
-            processed_cp_out_df.at[idx, "targetVol"] = division_length
+
             # https://github.com/cellmodeller/CellModeller/blob/master/CellModeller/Biophysics/BacterialModels/CLBacterium.py#L674
             strain_rate = (bacterium["AreaShape_MajorAxisLength"] - old_length) / old_length
             processed_cp_out_df.at[idx, "strainRate"] = strain_rate
-            old_length = processed_cp_out_df.iloc[idx]["AreaShape_MajorAxisLength"]
 
             # rolling average
             strain_rate_list.append(strain_rate)
@@ -81,40 +95,70 @@ def process_bacterial_life_and_family(processed_cp_out_df, interval_time, growth
                 strain_rate_rolling = np.mean(strain_rate_list[1:])
             else:
                 strain_rate_rolling = np.mean(strain_rate_list)
+
+            if bacterium['age'] > 1:
+                instantaneous_elongation_rate = (
+                    round((bacterium["AreaShape_MajorAxisLength"] - old_length) / interval_time, 3))
+
+                # instantaneous velocity
+                pos2 = np.sqrt(bacterium[center_coord_cols['x']] ** 2 + bacterium[center_coord_cols['y']] ** 2)
+                instantaneous_velocity = round((pos2 - old_position) / interval_time, 3)
+
+            else:
+                instantaneous_elongation_rate = np.nan
+                instantaneous_velocity = np.nan
+
+            old_length = bacterium["AreaShape_MajorAxisLength"]
+            old_position = np.sqrt(bacterium[center_coord_cols['x']] ** 2 + bacterium[center_coord_cols['y']] ** 2)
+
             processed_cp_out_df.at[idx, "strainRate_rolling"] = strain_rate_rolling
+            processed_cp_out_df.at[idx, 'InstantaneousElongationRate'] = instantaneous_elongation_rate
+            processed_cp_out_df.at[idx, 'InstantaneousVelocity'] = instantaneous_velocity
 
             bacterium_features = extract_bacteria_features(bacterium, center_coord_cols)
 
             bacterium_center_position = [bacterium_features['center_x'], bacterium_features['center_y']]
             processed_cp_out_df.at[idx, "pos"] = bacterium_center_position
 
-            processed_cp_out_df.at[idx, "time"] = bacterium["ImageNumber"] * interval_time
-
-            processed_cp_out_df.at[idx, "radius"] = bacterium_features['radius']
-
             processed_cp_out_df.at[idx, "dir"] = [np.cos(bacterium["AreaShape_Orientation"]),
                                                   np.sin(bacterium["AreaShape_Orientation"])]
 
             # find end points
-            end_points = calculate_bac_endpoints(bacterium_center_position, bacterium_features['major'],
-                                                 bacterium_features['orientation'])
+            end_points = [[bacterium['endpoint1_X'], bacterium['endpoint1_Y']],
+                          [bacterium['endpoint2_X'], bacterium['endpoint2_Y']]]
 
             processed_cp_out_df.at[idx, "ends"] = end_points
+
+    processed_cp_out_df['AverageInstantaneousVelocity'] = \
+        processed_cp_out_df.groupby('id')['InstantaneousVelocity'].transform('mean')
 
     if assigning_cell_type:
         # determine final cell type of each bacterium
         processed_cp_out_df = determine_final_cell_type(processed_cp_out_df, cell_type_array)
 
+    # Iterate over each unique label.
+    for label in processed_cp_out_df[label_col].unique():
+        # Filter the DataFrame for rows corresponding to the current label.
+        df_current_label = processed_cp_out_df.loc[processed_cp_out_df[label_col] == label]
+
+        # Find rows where division occurred.
+        mothers_df = df_current_label.loc[~ df_current_label["max_daughter_len_to_mother"].isna()]
+
+        processed_cp_out_df.loc[df_current_label.index, 'NumberOfDivisionFamily'] = mothers_df.shape[0]
+
     # rename some columns
-    processed_cp_out_df.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length',
-                                        label_col: 'label', 'age': 'cellAge'}, inplace=True)
+    processed_cp_out_df = processed_cp_out_df.rename(columns={'age': 'cellAge'})
+
+    data_frame_with_selected_col = \
+        processed_cp_out_df.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length',
+                                            label_col: 'label', 'age': 'cellAge', 'elongationRate': 'growthRate'})
     if assigning_cell_type:
-        data_frame_with_selected_col = processed_cp_out_df[
+        data_frame_with_selected_col = data_frame_with_selected_col[
             ['stepNum', 'ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
              'targetVol', 'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'cellType', 'strainRate',
              'strainRate_rolling']]
     else:
-        data_frame_with_selected_col = processed_cp_out_df[
+        data_frame_with_selected_col = data_frame_with_selected_col[
             ['stepNum', 'ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
              'targetVol', 'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'strainRate',
              'strainRate_rolling']]

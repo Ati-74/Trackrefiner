@@ -2,10 +2,10 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 
-def calculate_average_growth_rate(division_length, birth_length, t):
+def calculate_average_elongation_rate(division_length, birth_length, t):
 
     """
-    Calculates the average growth rate of a bacterium over its lifecycle based on initial and final lengths.
+    Calculates the average elongation rate of a bacterium over its lifecycle based on initial and final logarithm lengths.
 
     :param float division_length:
         The length of the bacterium at the time of division (final length).
@@ -17,7 +17,7 @@ def calculate_average_growth_rate(division_length, birth_length, t):
     :returns:
         float:
 
-        The calculated average growth rate. This represents the logarithmic elongation rate per minute.
+        The calculated average elongation rate. This represents the logarithmic elongation rate per minute.
     """
 
     elongation_rate = round((np.log(division_length) - np.log(birth_length)) / t, 3)
@@ -25,9 +25,9 @@ def calculate_average_growth_rate(division_length, birth_length, t):
     return elongation_rate
 
 
-def calculate_linear_regression_growth_rate(time, length):
+def calculate_linear_regression_elongation_rate(time, length):
     """
-    Calculates the growth rate of a bacterium using linear regression on the logarithm of length
+    Calculates the elongation rate of a bacterium using linear regression on the logarithm of length
     as a function of time.
 
     :param numpy.ndarray time:
@@ -38,7 +38,7 @@ def calculate_linear_regression_growth_rate(time, length):
     :returns:
         float:
 
-        The calculated growth rate (slope of the logarithm of length vs. time).
+        The calculated elongation rate (slope of the logarithm of length vs. time).
 
     """
 
@@ -50,23 +50,23 @@ def calculate_linear_regression_growth_rate(time, length):
     return elongation_rate
 
 
-def calculate_growth_rate(df_life_history, interval_time, growth_rate_method):
+def calculate_elongation_rate(df_life_history, interval_time, elongation_rate_method):
     """
-    Calculates the growth rate of a bacterium based on its life history data and the specified method.
+    Calculates the elongation rate of a bacterium based on its life history data and the specified method.
 
     :param pandas.DataFrame df_life_history:
         Input DataFrame containing the life history of bacteria
     :param float interval_time:
         Time interval between consecutive images (in minutes).
-    :param str growth_rate_method:
-        The method used for calculating the growth rate. Options include:
+    :param str elongation_rate_method:
+        The method used for calculating the elongation rate. Options include:
         - "Average": Calculates the average elongation rate based on initial and final lengths.
-        - "Linear Regression": Fits a linear regression to the length vs. time data to estimate the growth rate.
+        - "Linear Regression": Fits a linear regression to the length vs. time data to estimate the elongation rate.
 
     :returns:
         float:
 
-        The calculated growth rate. If the bacterium is observed for only one time step, returns NaN.
+        The calculated elongation rate. If the bacterium is observed for only one time step, returns NaN.
     """
 
     life_history_length = df_life_history.shape[0]
@@ -78,17 +78,17 @@ def calculate_growth_rate(df_life_history, interval_time, growth_rate_method):
     # this condition checks the life history of bacteria
     # If the bacterium exists only one time step: NaN will be reported.
     if life_history_length > 1:
-        if growth_rate_method == "Average":
+        if elongation_rate_method == "Average":
             t = life_history_length * interval_time
-            elongation_rate = calculate_average_growth_rate(division_length, birth_length, t)
-        elif growth_rate_method == "Linear Regression":
+            elongation_rate = calculate_average_elongation_rate(division_length, birth_length, t)
+        elif elongation_rate_method == "Linear Regression":
             # linear regression
             time = df_life_history["ImageNumber"].values * interval_time
             length = df_life_history["AreaShape_MajorAxisLength"].values
-            elongation_rate = calculate_linear_regression_growth_rate(time, length)
+            elongation_rate = calculate_linear_regression_elongation_rate(time, length)
         else:
 
-            raise ValueError(f"Invalid growth rate method: {growth_rate_method}. "
+            raise ValueError(f"Invalid elongation rate method: {elongation_rate_method}. "
                              f"Valid options are 'Average' or 'Linear Regression'.")
     else:
         elongation_rate = np.nan  # shows: bacterium is present for only one timestep.
