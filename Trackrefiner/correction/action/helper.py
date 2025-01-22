@@ -294,6 +294,7 @@ def calculate_bacterial_life_history_features(dataframe, calc_all_features, neig
           displacement among the center and endpoints.
 
         - **Direction of Motion**:
+
           - `direction_of_motion`: The angle (in radians) representing the trajectory direction.
           - `TrajectoryX` and `TrajectoryY`: The x and y components of the trajectory displacement.
 
@@ -761,7 +762,6 @@ def extract_bacteria_features(df, center_coord_cols):
         dict: A dictionary containing the extracted features:
         - 'major': Major axis length of bacteria.
         - 'minor': Minor axis length of bacteria.
-        - 'radius': Radius, calculated as half of the minor axis length.
         - 'orientation': Orientation of the bacteria (e.g., angle or direction).
         - 'center_x': X-coordinate of the bacteria's center.
         - 'center_y': Y-coordinate of the bacteria's center.
@@ -769,12 +769,11 @@ def extract_bacteria_features(df, center_coord_cols):
 
     major = df['AreaShape_MajorAxisLength']
     minor = df['AreaShape_MinorAxisLength']
-    radius = df['AreaShape_MinorAxisLength'] / 2
     orientation = df['AreaShape_Orientation']
     center_x = df[center_coord_cols['x']]
     center_y = df[center_coord_cols['y']]
 
-    features = {'major': major, 'minor': minor, 'radius': radius, 'orientation': orientation, 'center_x': center_x,
+    features = {'major': major, 'minor': minor, 'orientation': orientation, 'center_x': center_x,
                 'center_y': center_y}
     return features
 
@@ -1159,7 +1158,17 @@ def identify_important_columns(df):
     parent_object_number_col = [col for col in df.columns if 'TrackObjects_ParentObjectNumber_' in col][0]
 
     # label column name
-    label_col = [col for col in df.columns if 'TrackObjects_Label_' in col][0]
+    label_col_list = [col for col in df.columns if 'TrackObjects_Label_' in col]
+
+    if len(label_col_list) > 0:
+        label_col = label_col_list[0]
+    else:
+        label_col_list = [col for col in df.columns if 'label' in col]
+
+        if len(label_col_list) > 0:
+            label_col = label_col_list[0]
+        else:
+            label_col = None
 
     if 'Location_Center_X' in df.columns and 'Location_Center_Y' in df.columns:
         center_coord_cols = {'x': 'Location_Center_X', 'y': 'Location_Center_Y'}
@@ -1178,3 +1187,40 @@ def identify_important_columns(df):
 
     return (center_coord_cols, all_rel_center_coord_cols, parent_image_number_col, parent_object_number_col,
             label_col)
+
+
+def extract_bacteria_info(bacteria_data, pixels_per_micron, center_coord_cols, major_axis_len_col, orientation_col):
+    """
+    Extracts and converts bacterial object information and convert from micrometers (µm) to pixel.
+
+    This function processes spatial and shape information of bacterial objects
+    from a given DataFrame. The center coordinates and major axis length are
+    converted from micrometers to pixel using the provided conversion factor.
+
+    :param pandas.DataFrame bacteria_data:
+        A DataFrame containing information about bacterial objects, including
+        spatial measurements and orientation.
+    :param float pixels_per_micron:
+        The conversion factor representing the number of pixels per micrometer.
+    :param dict center_coord_cols:
+        A dictionary specifying the column names for x and y center coordinates.
+        Example: {'x': 'Location_Center_X', 'y': 'Location_Center_Y'}.
+    :param str major_axis_len_col:
+        The name of the column representing the major axis length of the objects (in pixels).
+    :param str orientation_col:
+        The name of the column representing the orientation of the objects
+        (e.g., in degrees or radians, depending on the dataset).
+
+    :returns:
+        tuple: A tuple containing the following elements:
+            - objects_center_x (pandas.Series): The x-coordinates of object centers in pixel.
+            - objects_center_y (pandas.Series): The y-coordinates of object centers in pixel.
+            - objects_major_axis (pandas.Series): The major axis length of objects in pixel.
+            - objects_orientation (pandas.Series): The orientation of objects.
+    """
+    objects_center_x = bacteria_data[center_coord_cols['x']] / pixels_per_micron
+    objects_center_y = bacteria_data[center_coord_cols['y']] / pixels_per_micron
+    objects_major_axis = bacteria_data[major_axis_len_col] / pixels_per_micron
+    objects_orientation = bacteria_data[orientation_col]
+
+    return objects_center_x, objects_center_y, objects_major_axis, objects_orientation

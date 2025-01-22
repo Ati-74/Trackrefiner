@@ -98,8 +98,9 @@ def determine_final_cell_type(dataframe, cell_type_array):
         Updated DataFrame with a new column 'cellType' representing the final cell type
         classification for each bacterium:
 
-            - 3: Assigned when there are at least 2 `1` values across the fluorescence intensity columns.
-            - Specific values (e.g., 2, 3, etc.): Assigned when only one cell type is strongly indicated.
+            - 3: Assigned if the fluorescence intensities of at least two channels exceed the defined threshold.
+            - Specific values (e.g., 2, 3, etc.): Assigned if only one channel’s intensity exceeds the threshold.
+            - 0: Assigned if none of the fluorescence intensities across all channels exceed the defined threshold.
             - 1: Default cell type assigned when only one intensity column exists.
     """
 

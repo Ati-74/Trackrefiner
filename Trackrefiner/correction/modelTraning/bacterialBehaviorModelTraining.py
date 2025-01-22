@@ -72,23 +72,6 @@ def train_bacterial_behavior_models(df, neighbors_df, neighbor_list_array, cente
     connected_bac_high_chance_to_be_correct = \
         connected_bac.loc[(~ connected_bac['index'].isin(bad_daughters_target['index'].values))]
 
-    # now we should check daughters and remove division with one daughter (due to neighboring to unexpected end and
-    # unexpected beginning)
-    division = \
-        connected_bac_high_chance_to_be_correct.loc[
-            ~ connected_bac_high_chance_to_be_correct['daughter_length_to_mother_prev'].isna()]
-
-    # sometimes it can be possible one daughter filtered in prev steps and the other daughter is existing
-    # I want to remove another daughter
-    mother_with_two_daughters = division.duplicated(subset=[parent_image_number_col, parent_object_number_col],
-                                                    keep=False)
-    mother_with_one_daughter = ~ mother_with_two_daughters
-    division_with_one_daughter = division[mother_with_one_daughter]
-
-    connected_bac_high_chance_to_be_correct = \
-        connected_bac_high_chance_to_be_correct.loc[~ connected_bac_high_chance_to_be_correct['index'].isin(
-            division_with_one_daughter['index'].values)]
-
     divided_vs_non_divided_model = \
         train_division_vs_non_division_model(connected_bac_high_chance_to_be_correct,
                                              center_coord_cols, parent_image_number_col,

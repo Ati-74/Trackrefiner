@@ -1,8 +1,8 @@
 import pandas as pd
 from Trackrefiner.correction.action.bacteriaTrackingUpdate import bacteria_modification
 from Trackrefiner.correction.action.trackingCost.calculateCreateLinkCost import optimize_assignment_using_hungarian
-from Trackrefiner.correction.action.trackingCost.calculateCreateLinkCost import daughter_cost_for_final_step, \
-    continuity_link_cost_for_final_checking
+from Trackrefiner.correction.action.trackingCost.calculateCreateLinkCost import calc_division_link_cost_for_restoring_links, \
+    calc_continuity_link_cost_for_restoring_links
 
 
 def add_tracking_link(df, neighbors_df, neighbor_list_array, source_bac_idx, target_bac_idx,
@@ -194,13 +194,12 @@ def restore_tracking_links(df, neighbors_df, neighbor_list_array, parent_image_n
     if division_df.shape[0] > 0:
 
         division_cost_df = \
-            daughter_cost_for_final_step(df, neighbors_df, neighbor_list_array, division_df, center_coord_cols,
-                                         col_source='_source', col_target='',
-                                         parent_image_number_col=parent_image_number_col,
-                                         parent_object_number_col=parent_object_number_col,
-                                         divided_bac_model=divided_bac_model,
-                                         maintenance_cost_df=None, maintenance_to_be_check=None,
-                                         coordinate_array=coordinate_array)
+            calc_division_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_array, division_df,
+                                                        center_coord_cols, col_source='_source', col_target='',
+                                                        parent_image_number_col=parent_image_number_col,
+                                                        parent_object_number_col=parent_object_number_col,
+                                                        divided_bac_model=divided_bac_model,
+                                                        coordinate_array=coordinate_array)
 
         if division_cost_df.shape[0] > 0:
 
@@ -230,13 +229,12 @@ def restore_tracking_links(df, neighbors_df, neighbor_list_array, parent_image_n
             df['index'].isin(continuity_links_df['index_source'].values), 'age'].values
 
         continuity_cost_df = \
-            continuity_link_cost_for_final_checking(df, neighbors_df, neighbor_list_array, continuity_links_df,
-                                                    center_coord_cols, col_source='_source', col_target='',
-                                                    parent_image_number_col=parent_image_number_col,
-                                                    parent_object_number_col=parent_object_number_col,
-                                                    non_divided_bac_model=non_divided_model,
-                                                    maintenance_cost_df=None, maintenance_to_be_check=None,
-                                                    coordinate_array=coordinate_array)
+            calc_continuity_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_array, continuity_links_df,
+                                                          center_coord_cols, col_source='_source', col_target='',
+                                                          parent_image_number_col=parent_image_number_col,
+                                                          parent_object_number_col=parent_object_number_col,
+                                                          non_divided_bac_model=non_divided_model,
+                                                          coordinate_array=coordinate_array)
 
         if continuity_cost_df.shape[0] > 0:
 

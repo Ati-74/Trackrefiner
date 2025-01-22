@@ -152,7 +152,7 @@ def update_object_records(df, faulty_row, img_array, regions_coordinates, region
     return df, img_array, coordinate_array, color_array
 
 
-def multi_region_correction(df, img_array, distance_df_particles, img_number,
+def multi_region_correction(df, img_array, distance_df_cp_connected_regions, img_number,
                             regions_center_particles_stat, regions_center_particles, regions_color,
                             regions_coordinates, regions_features, all_rel_center_coord_cols,
                             parent_image_number_col, parent_object_number_col, min_distance_prev_objects_df,
@@ -166,7 +166,7 @@ def multi_region_correction(df, img_array, distance_df_particles, img_number,
         Input DataFrame containing object data.
     :param numpy.ndarray img_array:
         Image array representing the current state of the image.
-    :param pandas.DataFrame distance_df_particles:
+    :param pandas.DataFrame distance_df_cp_connected_regions:
         DataFrame containing pairwise distances between objects (based on CellProfiler records) and regions.
     :param int img_number:
         Current image number
@@ -197,7 +197,7 @@ def multi_region_correction(df, img_array, distance_df_particles, img_number,
         tuple: Updated DataFrame (`df`), coordinate array (`coordinate_array`), and color array (`color_array`).
     """
 
-    rows_with_duplicates = distance_df_particles.T.apply(lambda row: (row == row.min()).sum() > 1, axis=1)
+    rows_with_duplicates = distance_df_cp_connected_regions.T.apply(lambda row: (row == row.min()).sum() > 1, axis=1)
 
     # two same regions from multi regions
     if rows_with_duplicates.any():
@@ -208,8 +208,8 @@ def multi_region_correction(df, img_array, distance_df_particles, img_number,
 
     else:
 
-        distance_df_particles_min_val_idx = distance_df_particles.idxmin()
-        distance_df_particles_min_val = distance_df_particles.min()
+        distance_df_particles_min_val_idx = distance_df_cp_connected_regions.idxmin()
+        distance_df_particles_min_val = distance_df_cp_connected_regions.min()
 
         # Extracting corresponding values
         regions_center_min_particles_stat = [regions_center_particles_stat[i] for i in
@@ -218,7 +218,7 @@ def multi_region_correction(df, img_array, distance_df_particles, img_number,
         regions_center_particles_y = [regions_center_particles[i][1] for i in distance_df_particles_min_val_idx]
 
         min_distance_particles_df = pd.DataFrame({
-            'cp index': distance_df_particles.columns,
+            'cp index': distance_df_cp_connected_regions.columns,
             'row idx par': distance_df_particles_min_val_idx,
             'Cost par': distance_df_particles_min_val,
             'stat par': regions_center_min_particles_stat,
@@ -240,7 +240,7 @@ def multi_region_correction(df, img_array, distance_df_particles, img_number,
         correct_rows_df = merged_distance_df.loc[merged_distance_df['compare_stat'] == True]
 
         # noise regions
-        par_not_in_min_df = [idx for idx in distance_df_particles.index if idx not in
+        par_not_in_min_df = [idx for idx in distance_df_cp_connected_regions.index if idx not in
                              min_distance_particles_df['row idx par'].values]
 
         for faulty_row_ndx, faulty_row in faulty_rows_df.iterrows():
@@ -260,7 +260,7 @@ def multi_region_correction(df, img_array, distance_df_particles, img_number,
             elif faulty_row['stat prev'] == 'natural':
 
                 # stat prev : natural
-                # idea: Idea: There should be an object that maps to the natural region in both data frames.
+                # Idea: There should be an object that maps to the natural region in both data frames.
                 # Otherwise, if all the records mapped to the natural region in the `prev` df are mapped to particles
                 # in the `particle` df, it can indicate an error. So we delete them.
                 number_of_occ = \

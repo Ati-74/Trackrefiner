@@ -6,6 +6,7 @@ import glob
 from Trackrefiner.bacterialLifeHistoryAnalysis import process_bacterial_life_and_family
 from Trackrefiner.correction.findFixTrackingErrors import find_fix_tracking_errors
 from Trackrefiner.correction.action.helper import identify_important_columns, print_progress_bar
+from Trackrefiner.correction.action.drawDistributionPlot import draw_feature_distribution
 import psutil
 import threading
 
@@ -87,9 +88,9 @@ def write_to_pickle_file(data, path, time_step):
 
 
 def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, interval_time, doubling_time,
-                         growth_rate_method, pixel_per_micron, assigning_cell_type, intensity_threshold,
+                         elongation_rate_method, pixel_per_micron, assigning_cell_type, intensity_threshold,
                          disable_tracking_correction, clf, n_cpu, image_boundaries, dynamic_boundaries, out_dir,
-                         verbose, command):
+                         save_npy, verbose, command):
 
     """
     Processes CellProfiler output data, performs tracking correction, assigns cell types,
@@ -108,8 +109,8 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
         Time interval between consecutive images (in minutes).
     :param float doubling_time:
         Minimum life history duration of bacteria (in minutes) for analysis.
-    :param str growth_rate_method:
-        Method for calculating the growth rate. Options:
+    :param str elongation_rate_method:
+        Method for calculating the elongation rate. Options:
         - 'Average': Computes average growth rate.
         - 'Linear Regression': Estimates growth rate using linear regression.
     :param float pixel_per_micron:
@@ -131,6 +132,8 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
     :param str dynamic_boundaries:
         Path to a CSV file specifying boundary limits for each time step. The file should contain columns:
         `Time Step`, `Lower X Limit`, `Upper X Limit`, `Lower Y Limit`, `Upper Y Limit`.
+    :param bool save_npy:
+        If True, results are saved in `.npy` format.
     :param bool verbose:
         If True, displays warnings and additional details during processing.
     :param str command:
@@ -166,7 +169,7 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
         print(start_time_log)
         log_list.append(start_time_log)
 
-        command_log = f"User's Command Statement: {command}\n"
+        command_log = f"User's Command: {command}\n"
         print(command_log)
         log_list.append(command_log)
 
@@ -228,16 +231,34 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
 
             # process the tracking data
             processed_df, processed_df_with_specific_cols = \
-                process_bacterial_life_and_family(cp_output_df, interval_time, growth_rate_method, assigning_cell_type,
+                process_bacterial_life_and_family(cp_output_df, interval_time, elongation_rate_method, assigning_cell_type,
                                                   cell_type_array, label_col, center_coord_cols)
+
+            sel_cols = [col for col in processed_df.columns if col not in
+                        ['noise_bac', 'mother_rpl', 'daughter_rpl', 'source_mcl', 'target_mcl', 'prev_index',
+                         'checked', 'bad_division_flag', 'ovd_flag', 'bad_daughters_flag', 'pos', 'ends',
+                         'prev_id', 'prev_parent_id', 'prev_label', 'age', 'parent_index', 'index',
+                         'daughters_index', 'other_daughter_index', 'prev_time_step_index']]
+
+            excluded_patterns = [
+                'TrackObjects_Displacement', 'TrackObjects_DistanceTraveled',
+                'TrackObjects_FinalAge', 'TrackObjects_IntegratedDistance',
+                'TrackObjects_Lifetime', 'TrackObjects_Linearity',
+                'TrackObjects_TrajectoryX', 'TrackObjects_TrajectoryY'
+            ]
+
+            sel_cols = [col for col in sel_cols if not any(pattern in col for pattern in excluded_patterns)]
+
+            processed_df = processed_df[sel_cols]
 
             print_progress_bar(10, prefix='Progress:', suffix='', length=50)
 
-            create_pickle_files(processed_df_with_specific_cols, out_dir, assigning_cell_type)
+            if save_npy:
+                create_pickle_files(processed_df_with_specific_cols, out_dir, assigning_cell_type)
 
             cp_out_base_name = os.path.basename(cp_output_csv).split('.')[0]
             # Common prefix for all output paths
-            prefix = f"{out_dir}/Trackrefiner.{cp_out_base_name}_{growth_rate_method}"
+            prefix = f"{out_dir}/Trackrefiner.{cp_out_base_name}_{elongation_rate_method}"
 
             path = f"{prefix}_analysis"
             path_logs = f"{prefix}_logs"
@@ -253,6 +274,18 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
             output_log = f"Output Directory: {out_dir}"
             print(output_log)
             log_list.append(output_log)
+
+            # draw plots
+            features_dict = {'LifeHistory': ["Cell Cycle Duration (min)", 'Frequency', 'lifehistory_based'],
+                             'startVol': ["Birth Length (um)", 'Frequency', 'lifehistory_based'],
+                             'targetVol': ["Final Length (um)", 'Frequency', 'lifehistory_based'],
+                             'elongationRate': ["Elongation Rate (um/min)", 'Frequency', 'lifehistory_based'],
+                             'velocity': ["Velocity (um/min)", 'Frequency', 'lifehistory_based'],
+                             'AverageLength': ["Average Length (um)", 'Frequency', 'lifehistory_based'],
+                             'NumberOfDivisionFamily': ["Number of division per family", 'Number of Families',
+                                                        'family_based'],
+                             'AreaShape_MajorAxisLength': ["Length (um)", 'Frequency', 'bacteria_based']}
+            draw_feature_distribution(processed_df, features_dict, label_col, interval_time, doubling_time, out_dir)
 
         else:
             log = "The segmentation result folder or neighbor file or both are not available!"

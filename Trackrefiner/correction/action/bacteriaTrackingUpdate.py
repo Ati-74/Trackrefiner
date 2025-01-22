@@ -10,20 +10,20 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
     Modifies and updates bacterial tracking data by calculating various features related to bacterial life history.
 
     **Calculated Features**:
-    - `id`: Unique identifier for each bacterium.
-    - `divideFlag`: Whether a bacterium has divided.
-    - `unexpected_end` and `unexpected_beginning`: Flags indicating unexpected lifecycle events.
-    - `daughters_index`: List of indices for daughter bacteria.
-    - `division_time`: Time of division.
-    - `LengthChangeRatio`: Ratio of daughter to mother length.
-    - `bacteria_movement`: Distance traveled between time steps.
-    - `TrajectoryX` and `TrajectoryY`: Components of movement trajectory.
-    - `MotionAlignmentAngle`: Angle of motion alignment.
-    - `LifeHistory`: Duration of a bacterium's lifecycle.
-    - `direction_of_motion`: Direction of movement in degrees.
-    - Neighbor-related features such as `difference_neighbors`.
-    - Slope and trajectory information (`bacteria_slope`, `prev_bacteria_slope`).
-    - Parent-daughter relationships and alignment angles.
+        - `id`: Unique identifier for each bacterium.
+        - `divideFlag`: Whether a bacterium has divided.
+        - `unexpected_end` and `unexpected_beginning`: Flags indicating unexpected lifecycle events.
+        - `daughters_index`: List of indices for daughter bacteria.
+        - `division_time`: Time of division.
+        - `LengthChangeRatio`: Ratio of daughter to mother length.
+        - `bacteria_movement`: Distance traveled between time steps.
+        - `TrajectoryX` and `TrajectoryY`: Components of movement trajectory.
+        - `MotionAlignmentAngle`: Angle of motion alignment.
+        - `LifeHistory`: Duration of a bacterium's lifecycle.
+        - `direction_of_motion`: Direction of movement in degrees.
+        - Neighbor-related features such as `difference_neighbors`.
+        - Slope and trajectory information (`bacteria_slope`, `prev_bacteria_slope`).
+        - Parent-daughter relationships and alignment angles.
 
     :param pandas.DataFrame df:
         The main DataFrame containing tracking data and measured bacterial features for all bacteria.

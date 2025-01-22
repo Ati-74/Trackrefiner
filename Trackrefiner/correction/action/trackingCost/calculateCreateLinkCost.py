@@ -452,10 +452,51 @@ def calc_continuity_link_cost(df, neighbors_df, neighbor_list_array, source_bac_
     return continuity_link_cost_df
 
 
-def daughter_cost_for_final_step(df, neighbors_df, neighbor_list_array, df_source_daughter, center_coord_cols,
-                                 col_source, col_target, parent_image_number_col, parent_object_number_col,
-                                 divided_bac_model, maintenance_cost_df, maintenance_to_be_check='target',
-                                 coordinate_array=None):
+def calc_division_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_array, df_source_daughter,
+                                                center_coord_cols, col_source, col_target, parent_image_number_col,
+                                                parent_object_number_col, divided_bac_model, coordinate_array):
+
+    """
+    Calculates the cost of restoring division links between a source bacterium and its potential daughter
+    bacteria (UB bacteria). This function evaluates potential division links by calculating various spatial,
+    geometric, and neighborhood-based features.
+    It uses machine learning model to assess the likelihood of a division event based on these features.
+
+    **Behavior**:
+    - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
+    - Predicts division probabilities using a pre-trained model (`divided_bac_model`).
+
+    :param pandas.DataFrame df:
+        Full DataFrame containing bacterial features for the current time step.
+    :param pandas.DataFrame neighbors_df:
+        DataFrame describing relationships between neighboring bacteria.
+    :param lil_matrix neighbor_list_array:
+        Sparse matrix representing neighbor relationships.
+    :param pandas.DataFrame df_source_daughter:
+        DataFrame containing the source bacteria and their candidate daughters.
+    :param dict center_coord_cols:
+        Dictionary specifying column names for bacterial centroid coordinates
+        (e.g., `{"x": "Center_X", "y": "Center_Y"}`).
+    :param str col_source:
+        Suffix for source bacterium columns.
+    :param str col_target:
+        Suffix for target bacterium (daughter) columns.
+    :param str parent_image_number_col:
+        Column name for the parent image number.
+    :param str parent_object_number_col:
+        Column name for the parent object number.
+    :param sklearn.Model divided_bac_model:
+        Machine learning model to predict division probabilities.
+    :param csr_matrix coordinate_array:
+        spatial coordinate matrix for neighborhood and overlap calculations.
+
+    :returns:
+        pandas.DataFrame:
+
+        A cost matrix for potential division links, with rows as source bacteria and columns as their
+        candidate daughters.
+    """
+
     df_source_daughter['index_prev' + col_target] = df_source_daughter['index' + col_target]
     df_source_daughter['index2' + col_target] = df_source_daughter.index.values
 
@@ -564,19 +605,6 @@ def daughter_cost_for_final_step(df, neighbors_df, neighbor_list_array, df_sourc
         division_cost_df.columns.name = None
         division_cost_df.index.name = None
 
-        if maintenance_to_be_check == 'target':
-            # I want to measure is it possible to remove the current link of target bacterium?
-            candidate_target_maintenance_cost = \
-                maintenance_cost_df.loc[:, maintenance_cost_df.columns.isin(
-                    df_source_daughter['index_prev'].unique())]
-
-            # don't need to convert probability to 1 - probability
-            for col in candidate_target_maintenance_cost.columns.values:
-                non_na_probability = candidate_target_maintenance_cost[col].dropna().iloc[0]
-                division_cost_df.loc[division_cost_df[col] <= non_na_probability, col] = np.nan
-
-        # for maintenance_to_be_check = source we can not check, and we should check it after
-
         division_cost_df = 1 - division_cost_df
 
     else:
@@ -585,12 +613,52 @@ def daughter_cost_for_final_step(df, neighbors_df, neighbor_list_array, df_sourc
     return division_cost_df
 
 
-def continuity_link_cost_for_final_checking(df, neighbors_df, neighbor_list_array, source_bac_with_can_target,
-                                            center_coordinate_columns, col_source, col_target, parent_image_number_col,
-                                            parent_object_number_col,
-                                            non_divided_bac_model, maintenance_cost_df,
-                                            maintenance_to_be_check='target',
-                                            coordinate_array=None):
+def calc_continuity_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_array, source_bac_with_can_target,
+                                                  center_coord_cols, col_source, col_target,
+                                                  parent_image_number_col, parent_object_number_col,
+                                                  non_divided_bac_model, coordinate_array=None):
+
+    """
+    Calculates the cost of restoring continuity link between a source bacterium and its potential UB target bacterium.
+    This function evaluates continuity links by analyzing spatial, geometric, and neighborhood-based features.
+    It determines the likelihood that a bacterium in one time step corresponds to the same bacterium in the next
+    time step.
+
+    **Behavior**:
+    - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
+    - Predicts continuity probabilities using a pre-trained model (`non_divided_bac_model`).
+
+    :param pandas.DataFrame df:
+        Full DataFrame containing bacterial features for the current time step.
+    :param pandas.DataFrame neighbors_df:
+        DataFrame describing relationships between neighboring bacteria.
+    :param lil_matrix neighbor_list_array:
+        Sparse matrix representing neighbor relationships.
+    :param pandas.DataFrame source_bac_with_can_target:
+        DataFrame containing the source bacteria and their candidate UB target in the next time step.
+    :param dict center_coord_cols:
+        Dictionary specifying column names for bacterial centroid coordinates
+        (e.g., `{"x": "Center_X", "y": "Center_Y"}`).
+    :param str col_source:
+        Suffix for source bacterium columns.
+    :param str col_target:
+        Suffix for target bacterium columns.
+    :param str parent_image_number_col:
+        Column name for the parent image number.
+    :param str parent_object_number_col:
+        Column name for the parent object number.
+    :param sklearn.Model non_divided_bac_model:
+        Machine learning model to predict continuity probabilities.`.
+    :param csr_matrix coordinate_array:
+        spatial coordinate matrix for neighborhood and overlap calculations.
+
+    :returns:
+        pandas.DataFrame:
+
+        A cost matrix for potential continuity links, with rows as source bacteria and columns as their
+        candidate targets (UB bacteria).
+    """
+
     source_bac_with_can_target['index_prev' + col_target] = source_bac_with_can_target['index' + col_target]
     source_bac_with_can_target['index2' + col_target] = source_bac_with_can_target.index.values
 
@@ -604,7 +672,7 @@ def continuity_link_cost_for_final_checking(df, neighbors_df, neighbor_list_arra
                                                       col_target='prev_index' + col_target, link_type='continuity',
                                                       coordinate_array=coordinate_array)
 
-        source_bac_with_can_target = calc_min_distance_ml(source_bac_with_can_target, center_coordinate_columns,
+        source_bac_with_can_target = calc_min_distance_ml(source_bac_with_can_target, center_coord_cols,
                                                           postfix_target=col_target, postfix_source=col_source,
                                                           link_type=None)
 
@@ -628,17 +696,17 @@ def continuity_link_cost_for_final_checking(df, neighbors_df, neighbor_list_arra
         # calculated for original df and we should calc for new df
         source_bac_with_can_target["MotionAlignmentAngle" + col_target] = np.nan
         source_bac_with_can_target = \
-            calc_motion_alignment_angle_ml(df, neighbors_df, center_coordinate_columns,
+            calc_motion_alignment_angle_ml(df, neighbors_df, center_coord_cols,
                                            selected_rows=source_bac_with_can_target, col_target=col_target,
                                            col_source=col_source)
 
         source_bac_with_can_target['prev_time_step_center_x' + col_target] = \
-            source_bac_with_can_target[center_coordinate_columns['x'] + col_source]
+            source_bac_with_can_target[center_coord_cols['x'] + col_source]
         source_bac_with_can_target['prev_time_step_center_y' + col_target] = \
-            source_bac_with_can_target[center_coordinate_columns['y'] + col_source]
+            source_bac_with_can_target[center_coord_cols['y'] + col_source]
 
         direction_of_motion = calculate_trajectory_angles(source_bac_with_can_target,
-                                                          center_coordinate_columns, suffix1=col_target)
+                                                          center_coord_cols, suffix1=col_target)
 
         source_bac_with_can_target['direction_of_motion' + col_target] = direction_of_motion
 
@@ -692,35 +760,6 @@ def continuity_link_cost_for_final_checking(df, neighbors_df, neighbor_list_arra
                 index='index' + col_source, columns='index_prev', values='prob_non_divided_bac_model')
         continuity_link_cost_df.columns.name = None
         continuity_link_cost_df.index.name = None
-
-        if maintenance_to_be_check == 'target':
-            # I want to measure is it possible to remove the current link of target bacterium?
-            candidate_target_maintenance_cost = \
-                maintenance_cost_df.loc[:, maintenance_cost_df.columns.isin(
-                    source_bac_with_can_target['index_prev'].unique())]
-
-            # don't need to convert probability to 1 - probability
-            for col in candidate_target_maintenance_cost.columns.values:
-                # maintenance cost
-                this_target_bac_maintenance_cost = candidate_target_maintenance_cost[col].dropna().iloc[0]
-                continuity_link_cost_df.loc[
-                    continuity_link_cost_df[col] <= this_target_bac_maintenance_cost, col] = np.nan
-
-        elif maintenance_to_be_check == 'source':
-
-            # I want to measure is it possible to remove the current link of target bacterium?
-            candidate_target_maintenance_cost = \
-                maintenance_cost_df.loc[maintenance_cost_df.index.isin(
-                    source_bac_with_can_target['index' + col_source].unique())]
-
-            selected_candidate_target_maintenance_cost = \
-                candidate_target_maintenance_cost[candidate_target_maintenance_cost.min(axis=1) > 0.5]
-
-            for source_idx in selected_candidate_target_maintenance_cost.index.values:
-                max_probability_value = candidate_target_maintenance_cost.loc[source_idx].max()
-
-                continuity_link_cost_df.loc[
-                    source_idx, continuity_link_cost_df.loc[source_idx] <= max_probability_value] = np.nan
 
         continuity_link_cost_df = 1 - continuity_link_cost_df
 

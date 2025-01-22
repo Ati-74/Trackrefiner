@@ -18,7 +18,6 @@ def generate_new_color(existing_colors, seed=None):
 
 def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron, center_coord_cols,
                                  all_rel_center_coord_cols, parent_image_number_col, parent_object_number_col, verbose):
-
     """
     Map objects to segmentation files, detect multi-region areas, and prepare pixel data for tacking correction.
 
@@ -78,11 +77,11 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
         # Exclude the background color (0,0,0)
         unique_colors = np.delete(unique_colors, 0, axis=0)
 
-        regions_center_raw_objects = []
-        regions_center_prev_objects_stat = []
-        regions_center_particles = []
-        regions_center_particles_stat = []
-        regions_features = []
+        mask_centeroid = []
+        mask_stat = []
+        connected_region_centroid = []
+        connected_region_stat = []
+        connected_region_features = []
         regions_color = []
         regions_coordinates = []
         multi_region_flag = False
@@ -107,12 +106,11 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
 
                 y0_cp, x0_cp = regions_cp[0].centroid
 
-                regions_center_raw_objects.append((x0_cp * pixel_per_micron, y0_cp * pixel_per_micron))
-                regions_center_prev_objects_stat.append('multi')
+                mask_centeroid.append((x0_cp * pixel_per_micron, y0_cp * pixel_per_micron))
+                mask_stat.append('multi')
 
                 # Separate regions
                 for region_ndx, region in enumerate(regions):
-
                     # fetching information
                     y0, x0 = region.centroid
                     orientation = region.orientation
@@ -120,11 +118,12 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
                     major_length = region.major_axis_length * pixel_per_micron
                     minor_length = region.minor_axis_length * pixel_per_micron
 
-                    regions_center_particles.append((x0 * pixel_per_micron, y0 * pixel_per_micron))
-                    regions_center_particles_stat.append('particle')
+                    connected_region_centroid.append((x0 * pixel_per_micron, y0 * pixel_per_micron))
+                    connected_region_stat.append('particle')
 
-                    regions_features.append({'center_x': x0 * pixel_per_micron, 'center_y': y0 * pixel_per_micron,
-                                             'orientation': orientation, 'major': major_length, 'minor': minor_length})
+                    connected_region_features.append(
+                        {'center_x': x0 * pixel_per_micron, 'center_y': y0 * pixel_per_micron,
+                         'orientation': orientation, 'major': major_length, 'minor': minor_length})
 
                     # Generate a new color that's not already in unique_colors
                     new_color = generate_new_color(all_colors)
@@ -140,41 +139,42 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
                 major_length = regions[0].major_axis_length * pixel_per_micron
                 minor_length = regions[0].minor_axis_length * pixel_per_micron
 
-                regions_center_raw_objects.append((x0 * pixel_per_micron, y0 * pixel_per_micron))
-                regions_center_particles.append((x0 * pixel_per_micron, y0 * pixel_per_micron))
+                mask_centeroid.append((x0 * pixel_per_micron, y0 * pixel_per_micron))
+                connected_region_centroid.append((x0 * pixel_per_micron, y0 * pixel_per_micron))
 
-                regions_center_prev_objects_stat.append('natural')
-                regions_center_particles_stat.append('natural')
+                mask_stat.append('natural')
+                connected_region_stat.append('natural')
 
-                regions_features.append({'center_x': x0 * pixel_per_micron, 'center_y': y0 * pixel_per_micron,
-                                         'orientation': orientation, 'major': major_length, 'minor': minor_length})
+                connected_region_features.append({'center_x': x0 * pixel_per_micron, 'center_y': y0 * pixel_per_micron,
+                                                  'orientation': orientation, 'major': major_length,
+                                                  'minor': minor_length})
 
                 regions_color.append(color)
                 regions_coordinates.append(regions[0].coords)
 
         # check objects
-        df_centers_raw_objects = pd.DataFrame(regions_center_raw_objects, columns=['center_x', 'center_y'])
-        df_centers_particles = pd.DataFrame(regions_center_particles, columns=['center_x', 'center_y'])
+        df_centers_masks = pd.DataFrame(mask_centeroid, columns=['center_x', 'center_y'])
+        df_centers_connected_regions = pd.DataFrame(connected_region_centroid, columns=['center_x', 'center_y'])
 
-        # rows: index from df_centers_raw_objects
+        # rows: index from df_centers_masks
         # columns: index of cp records
-        distance_df_raw_objects = \
+        distance_df_cp_masks = \
             pd.DataFrame(distance_matrix(
-                df_centers_raw_objects[['center_x', 'center_y']].values,
+                df_centers_masks[['center_x', 'center_y']].values,
                 current_df[[center_coord_cols['x'], center_coord_cols['y']]].values,
             ),
-                index=df_centers_raw_objects.index, columns=current_df.index)
+                index=df_centers_masks.index, columns=current_df.index)
 
-        distance_df_raw_objects_min_val_idx = distance_df_raw_objects.idxmin()
-        distance_df_raw_objects_min_val = distance_df_raw_objects.min()
+        distance_df_raw_objects_min_val_idx = distance_df_cp_masks.idxmin()
+        distance_df_raw_objects_min_val = distance_df_cp_masks.min()
 
         # Extracting corresponding values
-        regions_center_prev_stat = [regions_center_prev_objects_stat[i] for i in distance_df_raw_objects_min_val_idx]
-        regions_center_raw_x = [regions_center_raw_objects[i][0] for i in distance_df_raw_objects_min_val_idx]
-        regions_center_raw_y = [regions_center_raw_objects[i][1] for i in distance_df_raw_objects_min_val_idx]
+        regions_center_prev_stat = [mask_stat[i] for i in distance_df_raw_objects_min_val_idx]
+        regions_center_raw_x = [mask_centeroid[i][0] for i in distance_df_raw_objects_min_val_idx]
+        regions_center_raw_y = [mask_centeroid[i][1] for i in distance_df_raw_objects_min_val_idx]
 
         min_distance_prev_objects_df = pd.DataFrame({
-            'cp index': distance_df_raw_objects.columns,
+            'cp index': distance_df_cp_masks.columns,
             'row idx prev': distance_df_raw_objects_min_val_idx,
             'Cost prev': distance_df_raw_objects_min_val,
             'stat prev': regions_center_prev_stat,
@@ -184,16 +184,16 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
 
         if multi_region_flag:
 
-            distance_df_particles = pd.DataFrame(distance_matrix(
-                df_centers_particles[['center_x', 'center_y']].values,
+            distance_df_cp_connected_regions = pd.DataFrame(distance_matrix(
+                df_centers_connected_regions[['center_x', 'center_y']].values,
                 current_df[[center_coord_cols['x'], center_coord_cols['y']]].values,
             ),
-                index=df_centers_particles.index, columns=current_df.index)
+                index=df_centers_connected_regions.index, columns=current_df.index)
 
             df, coordinate_array, color_array = \
-                multi_region_correction(df, img_array, distance_df_particles, img_number,
-                                        regions_center_particles_stat, regions_center_particles, regions_color,
-                                        regions_coordinates, regions_features, all_rel_center_coord_cols,
+                multi_region_correction(df, img_array, distance_df_cp_connected_regions, img_number,
+                                        connected_region_stat, connected_region_centroid, regions_color,
+                                        regions_coordinates, connected_region_features, all_rel_center_coord_cols,
                                         parent_image_number_col, parent_object_number_col,
                                         min_distance_prev_objects_df, coordinate_array, color_array)
 

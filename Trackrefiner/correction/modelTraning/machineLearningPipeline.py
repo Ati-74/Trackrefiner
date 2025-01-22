@@ -144,7 +144,7 @@ def train_model(merged_df, feature_list, columns_to_scale, model_type, output_di
         remainder='passthrough'
     )
 
-    # Define the pipeline with SMOTE
+    # Define the pipeline
     pipeline = Pipeline(steps=[
         ('preprocessor', preprocessor),
         ('classifier', clf_dict[clf])
