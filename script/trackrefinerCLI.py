@@ -72,9 +72,9 @@ if __name__ == '__main__':
                         help="Enable warnings and detailed messages. Default: Enabled. "
                              "To set it to True, include '-v' in the command.")
 
-    parser.add_argument('-y', '--save_npy', action='store_true',
-                        help="Save results in .npy format. Default: Disabled. "
-                             "To enable saving as .npy, include '-y' in the command.")
+    parser.add_argument('-k', '--save_pickle', action='store_true',
+                        help="Save results in .pickle format. Default: Disabled. "
+                             "To enable saving as .pickle, include '-y' in the command.")
 
     # Parse the arguments
     args = parser.parse_args()
@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     clf = args.classifier.rstrip().lstrip()
     n_cpu = int(args.num_cpus)
-    save_npy = args.save_npy
+    save_pickle = args.save_pickle
 
     # run post-processing
     process_objects_data(cp_output_csv=cp_output_csv_file, segmentation_res_dir=segmentation_results_dir,
@@ -127,4 +127,4 @@ if __name__ == '__main__':
                          assigning_cell_type=assigning_cell_type, doubling_time=doubling_time_of_bacteria,
                          disable_tracking_correction=disable_tracking_correction, clf=clf, n_cpu=n_cpu,
                          image_boundaries=boundary_limits, dynamic_boundaries=dynamic_boundaries, out_dir=out_dir,
-                         save_npy=save_npy, verbose=verbose, command=command)
+                         save_pickle=save_pickle, verbose=verbose, command=command)

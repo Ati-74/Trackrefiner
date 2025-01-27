@@ -50,7 +50,7 @@ class TrackRefinerGUI(QWidget):
         # Segmentation Results Folder
         self.segmentation_results_dir = self.create_folder_input()
         self.add_tooltipped_widget("Segmentation Results Folder:",
-                                   "Path to folder containing .npy files generated from "
+                                   "Path to folder containing .pickle files generated from "
                                    "segmentation by CellProfiler.", self.segmentation_results_dir)
 
         # Neighbor CSV
@@ -139,7 +139,7 @@ class TrackRefinerGUI(QWidget):
         # Disable tracking correction and Verbose Output in one row
         self.disable_tracking_correction = self.create_checkbox()
         self.verbose = self.create_checkbox()
-        self.save_npy = self.create_checkbox()
+        self.save_pickle = self.create_checkbox()
         self.add_three_part_row(
             "Disable Tracking Correction",
             "Check to disable tracking correction on CellProfiler output.",
@@ -147,9 +147,9 @@ class TrackRefinerGUI(QWidget):
             "Verbose Output",
             "Check to enable detailed log messages.",
             self.verbose,
-            "Save in .npy format",
-            "Check to enable saving results in .npy format.",
-            self.save_npy
+            "Save in .pickle format",
+            "Check to enable saving results in .pickle format.",
+            self.save_pickle
         )
 
         # Output folder
@@ -369,7 +369,7 @@ class TrackRefinerGUI(QWidget):
             '--boundary-limits': self.boundary_limits.text().strip() if self.boundary_limits.text().strip() else None,
             '--dynamic-boundaries': get_text_or_none(self.dynamic_boundaries),
             '--output': get_text_or_none(self.out_dir),
-            '--save_npy': False if not self.save_npy.isChecked() else True,
+            '--save_pickle': False if not self.save_pickle.isChecked() else True,
             '--verbose': False if not self.verbose.isChecked() else True,
         }
 
@@ -435,7 +435,7 @@ class TrackRefinerGUI(QWidget):
             dynamic_boundaries=get_text_or_none(self.dynamic_boundaries),
             out_dir=get_text_or_none(self.out_dir),
             verbose=self.verbose.isChecked(),
-            save_npy=self.save_npy.isChecked(),
+            save_pickle=self.save_pickle.isChecked(),
             command=command
         )
 
