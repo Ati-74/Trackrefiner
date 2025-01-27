@@ -356,8 +356,8 @@
 <a class="viewcode-back" href="../modules.html#missingConnectivityLink.detect_and_resolve_missing_connectivity_link">[docs]</a>
 <span class="k">def</span> <span class="nf">detect_and_resolve_missing_connectivity_link</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_matrix</span><span class="p">,</span> <span class="n">doubling_time</span><span class="p">,</span>
                                                  <span class="n">interval_time</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
-                                                 <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">divided_vs_non_divided_model</span><span class="p">,</span>
-                                                 <span class="n">non_divided_model</span><span class="p">,</span> <span class="n">divided_bac_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">):</span>
+                                                 <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">division_vs_continuity_model</span><span class="p">,</span>
+                                                 <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">division_links_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Detect and resolve missing connectivity links in bacterial tracking data.</span>
 
@@ -383,11 +383,11 @@
 <span class="sd">    :param dict center_coord_cols:</span>
 <span class="sd">        Dictionary specifying the column names for x and y coordinates of bacterial centers.</span>
 <span class="sd">        Example: {&#39;x&#39;: &#39;Center_X&#39;, &#39;y&#39;: &#39;Center_Y&#39;}</span>
-<span class="sd">    :param sklearn.Model divided_vs_non_divided_model:</span>
+<span class="sd">    :param sklearn.Model division_vs_continuity_model:</span>
 <span class="sd">        Machine learning model used to compare divided and non-divided states for bacteria.</span>
-<span class="sd">    :param sklearn.Model non_divided_model:</span>
+<span class="sd">    :param sklearn.Model continuity_links_model:</span>
 <span class="sd">        Machine learning model used to evaluate candidate links for non-divided bacteria.</span>
-<span class="sd">    :param sklearn.Model divided_bac_model:</span>
+<span class="sd">    :param sklearn.Model division_links_model:</span>
 <span class="sd">        Machine learning model used to validate division links.</span>
 <span class="sd">    :param csr_matrix coordinate_array:</span>
 <span class="sd">        Array of spatial coordinates used for evaluating candidate links (calculation of IOU).</span>
@@ -483,19 +483,19 @@
 
                     <span class="n">maintenance_cost_df</span> <span class="o">=</span> \
                         <span class="n">calc_maintain_exist_link_cost</span><span class="p">(</span><span class="n">neighbors_source_bac</span><span class="p">,</span> <span class="n">neighbors_target_bac</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
-                                                      <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
+                                                      <span class="n">division_vs_continuity_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
                     <span class="c1"># try to detect division</span>
                     <span class="n">division_cost_df</span> <span class="o">=</span> \
                         <span class="n">division_detection_cost</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_matrix</span><span class="p">,</span> <span class="n">mcc_target_neighbors_features</span><span class="p">,</span>
                                                 <span class="n">min_life_history_of_bacteria_time_step</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
-                                                <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">divided_bac_model</span><span class="p">,</span>
-                                                <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
+                                                <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">division_links_model</span><span class="p">,</span>
+                                                <span class="n">division_vs_continuity_model</span><span class="p">,</span> <span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
                     <span class="n">new_link_cost_df</span> <span class="o">=</span> \
                         <span class="n">create_continuity_link_cost</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_matrix</span><span class="p">,</span> <span class="n">mcc_target_neighbors_features</span><span class="p">,</span>
                                                     <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
-                                                    <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">non_divided_model</span><span class="p">,</span>
-                                                    <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
+                                                    <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">continuity_links_model</span><span class="p">,</span>
+                                                    <span class="n">division_vs_continuity_model</span><span class="p">,</span> <span class="n">maintenance_cost_df</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
                     <span class="k">if</span> <span class="n">division_cost_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">new_link_cost_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 

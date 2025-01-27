@@ -888,14 +888,14 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">disable_tracking_correction</span><span class="p">:</span>
 
-        <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">non_divided_model</span><span class="p">,</span> <span class="n">division_model</span> <span class="o">=</span> \
+        <span class="n">division_vs_continuity_model</span><span class="p">,</span> <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">division_links_model</span> <span class="o">=</span> \
             <span class="n">train_bacterial_behavior_models</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_matrix</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
                                             <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">clf</span><span class="p">,</span> <span class="n">n_cpu</span><span class="p">,</span>
                                             <span class="n">coordinate_array</span><span class="p">)</span>
 
         <span class="c1"># more than two daughters</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">resolve_over_assigned_daughters_link</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
-                                                  <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">division_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
+                                                  <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">division_links_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
         <span class="n">df_raw_before_rpl_errors</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
@@ -912,8 +912,8 @@
 
         <span class="c1"># remove redundant links</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">detect_and_resolve_redundant_parent_link</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_matrix</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
-                                                      <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">non_divided_model</span><span class="p">,</span>
-                                                      <span class="n">coordinate_array</span><span class="p">)</span>
+                                                      <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
+                                                      <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
         <span class="n">end_tracking_errors_correction_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">end_tracking_errors_correction_time_str</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">,</span>
@@ -929,8 +929,8 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">detect_and_resolve_missing_connectivity_link</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_matrix</span><span class="p">,</span> <span class="n">doubling_time</span><span class="p">,</span>
                                                           <span class="n">interval_time</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
                                                           <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
-                                                          <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">non_divided_model</span><span class="p">,</span>
-                                                          <span class="n">division_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
+                                                          <span class="n">division_vs_continuity_model</span><span class="p">,</span> <span class="n">continuity_links_model</span><span class="p">,</span>
+                                                          <span class="n">division_links_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
         <span class="n">end_tracking_errors_correction_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">end_tracking_errors_correction_time_str</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">,</span>
@@ -947,8 +947,8 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">handle_unexpected_beginning_bacteria</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_matrix</span><span class="p">,</span>
                                                   <span class="n">interval_time</span><span class="p">,</span> <span class="n">doubling_time</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
                                                   <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
-                                                  <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">non_divided_model</span><span class="p">,</span>
-                                                  <span class="n">division_model</span><span class="p">,</span> <span class="n">color_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
+                                                  <span class="n">division_vs_continuity_model</span><span class="p">,</span> <span class="n">continuity_links_model</span><span class="p">,</span>
+                                                  <span class="n">division_links_model</span><span class="p">,</span> <span class="n">color_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
         <span class="n">end_tracking_errors_correction_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">end_tracking_errors_correction_time_str</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">,</span>
@@ -963,7 +963,7 @@
 
         <span class="n">df</span> <span class="o">=</span> <span class="n">handle_unexpected_end_bacteria</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_matrix</span><span class="p">,</span> <span class="n">interval_time</span><span class="p">,</span> <span class="n">doubling_time</span><span class="p">,</span>
                                             <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
-                                            <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">non_divided_model</span><span class="p">,</span> <span class="n">division_model</span><span class="p">,</span>
+                                            <span class="n">division_vs_continuity_model</span><span class="p">,</span> <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">division_links_model</span><span class="p">,</span>
                                             <span class="n">color_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
         <span class="n">end_tracking_errors_correction_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -979,7 +979,7 @@
 
         <span class="n">df</span> <span class="o">=</span> <span class="n">restore_tracking_links</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_matrix</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
                                     <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">df_raw_before_rpl_errors</span><span class="p">,</span>
-                                    <span class="n">non_divided_model</span><span class="p">,</span> <span class="n">division_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
+                                    <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">division_links_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
         <span class="c1"># remove noise objects</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;noise_bac&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

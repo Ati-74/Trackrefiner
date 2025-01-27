@@ -70,30 +70,30 @@ Module: bacterialBehaviorModelTraining
     :exclude-members:
 
 
-Module: mlModelDivisionVsNonDivision
-------------------------------------
+Module: mlModelDivisionVsContinuity
+-----------------------------------
 
-.. automodule:: mlModelDivisionVsNonDivision
+.. automodule:: mlModelDivisionVsContinuity
     :members:
     :undoc-members:
     :show-inheritance:
     :exclude-members:
 	
 	
-Module: mlModelNonDividedBacteria
----------------------------------
+Module: mlModelContinuity
+-------------------------
 
-.. automodule:: mlModelNonDividedBacteria
+.. automodule:: mlModelContinuity
     :members:
     :undoc-members:
     :show-inheritance:
     :exclude-members:
 	
 
-Module: mlModelDividedBacteria
-------------------------------
+Module: mlModelDivision
+-----------------------
 
-.. automodule:: mlModelDividedBacteria
+.. automodule:: mlModelDivision
     :members:
     :undoc-members:
     :show-inheritance:

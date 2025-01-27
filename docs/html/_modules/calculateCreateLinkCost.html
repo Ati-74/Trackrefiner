@@ -293,7 +293,7 @@
 <a class="viewcode-back" href="../modules.html#calculateCreateLinkCost.calc_division_link_cost">[docs]</a>
 <span class="k">def</span> <span class="nf">calc_division_link_cost</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">df_source_daughter</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
                             <span class="n">col_source</span><span class="p">,</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
-                            <span class="n">divided_bac_model</span><span class="p">,</span> <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">maintain_exist_link_cost_df</span><span class="p">,</span>
+                            <span class="n">division_links_model</span><span class="p">,</span> <span class="n">division_vs_continuity_model</span><span class="p">,</span> <span class="n">maintain_exist_link_cost_df</span><span class="p">,</span>
                             <span class="n">check_maintenance_for</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -304,8 +304,8 @@
 
 <span class="sd">    **Behavior**:</span>
 <span class="sd">    - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.</span>
-<span class="sd">    - Predicts division probabilities using a pre-trained model (`divided_bac_model`).</span>
-<span class="sd">    - Compares division and continuity probabilities using a comparison model (`divided_vs_non_divided_model`).</span>
+<span class="sd">    - Predicts division probabilities using a pre-trained model (`division_links_model`).</span>
+<span class="sd">    - Compares division and continuity probabilities using a comparison model (`division_vs_continuity_model`).</span>
 <span class="sd">    - Adjusts costs based on whether maintaining existing links is preferable.</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
@@ -327,9 +327,9 @@
 <span class="sd">        Column name for the parent image number.</span>
 <span class="sd">    :param str parent_object_number_col:</span>
 <span class="sd">        Column name for the parent object number.</span>
-<span class="sd">    :param sklearn.Model divided_bac_model:</span>
+<span class="sd">    :param sklearn.Model division_links_model:</span>
 <span class="sd">        Machine learning model to predict division probabilities.</span>
-<span class="sd">    :param sklearn.Model divided_vs_non_divided_model:</span>
+<span class="sd">    :param sklearn.Model division_vs_continuity_model:</span>
 <span class="sd">        Machine learning model used to compare divided and non-divided states for bacteria.</span>
 <span class="sd">    :param pandas.DataFrame maintain_exist_link_cost_df:</span>
 <span class="sd">        Cost of maintaining current links between bacteria.</span>
@@ -429,11 +429,11 @@
             <span class="s1">&#39;diff_common_diff&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">:</span> <span class="s1">&#39;diff_common_diff&#39;</span>
         <span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">feature_list_divided_bac_model</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span>
-                                      <span class="s1">&#39;angle_mother_daughter&#39;</span><span class="p">]</span>
+    <span class="n">feature_list_division_links_model</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;angle_mother_daughter&#39;</span><span class="p">]</span>
 
-    <span class="n">y_prob_divided_bac_model</span> <span class="o">=</span> <span class="n">divided_bac_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">df_source_daughter</span><span class="p">[</span><span class="n">feature_list_divided_bac_model</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;prob_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_divided_bac_model</span>
+    <span class="n">y_prob_division_links_model</span> <span class="o">=</span> \
+        <span class="n">division_links_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">df_source_daughter</span><span class="p">[</span><span class="n">feature_list_division_links_model</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;prob_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_division_links_model</span>
 
     <span class="c1"># difference_neighbors</span>
     <span class="n">feature_list_for_compare</span> <span class="o">=</span> \
@@ -442,10 +442,10 @@
 
     <span class="c1"># division is class 0</span>
     <span class="n">y_prob_compare</span> <span class="o">=</span> \
-        <span class="n">divided_vs_non_divided_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">df_source_daughter</span><span class="p">[</span><span class="n">feature_list_for_compare</span><span class="p">])[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">division_vs_continuity_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">df_source_daughter</span><span class="p">[</span><span class="n">feature_list_for_compare</span><span class="p">])[:,</span> <span class="mi">0</span><span class="p">]</span>
     <span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;prob_compare&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_compare</span>
 
-    <span class="k">if</span> <span class="n">divided_vs_non_divided_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">division_vs_continuity_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="n">df_source_daughter</span> <span class="o">=</span> <span class="n">df_source_daughter</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;prob_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">&amp;</span>
                                                     <span class="p">(</span><span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;prob_compare&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)]</span>
@@ -491,7 +491,7 @@
 <a class="viewcode-back" href="../modules.html#calculateCreateLinkCost.calc_continuity_link_cost">[docs]</a>
 <span class="k">def</span> <span class="nf">calc_continuity_link_cost</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">source_bac_with_can_target</span><span class="p">,</span>
                               <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">col_source</span><span class="p">,</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
-                              <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">non_divided_bac_model</span><span class="p">,</span> <span class="n">divided_vs_non_divided_model</span><span class="p">,</span>
+                              <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">division_vs_continuity_model</span><span class="p">,</span>
                               <span class="n">maintain_exist_link_cost_df</span><span class="p">,</span> <span class="n">check_maintenance_for</span><span class="o">=</span><span class="s1">&#39;target&#39;</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -502,8 +502,8 @@
 
 <span class="sd">    **Behavior**:</span>
 <span class="sd">    - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.</span>
-<span class="sd">    - Predicts continuity probabilities using a pre-trained model (`non_divided_bac_model`).</span>
-<span class="sd">    - Compares continuity and division probabilities using a comparison model (`divided_vs_non_divided_model`).</span>
+<span class="sd">    - Predicts continuity probabilities using a pre-trained model (`continuity_links_model`).</span>
+<span class="sd">    - Compares continuity and division probabilities using a comparison model (`division_vs_continuity_model`).</span>
 <span class="sd">    - Adjusts costs based on whether maintaining existing links is preferable.</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
@@ -525,9 +525,9 @@
 <span class="sd">        Column name for the parent image number.</span>
 <span class="sd">    :param str parent_object_number_col:</span>
 <span class="sd">        Column name for the parent object number.</span>
-<span class="sd">    :param sklearn.Model non_divided_bac_model:</span>
+<span class="sd">    :param sklearn.Model continuity_links_model:</span>
 <span class="sd">        Machine learning model to predict continuity probabilities.</span>
-<span class="sd">    :param sklearn.Model divided_vs_non_divided_model:</span>
+<span class="sd">    :param sklearn.Model division_vs_continuity_model:</span>
 <span class="sd">        Machine learning model used to compare divided and non-divided states for bacteria.</span>
 <span class="sd">    :param pandas.DataFrame maintain_exist_link_cost_df:</span>
 <span class="sd">        Cost of maintaining current links between bacteria.</span>
@@ -629,7 +629,7 @@
             <span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># difference_neighbors</span>
-        <span class="n">feature_list_for_non_divided_bac_model</span> <span class="o">=</span> \
+        <span class="n">feature_list_for_continuity_links_model</span> <span class="o">=</span> \
             <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;length_dynamic&#39;</span><span class="p">,</span> <span class="s1">&#39;MotionAlignmentAngle&#39;</span><span class="p">]</span>
 
         <span class="c1"># difference_neighbors</span>
@@ -637,14 +637,14 @@
             <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;direction_of_motion&#39;</span><span class="p">,</span> <span class="s1">&#39;MotionAlignmentAngle&#39;</span><span class="p">,</span>
              <span class="s1">&#39;LengthChangeRatio&#39;</span><span class="p">]</span>
 
-        <span class="n">y_prob_non_divided_bac_model</span> <span class="o">=</span> \
-            <span class="n">non_divided_bac_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">source_bac_with_can_target</span><span class="p">[</span>
-                                                    <span class="n">feature_list_for_non_divided_bac_model</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;prob_non_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_non_divided_bac_model</span>
+        <span class="n">y_prob_continuity_links_model</span> <span class="o">=</span> \
+            <span class="n">continuity_links_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">source_bac_with_can_target</span><span class="p">[</span>
+                                                    <span class="n">feature_list_for_continuity_links_model</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;prob_non_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_continuity_links_model</span>
 
         <span class="c1"># non divided class 1</span>
         <span class="n">y_prob_compare</span> <span class="o">=</span> \
-            <span class="n">divided_vs_non_divided_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">source_bac_with_can_target</span><span class="p">[</span>
+            <span class="n">division_vs_continuity_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">source_bac_with_can_target</span><span class="p">[</span>
                                                                   <span class="n">feature_list_for_compare</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
         <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;prob_compare&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_compare</span>
 
@@ -702,7 +702,7 @@
 <a class="viewcode-back" href="../modules.html#calculateCreateLinkCost.calc_division_link_cost_for_restoring_links">[docs]</a>
 <span class="k">def</span> <span class="nf">calc_division_link_cost_for_restoring_links</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">df_source_daughter</span><span class="p">,</span>
                                                 <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">col_source</span><span class="p">,</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
-                                                <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">divided_bac_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">):</span>
+                                                <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">division_links_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the cost of restoring division links between a source bacterium and its potential daughter</span>
@@ -712,7 +712,7 @@
 
 <span class="sd">    **Behavior**:</span>
 <span class="sd">    - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.</span>
-<span class="sd">    - Predicts division probabilities using a pre-trained model (`divided_bac_model`).</span>
+<span class="sd">    - Predicts division probabilities using a pre-trained model (`division_links_model`).</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
 <span class="sd">        Full DataFrame containing bacterial features for the current time step.</span>
@@ -733,7 +733,7 @@
 <span class="sd">        Column name for the parent image number.</span>
 <span class="sd">    :param str parent_object_number_col:</span>
 <span class="sd">        Column name for the parent object number.</span>
-<span class="sd">    :param sklearn.Model divided_bac_model:</span>
+<span class="sd">    :param sklearn.Model division_links_model:</span>
 <span class="sd">        Machine learning model to predict division probabilities.</span>
 <span class="sd">    :param csr_matrix coordinate_array:</span>
 <span class="sd">        spatial coordinate matrix for neighborhood and overlap calculations.</span>
@@ -837,11 +837,11 @@
         <span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># &#39;difference_neighbors&#39;</span>
-    <span class="n">feature_list_divided_bac_model</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span>
-                                      <span class="s1">&#39;angle_mother_daughter&#39;</span><span class="p">]</span>
+    <span class="n">feature_list_division_links_model</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;angle_mother_daughter&#39;</span><span class="p">]</span>
 
-    <span class="n">y_prob_divided_bac_model</span> <span class="o">=</span> <span class="n">divided_bac_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">df_source_daughter</span><span class="p">[</span><span class="n">feature_list_divided_bac_model</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;prob_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_divided_bac_model</span>
+    <span class="n">y_prob_division_links_model</span> <span class="o">=</span> \
+        <span class="n">division_links_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">df_source_daughter</span><span class="p">[</span><span class="n">feature_list_division_links_model</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;prob_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_division_links_model</span>
 
     <span class="n">df_source_daughter</span> <span class="o">=</span> <span class="n">df_source_daughter</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_source_daughter</span><span class="p">[</span><span class="s1">&#39;prob_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">]</span>
 
@@ -867,7 +867,7 @@
 <span class="k">def</span> <span class="nf">calc_continuity_link_cost_for_restoring_links</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">source_bac_with_can_target</span><span class="p">,</span>
                                                   <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">col_source</span><span class="p">,</span> <span class="n">col_target</span><span class="p">,</span>
                                                   <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
-                                                  <span class="n">non_divided_bac_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                                                  <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the cost of restoring continuity link between a source bacterium and its potential UB target bacterium.</span>
@@ -877,7 +877,7 @@
 
 <span class="sd">    **Behavior**:</span>
 <span class="sd">    - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.</span>
-<span class="sd">    - Predicts continuity probabilities using a pre-trained model (`non_divided_bac_model`).</span>
+<span class="sd">    - Predicts continuity probabilities using a pre-trained model (`continuity_links_model`).</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
 <span class="sd">        Full DataFrame containing bacterial features for the current time step.</span>
@@ -898,7 +898,7 @@
 <span class="sd">        Column name for the parent image number.</span>
 <span class="sd">    :param str parent_object_number_col:</span>
 <span class="sd">        Column name for the parent object number.</span>
-<span class="sd">    :param sklearn.Model non_divided_bac_model:</span>
+<span class="sd">    :param sklearn.Model continuity_links_model:</span>
 <span class="sd">        Machine learning model to predict continuity probabilities.`.</span>
 <span class="sd">    :param csr_matrix coordinate_array:</span>
 <span class="sd">        spatial coordinate matrix for neighborhood and overlap calculations.</span>
@@ -992,13 +992,13 @@
             <span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># difference_neighbors</span>
-        <span class="n">feature_list_for_non_divided_bac_model</span> <span class="o">=</span> \
+        <span class="n">feature_list_for_continuity_links_model</span> <span class="o">=</span> \
             <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;length_dynamic&#39;</span><span class="p">,</span> <span class="s1">&#39;MotionAlignmentAngle&#39;</span><span class="p">]</span>
 
-        <span class="n">y_prob_non_divided_bac_model</span> <span class="o">=</span> \
-            <span class="n">non_divided_bac_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">source_bac_with_can_target</span><span class="p">[</span>
-                                                    <span class="n">feature_list_for_non_divided_bac_model</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;prob_non_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_non_divided_bac_model</span>
+        <span class="n">y_prob_continuity_links_model</span> <span class="o">=</span> \
+            <span class="n">continuity_links_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">source_bac_with_can_target</span><span class="p">[</span>
+                                                    <span class="n">feature_list_for_continuity_links_model</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;prob_non_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_continuity_links_model</span>
 
         <span class="n">source_bac_with_can_target</span> <span class="o">=</span> \
             <span class="n">source_bac_with_can_target</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">source_bac_with_can_target</span><span class="p">[</span><span class="s1">&#39;prob_non_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">&amp;</span>

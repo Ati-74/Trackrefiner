@@ -249,7 +249,7 @@
 <div class="viewcode-block" id="detect_and_resolve_redundant_parent_link">
 <a class="viewcode-back" href="../modules.html#redundantParentLink.detect_and_resolve_redundant_parent_link">[docs]</a>
 <span class="k">def</span> <span class="nf">detect_and_resolve_redundant_parent_link</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
-                                             <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">non_divided_model</span><span class="p">,</span>
+                                             <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">continuity_links_model</span><span class="p">,</span>
                                              <span class="n">coordinate_array</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -270,7 +270,7 @@
 <span class="sd">    :param dict center_coord_cols:</span>
 <span class="sd">        Dictionary specifying column names for bacterial centroid coordinates</span>
 <span class="sd">        (e.g., `{&quot;x&quot;: &quot;Center_X&quot;, &quot;y&quot;: &quot;Center_Y&quot;}`).</span>
-<span class="sd">    :param sklearn.Model non_divided_model:</span>
+<span class="sd">    :param sklearn.Model continuity_links_model:</span>
 <span class="sd">        Machine learning model used to evaluate which target bacterium the source bacterium should link to in order to</span>
 <span class="sd">         continue its life history.</span>
 <span class="sd">    :param csr_matrix coordinate_array:</span>
@@ -391,7 +391,7 @@
                 <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;length_dynamic&#39;</span><span class="p">,</span> <span class="s1">&#39;MotionAlignmentAngle&#39;</span><span class="p">]</span>
 
             <span class="n">y_prob_non_divided_bac_model</span> <span class="o">=</span> \
-                <span class="n">non_divided_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span>
+                <span class="n">continuity_links_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span>
                     <span class="n">source_bac_with_rpl</span><span class="p">[</span><span class="n">feature_list_for_non_divided_bac_model</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
 
             <span class="n">source_bac_with_rpl</span><span class="p">[</span><span class="s1">&#39;prob_non_divided_bac_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_non_divided_bac_model</span>

@@ -244,7 +244,7 @@
 <div class="viewcode-block" id="resolve_over_assigned_daughters_link">
 <a class="viewcode-back" href="../modules.html#overAssignedDaughters.resolve_over_assigned_daughters_link">[docs]</a>
 <span class="k">def</span> <span class="nf">resolve_over_assigned_daughters_link</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
-                                         <span class="n">divided_bac_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">):</span>
+                                         <span class="n">division_links_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function identifies parent bacteria with over-assigned daughter links (OAD), evaluates</span>
@@ -262,7 +262,7 @@
 <span class="sd">    :param dict center_coord_cols:</span>
 <span class="sd">        Dictionary specifying column names for bacterial centroid coordinates</span>
 <span class="sd">        (e.g., `{&quot;x&quot;: &quot;Center_X&quot;, &quot;y&quot;: &quot;Center_Y&quot;}`).</span>
-<span class="sd">    :param sklearn.Model divided_bac_model:</span>
+<span class="sd">    :param sklearn.Model division_links_model:</span>
 <span class="sd">        Machine learning model used to evaluate the probability of valid division links.</span>
 <span class="sd">    :param csr_matrix coordinate_array:</span>
 <span class="sd">        Array of spatial coordinates used for evaluating spatial relationships.</span>
@@ -326,7 +326,7 @@
             <span class="c1"># difference_neighbors</span>
             <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;angle_mother_daughter&#39;</span><span class="p">]</span>
 
-            <span class="n">y_prob_compare_division</span> <span class="o">=</span> <span class="n">divided_bac_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="n">feature_list</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">y_prob_compare_division</span> <span class="o">=</span> <span class="n">division_links_model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="n">feature_list</span><span class="p">])[:,</span> <span class="mi">1</span><span class="p">]</span>
 
             <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;prob_compare&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_prob_compare_division</span>
 

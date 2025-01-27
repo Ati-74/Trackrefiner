@@ -247,7 +247,7 @@
 <span id="module-processcellprofilerdata"></span><h2>Module: processCellProfilerData<a class="headerlink" href="#module-processCellProfilerData" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="processCellProfilerData.process_objects_data">
-<span class="sig-prename descclassname"><span class="pre">processCellProfilerData.</span></span><span class="sig-name descname"><span class="pre">process_objects_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cp_output_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentation_res_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elongation_rate_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_per_micron</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assigning_cell_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disable_tracking_correction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_npy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/processCellProfilerData.html#process_objects_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#processCellProfilerData.process_objects_data" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">processCellProfilerData.</span></span><span class="sig-name descname"><span class="pre">process_objects_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cp_output_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentation_res_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_csv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elongation_rate_method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pixel_per_micron</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assigning_cell_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity_threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">disable_tracking_correction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_pickle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/processCellProfilerData.html#process_objects_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#processCellProfilerData.process_objects_data" title="Link to this definition">¶</a></dt>
 <dd><p>Processes CellProfiler output data, performs tracking correction, assigns cell types,
 and calculates additional features related to the life history of bacteria.</p>
 <dl class="field-list simple">
@@ -273,7 +273,7 @@ Options: ‘LogisticRegression’, ‘GaussianProcessClassifier’, ‘C-Support
 <li><p><strong>image_boundaries</strong> (<em>str</em>) – Boundary limits defined for all time steps to filter out objects outside the image area.</p></li>
 <li><p><strong>dynamic_boundaries</strong> (<em>str</em>) – Path to a CSV file specifying boundary limits for each time step. The file should contain columns:
 <cite>Time Step</cite>, <cite>Lower X Limit</cite>, <cite>Upper X Limit</cite>, <cite>Lower Y Limit</cite>, <cite>Upper Y Limit</cite>.</p></li>
-<li><p><strong>save_npy</strong> (<em>bool</em>) – If True, results are saved in <cite>.npy</cite> format.</p></li>
+<li><p><strong>save_pickle</strong> (<em>bool</em>) – If True, results are saved in <cite>.pickle</cite> format.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – If True, displays warnings and additional details during processing.</p></li>
 <li><p><strong>command</strong> (<em>str</em>) – User’s Command Statement</p></li>
 </ul>
@@ -742,9 +742,9 @@ and distinguishing between divided and non-divided bacteria.</p>
 <dl class="simple">
 <dt><strong>Returns</strong>:</dt><dd><dl class="simple">
 <dt>tuple: Three trained machine learning models:</dt><dd><ul class="simple">
-<li><p><strong>divided_vs_non_divided_model</strong>: Model to distinguish between dividing and non-dividing bacteria.</p></li>
-<li><p><strong>non_divided_model</strong>: Model to predict the behavior of non-dividing bacteria.</p></li>
-<li><p><strong>divided_bac_model</strong>: Model to analyze the characteristics of dividing bacteria.</p></li>
+<li><p><strong>division_vs_continuity_model</strong>: Model to distinguish between division and continuity links.</p></li>
+<li><p><strong>continuity_links_model</strong>: Model to predict the behavior of continuity links.</p></li>
+<li><p><strong>division_links_model</strong>: Model to analyze the characteristics of division links.</p></li>
 </ul>
 </dd>
 </dl>
@@ -753,11 +753,11 @@ and distinguishing between divided and non-divided bacteria.</p>
 </dd></dl>
 
 </section>
-<section id="module-mlModelDivisionVsNonDivision">
-<span id="module-mlmodeldivisionvsnondivision"></span><h2>Module: mlModelDivisionVsNonDivision<a class="headerlink" href="#module-mlModelDivisionVsNonDivision" title="Link to this heading">¶</a></h2>
+<section id="module-mlModelDivisionVsContinuity">
+<span id="module-mlmodeldivisionvscontinuity"></span><h2>Module: mlModelDivisionVsContinuity<a class="headerlink" href="#module-mlModelDivisionVsContinuity" title="Link to this heading">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="mlModelDivisionVsNonDivision.train_division_vs_non_division_model">
-<span class="sig-prename descclassname"><span class="pre">mlModelDivisionVsNonDivision.</span></span><span class="sig-name descname"><span class="pre">train_division_vs_non_division_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connected_bac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlModelDivisionVsNonDivision.html#train_division_vs_non_division_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlModelDivisionVsNonDivision.train_division_vs_non_division_model" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mlModelDivisionVsContinuity.train_division_vs_continuity_model">
+<span class="sig-prename descclassname"><span class="pre">mlModelDivisionVsContinuity.</span></span><span class="sig-name descname"><span class="pre">train_division_vs_continuity_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connected_bac</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlModelDivisionVsContinuity.html#train_division_vs_continuity_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlModelDivisionVsContinuity.train_division_vs_continuity_model" title="Link to this definition">¶</a></dt>
 <dd><p>Constructs a machine learning model to compare divided and non-divided bacteria.
 The model uses features such as movement, spatial relationships, neighbor changes,
 and bacterial morphology to classify each instance.</p>
@@ -798,11 +798,11 @@ and bacterial morphology to classify each instance.</p>
 </dd></dl>
 
 </section>
-<section id="module-mlModelNonDividedBacteria">
-<span id="module-mlmodelnondividedbacteria"></span><h2>Module: mlModelNonDividedBacteria<a class="headerlink" href="#module-mlModelNonDividedBacteria" title="Link to this heading">¶</a></h2>
+<section id="module-mlModelContinuity">
+<span id="module-mlmodelcontinuity"></span><h2>Module: mlModelContinuity<a class="headerlink" href="#module-mlModelContinuity" title="Link to this heading">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="mlModelNonDividedBacteria.train_non_divided_bacteria_model">
-<span class="sig-prename descclassname"><span class="pre">mlModelNonDividedBacteria.</span></span><span class="sig-name descname"><span class="pre">train_non_divided_bacteria_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected_bac_high_chance_to_be_correct_with_neighbors_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlModelNonDividedBacteria.html#train_non_divided_bacteria_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlModelNonDividedBacteria.train_non_divided_bacteria_model" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mlModelContinuity.train_continuity_links_model">
+<span class="sig-prename descclassname"><span class="pre">mlModelContinuity.</span></span><span class="sig-name descname"><span class="pre">train_continuity_links_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected_bac_high_chance_to_be_correct_with_neighbors_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlModelContinuity.html#train_continuity_links_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlModelContinuity.train_continuity_links_model" title="Link to this definition">¶</a></dt>
 <dd><p>Constructs a machine learning model to predict whether a bacterium will continue its life history.</p>
 <dl class="simple">
 <dt><strong>Workflow</strong>:</dt><dd><ul class="simple">
@@ -841,11 +841,11 @@ and bacterial morphology to classify each instance.</p>
 </dd></dl>
 
 </section>
-<section id="module-mlModelDividedBacteria">
-<span id="module-mlmodeldividedbacteria"></span><h2>Module: mlModelDividedBacteria<a class="headerlink" href="#module-mlModelDividedBacteria" title="Link to this heading">¶</a></h2>
+<section id="module-mlModelDivision">
+<span id="module-mlmodeldivision"></span><h2>Module: mlModelDivision<a class="headerlink" href="#module-mlModelDivision" title="Link to this heading">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="mlModelDividedBacteria.train_divided_bacteria_model">
-<span class="sig-prename descclassname"><span class="pre">mlModelDividedBacteria.</span></span><span class="sig-name descname"><span class="pre">train_divided_bacteria_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected_bac_high_chance_to_be_correct_with_neighbors_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlModelDividedBacteria.html#train_divided_bacteria_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlModelDividedBacteria.train_divided_bacteria_model" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mlModelDivision.train_division_links_model">
+<span class="sig-prename descclassname"><span class="pre">mlModelDivision.</span></span><span class="sig-name descname"><span class="pre">train_division_links_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected_bac_high_chance_to_be_correct_with_neighbors_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cpu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mlModelDivision.html#train_division_links_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mlModelDivision.train_division_links_model" title="Link to this definition">¶</a></dt>
 <dd><p>Constructs a machine learning model to predict whether a bacterium will divide and be born daughters.</p>
 <dl class="simple">
 <dt><strong>Workflow</strong>:</dt><dd><ul class="simple">
@@ -890,35 +890,134 @@ and bacterial morphology to classify each instance.</p>
 <section id="module-machineLearningPipeline">
 <span id="module-machinelearningpipeline"></span><h2>Module: machineLearningPipeline<a class="headerlink" href="#module-machineLearningPipeline" title="Link to this heading">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="machineLearningPipeline.log_model_performance">
-<span class="sig-prename descclassname"><span class="pre">machineLearningPipeline.</span></span><span class="sig-name descname"><span class="pre">log_model_performance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_class_prob_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">specificity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensitivity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_importance_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_positive</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_negative</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machineLearningPipeline.html#log_model_performance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machineLearningPipeline.log_model_performance" title="Link to this definition">¶</a></dt>
-<dd><p>Logs the performance metrics of a machine learning model and saves the results to files,
-including a probability distribution plot and a text log file.
-This function is designed to provide detailed insights into the model’s performance and feature importance.</p>
+<dt class="sig sig-object py" id="machineLearningPipeline.draw_kde_plot">
+<span class="sig-prename descclassname"><span class="pre">machineLearningPipeline.</span></span><span class="sig-name descname"><span class="pre">draw_kde_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos_class_prob_values_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machineLearningPipeline.html#draw_kde_plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machineLearningPipeline.draw_kde_plot" title="Link to this definition">¶</a></dt>
+<dd><p>Draws and saves a KDE plot for the probability distributions of positive class probabilities across different
+trainings (Training on all data, Training on train split, Evaluation on test split).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>output_directory</strong> (<em>str</em>) – The directory where output files, including performance logs and plots, will be saved.
-A subdirectory named ML/ is created if it does not already exist.</p></li>
-<li><p><strong>model_type</strong> (<em>str</em>) – Descriptive name of model (divided_vs_non_divided, non_divided, divided)</p></li>
-<li><p><strong>pos_class_prob_values</strong> (<em>np.ndarray</em>) – Predicted probabilities for the positive class from the trained model.</p></li>
-<li><p><strong>accuracy</strong> (<em>float</em>) – Overall accuracy of the model, calculated as (TP + TN) / (TP + TN + FP + FN).</p></li>
-<li><p><strong>specificity</strong> (<em>float</em>) – Model specificity, calculated as TN / (TN + FP).</p></li>
-<li><p><strong>sensitivity</strong> (<em>float</em>) – Model sensitivity (recall), calculated as TP / (TP + FN).</p></li>
-<li><p><strong>feature_importance_df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing feature names and their respective weights or importances.
-Empty if the model does not support feature importance extraction.</p></li>
-<li><p><strong>tp</strong> (<em>int</em>) – Count of true positive predictions.</p></li>
-<li><p><strong>tn</strong> (<em>int</em>) – Count of true negative predictions.</p></li>
-<li><p><strong>fp</strong> (<em>int</em>) – Count of false positive predictions.</p></li>
-<li><p><strong>fn</strong> (<em>int</em>) – Count of false negative predictions.</p></li>
-<li><p><strong>clf</strong> (<em>str</em>) – Name of the classifier used for the analysis.</p></li>
-<li><p><strong>n_positive</strong> (<em>int</em>) – Total number of positive samples (links exist in dataframe) in the dataset.</p></li>
-<li><p><strong>n_negative</strong> (<em>int</em>) – Total number of negative samples (synthetic links between targets and neighbors of sources) in the dataset.</p></li>
+<li><p><strong>pos_class_prob_values_dict</strong> (<em>dict</em>) – A dictionary where keys represent training type and values are arrays of
+positive class probabilities for the respective class.</p></li>
+<li><p><strong>model_type</strong> (<em>str</em>) – Descriptive name of the model type (e.g., division_vs_continuity).</p></li>
+<li><p><strong>clf</strong> (<em>str</em>) – Name of the classifier used.</p></li>
+<li><p><strong>output_directory</strong> (<em>str</em>) – Directory where the plot will be saved.</p></li>
+<li><p><strong>dsc</strong> (<em>str</em>) – Description for the data being plotted.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="simple">
-<dt><strong>Returns</strong>:</dt><dd><p>None</p>
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="machineLearningPipeline.extract_feature_importance">
+<span class="sig-prename descclassname"><span class="pre">machineLearningPipeline.</span></span><span class="sig-name descname"><span class="pre">extract_feature_importance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pipeline</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machineLearningPipeline.html#extract_feature_importance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machineLearningPipeline.extract_feature_importance" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts feature importance or weights from a trained machine learning pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pipeline</strong> (<em>sklearn.pipeline.Pipeline</em>) – Trained machine learning pipeline.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame with columns ‘Feature’ and ‘Weight’, representing feature names
+and their corresponding weights/importance. Returns an empty DataFrame if the
+classifier does not support feature importance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="machineLearningPipeline.extract_positive_class_probability_values">
+<span class="sig-prename descclassname"><span class="pre">machineLearningPipeline.</span></span><span class="sig-name descname"><span class="pre">extract_positive_class_probability_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pipeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machineLearningPipeline.html#extract_positive_class_probability_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machineLearningPipeline.extract_positive_class_probability_values" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts the positive class probability values from a trained model pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pipeline</strong> (<em>sklearn.pipeline.Pipeline</em>) – Trained machine learning pipeline.</p></li>
+<li><p><strong>x_dat</strong> (<em>pandas.DataFrame</em>) – DataFrame containing feature data.</p></li>
+<li><p><strong>dat</strong> (<em>pandas.DataFrame</em>) – DataFrame containing additional data, including real labels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray containing the positive class probability values for the positive class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="machineLearningPipeline.log_model_performance">
+<span class="sig-prename descclassname"><span class="pre">machineLearningPipeline.</span></span><span class="sig-name descname"><span class="pre">log_model_performance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_directory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos_class_prob_values_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pref_measures_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_importance_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_full_pos_neg_class_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clas_names</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machineLearningPipeline.html#log_model_performance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machineLearningPipeline.log_model_performance" title="Link to this definition">¶</a></dt>
+<dd><p>Logs the performance metrics of a machine learning model and saves the results to files,
+including a probability distribution plot and a text log file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_directory</strong> (<em>str</em>) – Directory where output files, including performance logs and plots, will be saved.</p></li>
+<li><p><strong>model_type</strong> (<em>str</em>) – Descriptive name of model (division_vs_continuity, continuity, division)</p></li>
+<li><p><strong>pos_class_prob_values_dict</strong> (<em>dict</em>) – Dictionary containing positive class probabilities for different sets (Training on all data,
+Training on train split, Evaluation on test split).</p></li>
+<li><p><strong>pref_measures_dict</strong> (<em>dict</em>) – Dictionary of performance measures for each dataset.</p></li>
+<li><p><strong>feature_importance_df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing feature names and their importances or weights.</p></li>
+<li><p><strong>clf</strong> (<em>str</em>) – Name of the classifier used.</p></li>
+<li><p><strong>num_full_pos_neg_class_samples</strong> (<em>dict</em>) – Dictionary with sample counts for positive and negative classes across trainings (
+Training on all data, Training on train split, Evaluation on test split).</p></li>
+<li><p><strong>dsc</strong> (<em>str</em>) – Description for the data being evaluated.</p></li>
+<li><p><strong>clas_names</strong> (<em>list</em>) – List of class names used in performance metrics.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="machineLearningPipeline.make_full_data">
+<span class="sig-prename descclassname"><span class="pre">machineLearningPipeline.</span></span><span class="sig-name descname"><span class="pre">make_full_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_dat</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machineLearningPipeline.html#make_full_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machineLearningPipeline.make_full_data" title="Link to this definition">¶</a></dt>
+<dd><p>Combines feature data and target labels into a single DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_dat</strong> (<em>pandas.DataFrame</em>) – DataFrame containing feature data.</p></li>
+<li><p><strong>y_dat</strong> (<em>pandas.Series</em>) – Series containing target labels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas.DataFrame with an added ‘real_label’ column containing target labels.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="machineLearningPipeline.numb_positive_negative_class_samples">
+<span class="sig-prename descclassname"><span class="pre">machineLearningPipeline.</span></span><span class="sig-name descname"><span class="pre">numb_positive_negative_class_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machineLearningPipeline.html#numb_positive_negative_class_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machineLearningPipeline.numb_positive_negative_class_samples" title="Link to this definition">¶</a></dt>
+<dd><p>Counts the number of positive and negative samples in a DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing a ‘real_label’ column with class labels.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple (n_negative, n_positive) with counts of negative and positive samples.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="machineLearningPipeline.performance_calculation">
+<span class="sig-prename descclassname"><span class="pre">machineLearningPipeline.</span></span><span class="sig-name descname"><span class="pre">performance_calculation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_dat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_predicted</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/machineLearningPipeline.html#performance_calculation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#machineLearningPipeline.performance_calculation" title="Link to this definition">¶</a></dt>
+<dd><p>Calculates performance metrics including accuracy, specificity, and sensitivity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_dat</strong> (<em>numpy.ndarray</em>) – True labels.</p></li>
+<li><p><strong>y_predicted</strong> (<em>numpy.ndarray</em>) – Predicted labels.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of performance metrics [tn, fp, fn, tp, accuracy, specificity, sensitivity].</p>
 </dd>
 </dl>
 </dd></dl>
@@ -936,7 +1035,7 @@ accuracy, specificity, and sensitivity.</p>
 The target labels are expected to be in a column named <cite>label</cite>.</p></li>
 <li><p><strong>feature_list</strong> (<em>list</em>) – A list of column names in merged_df representing the features used for training.</p></li>
 <li><p><strong>columns_to_scale</strong> (<em>list</em>) – A list of feature columns in merged_df that should be scaled using StandardScaler.</p></li>
-<li><p><strong>model_type</strong> (<em>str</em>) – Descriptive name of model (divided_vs_non_divided, non_divided, divided)</p></li>
+<li><p><strong>model_type</strong> (<em>str</em>) – Descriptive name of model (division_vs_continuity, continuity, division)</p></li>
 <li><p><strong>output_directory</strong> (<em>str</em>) – The directory where output files, including performance logs and plots, will be saved.</p></li>
 <li><p><strong>clf</strong> (<em>str</em>) – <dl class="simple">
 <dt>The name of the classifier to use. Supported classifiers include:</dt><dd><ul>
@@ -1100,7 +1199,7 @@ Otherwise, returns NaN.</p>
 <span id="module-overassigneddaughters"></span><h2>Module: overAssignedDaughters<a class="headerlink" href="#module-overAssignedDaughters" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="overAssignedDaughters.resolve_over_assigned_daughters_link">
-<span class="sig-prename descclassname"><span class="pre">overAssignedDaughters.</span></span><span class="sig-name descname"><span class="pre">resolve_over_assigned_daughters_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overAssignedDaughters.html#resolve_over_assigned_daughters_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overAssignedDaughters.resolve_over_assigned_daughters_link" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">overAssignedDaughters.</span></span><span class="sig-name descname"><span class="pre">resolve_over_assigned_daughters_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/overAssignedDaughters.html#resolve_over_assigned_daughters_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#overAssignedDaughters.resolve_over_assigned_daughters_link" title="Link to this definition">¶</a></dt>
 <dd><p>This function identifies parent bacteria with over-assigned daughter links (OAD), evaluates
 the validity of these links using a machine learning model, and resolves the issue by:
 - Removing invalid daughter links.
@@ -1114,7 +1213,7 @@ the validity of these links using a machine learning model, and resolves the iss
 <li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object numbers.</p></li>
 <li><p><strong>center_coord_cols</strong> (<em>dict</em>) – Dictionary specifying column names for bacterial centroid coordinates
 (e.g., <cite>{“x”: “Center_X”, “y”: “Center_Y”}</cite>).</p></li>
-<li><p><strong>divided_bac_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to evaluate the probability of valid division links.</p></li>
+<li><p><strong>division_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to evaluate the probability of valid division links.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – Array of spatial coordinates used for evaluating spatial relationships.</p></li>
 </ul>
 </dd>
@@ -1128,7 +1227,7 @@ the validity of these links using a machine learning model, and resolves the iss
 <span id="module-redundantparentlink"></span><h2>Module: redundantParentLink<a class="headerlink" href="#module-redundantParentLink" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="redundantParentLink.detect_and_resolve_redundant_parent_link">
-<span class="sig-prename descclassname"><span class="pre">redundantParentLink.</span></span><span class="sig-name descname"><span class="pre">detect_and_resolve_redundant_parent_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/redundantParentLink.html#detect_and_resolve_redundant_parent_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#redundantParentLink.detect_and_resolve_redundant_parent_link" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">redundantParentLink.</span></span><span class="sig-name descname"><span class="pre">detect_and_resolve_redundant_parent_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuity_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/redundantParentLink.html#detect_and_resolve_redundant_parent_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#redundantParentLink.detect_and_resolve_redundant_parent_link" title="Link to this definition">¶</a></dt>
 <dd><p>Detects and resolves redundant parent links (RPL) in bacterial lineage tracking by evaluating mother-daughter
 relationships based on geometric, motion, and neighbor-based features.
 This function performs iterative checks to detect RPLs.</p>
@@ -1142,7 +1241,7 @@ This function performs iterative checks to detect RPLs.</p>
 <li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name in <cite>df</cite> for the parent bacterium’s object number.</p></li>
 <li><p><strong>center_coord_cols</strong> (<em>dict</em>) – Dictionary specifying column names for bacterial centroid coordinates
 (e.g., <cite>{“x”: “Center_X”, “y”: “Center_Y”}</cite>).</p></li>
-<li><p><strong>non_divided_model</strong> (<em>sklearn.Model</em>) – <dl class="simple">
+<li><p><strong>continuity_links_model</strong> (<em>sklearn.Model</em>) – <dl class="simple">
 <dt>Machine learning model used to evaluate which target bacterium the source bacterium should link to in order to</dt><dd><p>continue its life history.</p>
 </dd>
 </dl>
@@ -1163,7 +1262,7 @@ This function performs iterative checks to detect RPLs.</p>
 <span id="module-missingconnectivitylink"></span><h2>Module: missingConnectivityLink<a class="headerlink" href="#module-missingConnectivityLink" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="missingConnectivityLink.detect_and_resolve_missing_connectivity_link">
-<span class="sig-prename descclassname"><span class="pre">missingConnectivityLink.</span></span><span class="sig-name descname"><span class="pre">detect_and_resolve_missing_connectivity_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_vs_non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/missingConnectivityLink.html#detect_and_resolve_missing_connectivity_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#missingConnectivityLink.detect_and_resolve_missing_connectivity_link" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">missingConnectivityLink.</span></span><span class="sig-name descname"><span class="pre">detect_and_resolve_missing_connectivity_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_vs_continuity_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuity_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/missingConnectivityLink.html#detect_and_resolve_missing_connectivity_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#missingConnectivityLink.detect_and_resolve_missing_connectivity_link" title="Link to this definition">¶</a></dt>
 <dd><p>Detect and resolve missing connectivity links in bacterial tracking data.</p>
 <p>This function identifies missing connectivity links in bacterial tracking, finds candidate
 sources for linking with target bacteria, and evaluates candidates based on statistical
@@ -1181,9 +1280,9 @@ found, the function modifies the tracking data to establish new links.</p>
 <li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object number in the dataframe.</p></li>
 <li><p><strong>center_coord_cols</strong> (<em>dict</em>) – Dictionary specifying the column names for x and y coordinates of bacterial centers.
 Example: {‘x’: ‘Center_X’, ‘y’: ‘Center_Y’}</p></li>
-<li><p><strong>divided_vs_non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
-<li><p><strong>non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to evaluate candidate links for non-divided bacteria.</p></li>
-<li><p><strong>divided_bac_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to validate division links.</p></li>
+<li><p><strong>division_vs_continuity_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
+<li><p><strong>continuity_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to evaluate candidate links for non-divided bacteria.</p></li>
+<li><p><strong>division_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to validate division links.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – Array of spatial coordinates used for evaluating candidate links (calculation of IOU).</p></li>
 </ul>
 </dd>
@@ -1237,7 +1336,7 @@ Example: {‘x’: ‘Center_X’, ‘y’: ‘Center_Y’}</p></li>
 <span id="module-unexpectedbeginning"></span><h2>Module: unexpectedBeginning<a class="headerlink" href="#module-unexpectedBeginning" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="unexpectedBeginning.handle_unexpected_beginning_bacteria">
-<span class="sig-prename descclassname"><span class="pre">unexpectedBeginning.</span></span><span class="sig-name descname"><span class="pre">handle_unexpected_beginning_bacteria</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_vs_non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unexpectedBeginning.html#handle_unexpected_beginning_bacteria"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unexpectedBeginning.handle_unexpected_beginning_bacteria" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">unexpectedBeginning.</span></span><span class="sig-name descname"><span class="pre">handle_unexpected_beginning_bacteria</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_vs_continuity_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuity_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unexpectedBeginning.html#handle_unexpected_beginning_bacteria"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unexpectedBeginning.handle_unexpected_beginning_bacteria" title="Link to this definition">¶</a></dt>
 <dd><p>Handle unexpected beginning bacteria by finding and validating candidate sources, and creating new links.</p>
 <p>This function processes bacteria flagged with <cite>unexpected_beginning</cite> by identifying candidate target bacteria
 in the next frame. It validates potential links using statistical conditions, biological plausibility,
@@ -1261,9 +1360,9 @@ and machine learning models. If validated, it creates new links to resolve track
 <li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object number in the dataframe.</p></li>
 <li><p><strong>center_coord_cols</strong> (<em>dict</em>) – Dictionary specifying the column names for x and y coordinates of bacterial centers.
 Example: {‘x’: ‘Center_X’, ‘y’: ‘Center_Y’}</p></li>
-<li><p><strong>divided_vs_non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
-<li><p><strong>non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to evaluate candidate links for continuity events.</p></li>
-<li><p><strong>division_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to validate division links.</p></li>
+<li><p><strong>division_vs_continuity_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
+<li><p><strong>continuity_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to evaluate candidate links for continuity events.</p></li>
+<li><p><strong>division_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to validate division links.</p></li>
 <li><p><strong>color_array</strong> (<em>np.ndarray</em>) – Array representing the colors of objects in the tracking data. This is used for mapping
 bacteria from the dataframe to the coordinate array for spatial analysis.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – Array of spatial coordinates used for evaluating candidate links.</p></li>
@@ -1325,7 +1424,7 @@ These links are removed to allow the unexpected beginning bacterium to link to t
 <span id="module-unexpectedend"></span><h2>Module: unExpectedEnd<a class="headerlink" href="#module-unExpectedEnd" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="unExpectedEnd.handle_unexpected_end_bacteria">
-<span class="sig-prename descclassname"><span class="pre">unExpectedEnd.</span></span><span class="sig-name descname"><span class="pre">handle_unexpected_end_bacteria</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_vs_non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unExpectedEnd.html#handle_unexpected_end_bacteria"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unExpectedEnd.handle_unexpected_end_bacteria" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">unExpectedEnd.</span></span><span class="sig-name descname"><span class="pre">handle_unexpected_end_bacteria</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doubling_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_vs_continuity_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuity_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/unExpectedEnd.html#handle_unexpected_end_bacteria"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#unExpectedEnd.handle_unexpected_end_bacteria" title="Link to this definition">¶</a></dt>
 <dd><p>Handle unexpected end bacteria by finding and validating candidate targets, and creating new links.</p>
 <p>This function processes bacteria flagged with <cite>unexpected_end</cite> by identifying candidate target bacteria
 in the next frame. It validates potential links using statistical conditions, biological plausibility,
@@ -1345,9 +1444,9 @@ and machine learning models. If validated, it creates new links to resolve track
 <li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object number in the dataframe.</p></li>
 <li><p><strong>center_coord_cols</strong> (<em>dict</em>) – Dictionary specifying the column names for x and y coordinates of bacterial centers.
 Example: {‘x’: ‘Center_X’, ‘y’: ‘Center_Y’}</p></li>
-<li><p><strong>divided_vs_non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
-<li><p><strong>non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to evaluate candidate links for continuity events.</p></li>
-<li><p><strong>division_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to validate division links.</p></li>
+<li><p><strong>division_vs_continuity_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
+<li><p><strong>continuity_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to evaluate candidate links for continuity events.</p></li>
+<li><p><strong>division_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to validate division links.</p></li>
 <li><p><strong>color_array</strong> (<em>np.ndarray</em>) – Array representing the colors of objects in the tracking data. This is used for mapping
 bacteria from the dataframe to the coordinate array for spatial analysis.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – Array of spatial coordinates used for evaluating candidate links.</p></li>
@@ -1440,7 +1539,7 @@ must exceed a threshold (0.5) for the link to be considered.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="restoringTrackingLinks.restore_tracking_links">
-<span class="sig-prename descclassname"><span class="pre">restoringTrackingLinks.</span></span><span class="sig-name descname"><span class="pre">restore_tracking_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_raw_before_rpl_errors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/restoringTrackingLinks.html#restore_tracking_links"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#restoringTrackingLinks.restore_tracking_links" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">restoringTrackingLinks.</span></span><span class="sig-name descname"><span class="pre">restore_tracking_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_raw_before_rpl_errors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuity_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/restoringTrackingLinks.html#restore_tracking_links"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#restoringTrackingLinks.restore_tracking_links" title="Link to this definition">¶</a></dt>
 <dd><p>Attempts to restore previously removed tracking links for bacteria by re-evaluating conditions and costs.
 This function focuses on resolving links for unexpected beginning bacteria while maintaining tracking integrity.</p>
 <dl class="simple">
@@ -1496,8 +1595,8 @@ an optimization algorithm (Hungarian method) to finalize the link restoration.</
 <li><p><strong>center_coord_cols</strong> (<em>dict</em>) – Dictionary containing the column names for x and y centroid coordinates,
 e.g., <cite>{‘x’: ‘Center_X’, ‘y’: ‘Center_Y’}</cite>.</p></li>
 <li><p><strong>df_raw_before_rpl_errors</strong> (<em>pandas.DataFrame</em>) – Original tracking data before resolving RPL errors, used to verify previously existing links.</p></li>
-<li><p><strong>non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model to evaluate the validity of non-divided bacteria continuity links.</p></li>
-<li><p><strong>divided_bac_model</strong> (<em>sklearn.Model</em>) – Machine learning model to evaluate division-based links for bacteria.</p></li>
+<li><p><strong>continuity_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model to evaluate the validity of non-divided bacteria continuity links.</p></li>
+<li><p><strong>division_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model to evaluate division-based links for bacteria.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>numpy.ndarray</em>) – Array containing precomputed spatial coordinates for bacteria.</p></li>
 </ul>
 </dd>
@@ -1756,15 +1855,15 @@ must include centroid and endpoint coordinates for both parent and daughter obje
 <span id="module-calculatecreatelinkcost"></span><h2>Module: calculateCreateLinkCost<a class="headerlink" href="#module-calculateCreateLinkCost" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="calculateCreateLinkCost.calc_continuity_link_cost">
-<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_continuity_link_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_bac_with_can_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_vs_non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maintain_exist_link_cost_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_maintenance_for</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'target'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_continuity_link_cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_continuity_link_cost" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_continuity_link_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_bac_with_can_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuity_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_vs_continuity_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maintain_exist_link_cost_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_maintenance_for</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'target'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_continuity_link_cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_continuity_link_cost" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates the cost of establishing continuity link between a source bacterium and its potential target bacterium.
 This function evaluates continuity links by analyzing spatial, geometric, and neighborhood-based features.
 It determines the likelihood that a bacterium in one time step corresponds to the same bacterium in the next
 time step.</p>
 <p><strong>Behavior</strong>:
 - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
-- Predicts continuity probabilities using a pre-trained model (<cite>non_divided_bac_model</cite>).
-- Compares continuity and division probabilities using a comparison model (<cite>divided_vs_non_divided_model</cite>).
+- Predicts continuity probabilities using a pre-trained model (<cite>continuity_links_model</cite>).
+- Compares continuity and division probabilities using a comparison model (<cite>division_vs_continuity_model</cite>).
 - Adjusts costs based on whether maintaining existing links is preferable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1779,8 +1878,8 @@ time step.</p>
 <li><p><strong>col_target</strong> (<em>str</em>) – Suffix for target bacterium columns.</p></li>
 <li><p><strong>parent_image_number_col</strong> (<em>str</em>) – Column name for the parent image number.</p></li>
 <li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object number.</p></li>
-<li><p><strong>non_divided_bac_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict continuity probabilities.</p></li>
-<li><p><strong>divided_vs_non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
+<li><p><strong>continuity_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict continuity probabilities.</p></li>
+<li><p><strong>division_vs_continuity_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
 <li><p><strong>maintain_exist_link_cost_df</strong> (<em>pandas.DataFrame</em>) – Cost of maintaining current links between bacteria.</p></li>
 <li><p><strong>check_maintenance_for</strong> (<em>str</em>) – Specifies whether maintenance costs are evaluated for the <cite>target</cite> or <cite>source</cite>. Default is <cite>‘target’</cite>.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – spatial coordinate matrix for neighborhood and overlap calculations.</p></li>
@@ -1797,14 +1896,14 @@ candidate targets.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="calculateCreateLinkCost.calc_continuity_link_cost_for_restoring_links">
-<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_continuity_link_cost_for_restoring_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_bac_with_can_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_continuity_link_cost_for_restoring_links"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_continuity_link_cost_for_restoring_links" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_continuity_link_cost_for_restoring_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_bac_with_can_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">continuity_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_continuity_link_cost_for_restoring_links"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_continuity_link_cost_for_restoring_links" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates the cost of restoring continuity link between a source bacterium and its potential UB target bacterium.
 This function evaluates continuity links by analyzing spatial, geometric, and neighborhood-based features.
 It determines the likelihood that a bacterium in one time step corresponds to the same bacterium in the next
 time step.</p>
 <p><strong>Behavior</strong>:
 - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
-- Predicts continuity probabilities using a pre-trained model (<cite>non_divided_bac_model</cite>).</p>
+- Predicts continuity probabilities using a pre-trained model (<cite>continuity_links_model</cite>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1818,7 +1917,7 @@ time step.</p>
 <li><p><strong>col_target</strong> (<em>str</em>) – Suffix for target bacterium columns.</p></li>
 <li><p><strong>parent_image_number_col</strong> (<em>str</em>) – Column name for the parent image number.</p></li>
 <li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object number.</p></li>
-<li><p><strong>non_divided_bac_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict continuity probabilities.`.</p></li>
+<li><p><strong>continuity_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict continuity probabilities.`.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – spatial coordinate matrix for neighborhood and overlap calculations.</p></li>
 </ul>
 </dd>
@@ -1833,15 +1932,15 @@ candidate targets (UB bacteria).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="calculateCreateLinkCost.calc_division_link_cost">
-<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_division_link_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_source_daughter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_vs_non_divided_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maintain_exist_link_cost_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_maintenance_for</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'target'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_division_link_cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_division_link_cost" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_division_link_cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_source_daughter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_vs_continuity_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maintain_exist_link_cost_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_maintenance_for</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'target'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_division_link_cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_division_link_cost" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates the cost of establishing division links between a source bacterium and its potential daughter bacteria.
 This function evaluates potential division links by calculating various spatial, geometric, and
 neighborhood-based features. It uses machine learning models to assess the likelihood of a division event
 based on these features.</p>
 <p><strong>Behavior</strong>:
 - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
-- Predicts division probabilities using a pre-trained model (<cite>divided_bac_model</cite>).
-- Compares division and continuity probabilities using a comparison model (<cite>divided_vs_non_divided_model</cite>).
+- Predicts division probabilities using a pre-trained model (<cite>division_links_model</cite>).
+- Compares division and continuity probabilities using a comparison model (<cite>division_vs_continuity_model</cite>).
 - Adjusts costs based on whether maintaining existing links is preferable.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1856,8 +1955,8 @@ based on these features.</p>
 <li><p><strong>col_target</strong> (<em>str</em>) – Suffix for target bacterium (daughter) columns.</p></li>
 <li><p><strong>parent_image_number_col</strong> (<em>str</em>) – Column name for the parent image number.</p></li>
 <li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object number.</p></li>
-<li><p><strong>divided_bac_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict division probabilities.</p></li>
-<li><p><strong>divided_vs_non_divided_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
+<li><p><strong>division_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict division probabilities.</p></li>
+<li><p><strong>division_vs_continuity_model</strong> (<em>sklearn.Model</em>) – Machine learning model used to compare divided and non-divided states for bacteria.</p></li>
 <li><p><strong>maintain_exist_link_cost_df</strong> (<em>pandas.DataFrame</em>) – Cost of maintaining current links between bacteria.</p></li>
 <li><p><strong>check_maintenance_for</strong> (<em>str</em>) – Specifies whether maintenance costs are evaluated for the <cite>target</cite> or <cite>source</cite>. Default is <cite>‘target’</cite>.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – spatial coordinate matrix for neighborhood and overlap calculations.</p></li>
@@ -1874,14 +1973,14 @@ candidate daughters.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="calculateCreateLinkCost.calc_division_link_cost_for_restoring_links">
-<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_division_link_cost_for_restoring_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_source_daughter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divided_bac_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_division_link_cost_for_restoring_links"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_division_link_cost_for_restoring_links" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">calculateCreateLinkCost.</span></span><span class="sig-name descname"><span class="pre">calc_division_link_cost_for_restoring_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_list_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_source_daughter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_coord_cols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_image_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_object_number_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">division_links_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordinate_array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calculateCreateLinkCost.html#calc_division_link_cost_for_restoring_links"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calculateCreateLinkCost.calc_division_link_cost_for_restoring_links" title="Link to this definition">¶</a></dt>
 <dd><p>Calculates the cost of restoring division links between a source bacterium and its potential daughter
 bacteria (UB bacteria). This function evaluates potential division links by calculating various spatial,
 geometric, and neighborhood-based features.
 It uses machine learning model to assess the likelihood of a division event based on these features.</p>
 <p><strong>Behavior</strong>:
 - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
-- Predicts division probabilities using a pre-trained model (<cite>divided_bac_model</cite>).</p>
+- Predicts division probabilities using a pre-trained model (<cite>division_links_model</cite>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1895,7 +1994,7 @@ It uses machine learning model to assess the likelihood of a division event base
 <li><p><strong>col_target</strong> (<em>str</em>) – Suffix for target bacterium (daughter) columns.</p></li>
 <li><p><strong>parent_image_number_col</strong> (<em>str</em>) – Column name for the parent image number.</p></li>
 <li><p><strong>parent_object_number_col</strong> (<em>str</em>) – Column name for the parent object number.</p></li>
-<li><p><strong>divided_bac_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict division probabilities.</p></li>
+<li><p><strong>division_links_model</strong> (<em>sklearn.Model</em>) – Machine learning model to predict division probabilities.</p></li>
 <li><p><strong>coordinate_array</strong> (<em>csr_matrix</em>) – spatial coordinate matrix for neighborhood and overlap calculations.</p></li>
 </ul>
 </dd>
@@ -4057,20 +4156,26 @@ assigns them to bins, and visualizes the distribution with bar plots.</p>
 <li><a class="reference internal" href="#bacterialBehaviorModelTraining.train_bacterial_behavior_models"><code class="docutils literal notranslate"><span class="pre">train_bacterial_behavior_models()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-mlModelDivisionVsNonDivision">Module: mlModelDivisionVsNonDivision</a><ul>
-<li><a class="reference internal" href="#mlModelDivisionVsNonDivision.train_division_vs_non_division_model"><code class="docutils literal notranslate"><span class="pre">train_division_vs_non_division_model()</span></code></a></li>
+<li><a class="reference internal" href="#module-mlModelDivisionVsContinuity">Module: mlModelDivisionVsContinuity</a><ul>
+<li><a class="reference internal" href="#mlModelDivisionVsContinuity.train_division_vs_continuity_model"><code class="docutils literal notranslate"><span class="pre">train_division_vs_continuity_model()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-mlModelNonDividedBacteria">Module: mlModelNonDividedBacteria</a><ul>
-<li><a class="reference internal" href="#mlModelNonDividedBacteria.train_non_divided_bacteria_model"><code class="docutils literal notranslate"><span class="pre">train_non_divided_bacteria_model()</span></code></a></li>
+<li><a class="reference internal" href="#module-mlModelContinuity">Module: mlModelContinuity</a><ul>
+<li><a class="reference internal" href="#mlModelContinuity.train_continuity_links_model"><code class="docutils literal notranslate"><span class="pre">train_continuity_links_model()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-mlModelDividedBacteria">Module: mlModelDividedBacteria</a><ul>
-<li><a class="reference internal" href="#mlModelDividedBacteria.train_divided_bacteria_model"><code class="docutils literal notranslate"><span class="pre">train_divided_bacteria_model()</span></code></a></li>
+<li><a class="reference internal" href="#module-mlModelDivision">Module: mlModelDivision</a><ul>
+<li><a class="reference internal" href="#mlModelDivision.train_division_links_model"><code class="docutils literal notranslate"><span class="pre">train_division_links_model()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-machineLearningPipeline">Module: machineLearningPipeline</a><ul>
+<li><a class="reference internal" href="#machineLearningPipeline.draw_kde_plot"><code class="docutils literal notranslate"><span class="pre">draw_kde_plot()</span></code></a></li>
+<li><a class="reference internal" href="#machineLearningPipeline.extract_feature_importance"><code class="docutils literal notranslate"><span class="pre">extract_feature_importance()</span></code></a></li>
+<li><a class="reference internal" href="#machineLearningPipeline.extract_positive_class_probability_values"><code class="docutils literal notranslate"><span class="pre">extract_positive_class_probability_values()</span></code></a></li>
 <li><a class="reference internal" href="#machineLearningPipeline.log_model_performance"><code class="docutils literal notranslate"><span class="pre">log_model_performance()</span></code></a></li>
+<li><a class="reference internal" href="#machineLearningPipeline.make_full_data"><code class="docutils literal notranslate"><span class="pre">make_full_data()</span></code></a></li>
+<li><a class="reference internal" href="#machineLearningPipeline.numb_positive_negative_class_samples"><code class="docutils literal notranslate"><span class="pre">numb_positive_negative_class_samples()</span></code></a></li>
+<li><a class="reference internal" href="#machineLearningPipeline.performance_calculation"><code class="docutils literal notranslate"><span class="pre">performance_calculation()</span></code></a></li>
 <li><a class="reference internal" href="#machineLearningPipeline.train_model"><code class="docutils literal notranslate"><span class="pre">train_model()</span></code></a></li>
 </ul>
 </li>

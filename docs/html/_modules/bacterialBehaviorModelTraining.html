@@ -235,9 +235,9 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for bacterialBehaviorModelTraining</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.mlModelDivisionVsNonDivision</span> <span class="kn">import</span> <span class="n">train_division_vs_non_division_model</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.mlModelNonDividedBacteria</span> <span class="kn">import</span> <span class="n">train_non_divided_bacteria_model</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.mlModelDividedBacteria</span> <span class="kn">import</span> <span class="n">train_divided_bacteria_model</span>
+<span></span><span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.mlModelDivisionVsContinuity</span> <span class="kn">import</span> <span class="n">train_division_vs_continuity_model</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.mlModelContinuity</span> <span class="kn">import</span> <span class="n">train_continuity_links_model</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.mlModelDivision</span> <span class="kn">import</span> <span class="n">train_division_links_model</span>
 
 
 <div class="viewcode-block" id="train_bacterial_behavior_models">
@@ -273,9 +273,9 @@
 
 <span class="sd">    **Returns**:</span>
 <span class="sd">        tuple: Three trained machine learning models:</span>
-<span class="sd">            - **divided_vs_non_divided_model**: Model to distinguish between dividing and non-dividing bacteria.</span>
-<span class="sd">            - **non_divided_model**: Model to predict the behavior of non-dividing bacteria.</span>
-<span class="sd">            - **divided_bac_model**: Model to analyze the characteristics of dividing bacteria.</span>
+<span class="sd">            - **division_vs_continuity_model**: Model to distinguish between division and continuity links.</span>
+<span class="sd">            - **continuity_links_model**: Model to predict the behavior of continuity links.</span>
+<span class="sd">            - **division_links_model**: Model to analyze the characteristics of division links.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># first of all we should fine continues life history</span>
@@ -311,10 +311,10 @@
     <span class="n">connected_bac_high_chance_to_be_correct</span> <span class="o">=</span> \
         <span class="n">connected_bac</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="o">~</span> <span class="n">connected_bac</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">bad_daughters_target</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))]</span>
 
-    <span class="n">divided_vs_non_divided_model</span> <span class="o">=</span> \
-        <span class="n">train_division_vs_non_division_model</span><span class="p">(</span><span class="n">connected_bac_high_chance_to_be_correct</span><span class="p">,</span>
-                                             <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
-                                             <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">clf</span><span class="p">,</span> <span class="n">n_cpu</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
+    <span class="n">division_vs_continuity_model</span> <span class="o">=</span> \
+        <span class="n">train_division_vs_continuity_model</span><span class="p">(</span><span class="n">connected_bac_high_chance_to_be_correct</span><span class="p">,</span>
+                                           <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span>
+                                           <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">clf</span><span class="p">,</span> <span class="n">n_cpu</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
     <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors</span> <span class="o">=</span> \
         <span class="n">connected_bac_high_chance_to_be_correct</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">neighbors_df</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ImageNumber_prev&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber_prev&#39;</span><span class="p">],</span>
@@ -326,19 +326,19 @@
             <span class="n">df</span><span class="p">[</span><span class="n">important_cols</span><span class="p">],</span> <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Second Image Number&#39;</span><span class="p">,</span> <span class="s1">&#39;Second Object Number&#39;</span><span class="p">],</span>
             <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_prev_neighbor&#39;</span><span class="p">))</span>
 
-    <span class="n">non_divided_model</span> <span class="o">=</span> \
-        <span class="n">train_non_divided_bacteria_model</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors_info</span><span class="p">,</span>
-                                         <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
-                                         <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span>
-                                         <span class="n">clf</span><span class="p">,</span> <span class="n">n_cpu</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
-
-    <span class="n">divided_bac_model</span> <span class="o">=</span> \
-        <span class="n">train_divided_bacteria_model</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors_info</span><span class="p">,</span>
-                                     <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
+    <span class="n">continuity_links_model</span> <span class="o">=</span> \
+        <span class="n">train_continuity_links_model</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors_info</span><span class="p">,</span>
+                                     <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
                                      <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span>
                                      <span class="n">clf</span><span class="p">,</span> <span class="n">n_cpu</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">non_divided_model</span><span class="p">,</span> <span class="n">divided_bac_model</span></div>
+    <span class="n">division_links_model</span> <span class="o">=</span> \
+        <span class="n">train_division_links_model</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors_info</span><span class="p">,</span>
+                                   <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
+                                   <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span>
+                                   <span class="n">clf</span><span class="p">,</span> <span class="n">n_cpu</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">division_vs_continuity_model</span><span class="p">,</span> <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">division_links_model</span></div>
 
 </pre></div>
         </article>
