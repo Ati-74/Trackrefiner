@@ -51,7 +51,7 @@ def optimize_assignment_using_hungarian(cost_df):
 
 def calc_division_link_cost(df, neighbors_df, neighbor_list_array, df_source_daughter, center_coord_cols,
                             col_source, col_target, parent_image_number_col, parent_object_number_col,
-                            divided_bac_model, divided_vs_non_divided_model, maintain_exist_link_cost_df,
+                            division_links_model, division_vs_continuity_model, maintain_exist_link_cost_df,
                             check_maintenance_for='target', coordinate_array=None):
 
     """
@@ -62,8 +62,8 @@ def calc_division_link_cost(df, neighbors_df, neighbor_list_array, df_source_dau
 
     **Behavior**:
     - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
-    - Predicts division probabilities using a pre-trained model (`divided_bac_model`).
-    - Compares division and continuity probabilities using a comparison model (`divided_vs_non_divided_model`).
+    - Predicts division probabilities using a pre-trained model (`division_links_model`).
+    - Compares division and continuity probabilities using a comparison model (`division_vs_continuity_model`).
     - Adjusts costs based on whether maintaining existing links is preferable.
 
     :param pandas.DataFrame df:
@@ -85,9 +85,9 @@ def calc_division_link_cost(df, neighbors_df, neighbor_list_array, df_source_dau
         Column name for the parent image number.
     :param str parent_object_number_col:
         Column name for the parent object number.
-    :param sklearn.Model divided_bac_model:
+    :param sklearn.Model division_links_model:
         Machine learning model to predict division probabilities.
-    :param sklearn.Model divided_vs_non_divided_model:
+    :param sklearn.Model division_vs_continuity_model:
         Machine learning model used to compare divided and non-divided states for bacteria.
     :param pandas.DataFrame maintain_exist_link_cost_df:
         Cost of maintaining current links between bacteria.
@@ -187,11 +187,11 @@ def calc_division_link_cost(df, neighbors_df, neighbor_list_array, df_source_dau
             'diff_common_diff' + col_target: 'diff_common_diff'
         }, axis=1)
 
-    feature_list_divided_bac_model = ['iou', 'min_distance', 'neighbor_ratio',
-                                      'angle_mother_daughter']
+    feature_list_division_links_model = ['iou', 'min_distance', 'neighbor_ratio', 'angle_mother_daughter']
 
-    y_prob_divided_bac_model = divided_bac_model.predict_proba(df_source_daughter[feature_list_divided_bac_model])[:, 1]
-    df_source_daughter['prob_divided_bac_model'] = y_prob_divided_bac_model
+    y_prob_division_links_model = \
+        division_links_model.predict_proba(df_source_daughter[feature_list_division_links_model])[:, 1]
+    df_source_daughter['prob_divided_bac_model'] = y_prob_division_links_model
 
     # difference_neighbors
     feature_list_for_compare = \
@@ -200,10 +200,10 @@ def calc_division_link_cost(df, neighbors_df, neighbor_list_array, df_source_dau
 
     # division is class 0
     y_prob_compare = \
-        divided_vs_non_divided_model.predict_proba(df_source_daughter[feature_list_for_compare])[:, 0]
+        division_vs_continuity_model.predict_proba(df_source_daughter[feature_list_for_compare])[:, 0]
     df_source_daughter['prob_compare'] = y_prob_compare
 
-    if divided_vs_non_divided_model is not None:
+    if division_vs_continuity_model is not None:
 
         df_source_daughter = df_source_daughter.loc[(df_source_daughter['prob_divided_bac_model'] > 0.5) &
                                                     (df_source_daughter['prob_compare'] > 0.5)]
@@ -246,7 +246,7 @@ def calc_division_link_cost(df, neighbors_df, neighbor_list_array, df_source_dau
 
 def calc_continuity_link_cost(df, neighbors_df, neighbor_list_array, source_bac_with_can_target,
                               center_coord_cols, col_source, col_target, parent_image_number_col,
-                              parent_object_number_col, non_divided_bac_model, divided_vs_non_divided_model,
+                              parent_object_number_col, continuity_links_model, division_vs_continuity_model,
                               maintain_exist_link_cost_df, check_maintenance_for='target', coordinate_array=None):
 
     """
@@ -257,8 +257,8 @@ def calc_continuity_link_cost(df, neighbors_df, neighbor_list_array, source_bac_
 
     **Behavior**:
     - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
-    - Predicts continuity probabilities using a pre-trained model (`non_divided_bac_model`).
-    - Compares continuity and division probabilities using a comparison model (`divided_vs_non_divided_model`).
+    - Predicts continuity probabilities using a pre-trained model (`continuity_links_model`).
+    - Compares continuity and division probabilities using a comparison model (`division_vs_continuity_model`).
     - Adjusts costs based on whether maintaining existing links is preferable.
 
     :param pandas.DataFrame df:
@@ -280,9 +280,9 @@ def calc_continuity_link_cost(df, neighbors_df, neighbor_list_array, source_bac_
         Column name for the parent image number.
     :param str parent_object_number_col:
         Column name for the parent object number.
-    :param sklearn.Model non_divided_bac_model:
+    :param sklearn.Model continuity_links_model:
         Machine learning model to predict continuity probabilities.
-    :param sklearn.Model divided_vs_non_divided_model:
+    :param sklearn.Model division_vs_continuity_model:
         Machine learning model used to compare divided and non-divided states for bacteria.
     :param pandas.DataFrame maintain_exist_link_cost_df:
         Cost of maintaining current links between bacteria.
@@ -384,7 +384,7 @@ def calc_continuity_link_cost(df, neighbors_df, neighbor_list_array, source_bac_
             }, axis=1)
 
         # difference_neighbors
-        feature_list_for_non_divided_bac_model = \
+        feature_list_for_continuity_links_model = \
             ['iou', 'min_distance', 'neighbor_ratio', 'length_dynamic', 'MotionAlignmentAngle']
 
         # difference_neighbors
@@ -392,14 +392,14 @@ def calc_continuity_link_cost(df, neighbors_df, neighbor_list_array, source_bac_
             ['iou', 'min_distance', 'neighbor_ratio', 'direction_of_motion', 'MotionAlignmentAngle',
              'LengthChangeRatio']
 
-        y_prob_non_divided_bac_model = \
-            non_divided_bac_model.predict_proba(source_bac_with_can_target[
-                                                    feature_list_for_non_divided_bac_model])[:, 1]
-        source_bac_with_can_target['prob_non_divided_bac_model'] = y_prob_non_divided_bac_model
+        y_prob_continuity_links_model = \
+            continuity_links_model.predict_proba(source_bac_with_can_target[
+                                                    feature_list_for_continuity_links_model])[:, 1]
+        source_bac_with_can_target['prob_non_divided_bac_model'] = y_prob_continuity_links_model
 
         # non divided class 1
         y_prob_compare = \
-            divided_vs_non_divided_model.predict_proba(source_bac_with_can_target[
+            division_vs_continuity_model.predict_proba(source_bac_with_can_target[
                                                                   feature_list_for_compare])[:, 1]
         source_bac_with_can_target['prob_compare'] = y_prob_compare
 
@@ -454,7 +454,7 @@ def calc_continuity_link_cost(df, neighbors_df, neighbor_list_array, source_bac_
 
 def calc_division_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_array, df_source_daughter,
                                                 center_coord_cols, col_source, col_target, parent_image_number_col,
-                                                parent_object_number_col, divided_bac_model, coordinate_array):
+                                                parent_object_number_col, division_links_model, coordinate_array):
 
     """
     Calculates the cost of restoring division links between a source bacterium and its potential daughter
@@ -464,7 +464,7 @@ def calc_division_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_
 
     **Behavior**:
     - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
-    - Predicts division probabilities using a pre-trained model (`divided_bac_model`).
+    - Predicts division probabilities using a pre-trained model (`division_links_model`).
 
     :param pandas.DataFrame df:
         Full DataFrame containing bacterial features for the current time step.
@@ -485,7 +485,7 @@ def calc_division_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_
         Column name for the parent image number.
     :param str parent_object_number_col:
         Column name for the parent object number.
-    :param sklearn.Model divided_bac_model:
+    :param sklearn.Model division_links_model:
         Machine learning model to predict division probabilities.
     :param csr_matrix coordinate_array:
         spatial coordinate matrix for neighborhood and overlap calculations.
@@ -589,11 +589,11 @@ def calc_division_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_
         }, axis=1)
 
     # 'difference_neighbors'
-    feature_list_divided_bac_model = ['iou', 'min_distance', 'neighbor_ratio',
-                                      'angle_mother_daughter']
+    feature_list_division_links_model = ['iou', 'min_distance', 'neighbor_ratio', 'angle_mother_daughter']
 
-    y_prob_divided_bac_model = divided_bac_model.predict_proba(df_source_daughter[feature_list_divided_bac_model])[:, 1]
-    df_source_daughter['prob_divided_bac_model'] = y_prob_divided_bac_model
+    y_prob_division_links_model = \
+        division_links_model.predict_proba(df_source_daughter[feature_list_division_links_model])[:, 1]
+    df_source_daughter['prob_divided_bac_model'] = y_prob_division_links_model
 
     df_source_daughter = df_source_daughter.loc[df_source_daughter['prob_divided_bac_model'] > 0.5]
 
@@ -616,7 +616,7 @@ def calc_division_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_
 def calc_continuity_link_cost_for_restoring_links(df, neighbors_df, neighbor_list_array, source_bac_with_can_target,
                                                   center_coord_cols, col_source, col_target,
                                                   parent_image_number_col, parent_object_number_col,
-                                                  non_divided_bac_model, coordinate_array=None):
+                                                  continuity_links_model, coordinate_array=None):
 
     """
     Calculates the cost of restoring continuity link between a source bacterium and its potential UB target bacterium.
@@ -626,7 +626,7 @@ def calc_continuity_link_cost_for_restoring_links(df, neighbors_df, neighbor_lis
 
     **Behavior**:
     - Calculates features like intersection-over-union (IoU), centroid distance, length ratios, and neighbor overlap.
-    - Predicts continuity probabilities using a pre-trained model (`non_divided_bac_model`).
+    - Predicts continuity probabilities using a pre-trained model (`continuity_links_model`).
 
     :param pandas.DataFrame df:
         Full DataFrame containing bacterial features for the current time step.
@@ -647,7 +647,7 @@ def calc_continuity_link_cost_for_restoring_links(df, neighbors_df, neighbor_lis
         Column name for the parent image number.
     :param str parent_object_number_col:
         Column name for the parent object number.
-    :param sklearn.Model non_divided_bac_model:
+    :param sklearn.Model continuity_links_model:
         Machine learning model to predict continuity probabilities.`.
     :param csr_matrix coordinate_array:
         spatial coordinate matrix for neighborhood and overlap calculations.
@@ -741,13 +741,13 @@ def calc_continuity_link_cost_for_restoring_links(df, neighbors_df, neighbor_lis
             }, axis=1)
 
         # difference_neighbors
-        feature_list_for_non_divided_bac_model = \
+        feature_list_for_continuity_links_model = \
             ['iou', 'min_distance', 'neighbor_ratio', 'length_dynamic', 'MotionAlignmentAngle']
 
-        y_prob_non_divided_bac_model = \
-            non_divided_bac_model.predict_proba(source_bac_with_can_target[
-                                                    feature_list_for_non_divided_bac_model])[:, 1]
-        source_bac_with_can_target['prob_non_divided_bac_model'] = y_prob_non_divided_bac_model
+        y_prob_continuity_links_model = \
+            continuity_links_model.predict_proba(source_bac_with_can_target[
+                                                    feature_list_for_continuity_links_model])[:, 1]
+        source_bac_with_can_target['prob_non_divided_bac_model'] = y_prob_continuity_links_model
 
         source_bac_with_can_target = \
             source_bac_with_can_target.loc[(source_bac_with_can_target['prob_non_divided_bac_model'] > 0.5) &

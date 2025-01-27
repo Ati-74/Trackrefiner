@@ -110,8 +110,8 @@ def compute_create_link_from_unexpected_end_cost(df, neighbors_df, neighbor_list
                                       center_coord_cols, col_source='', col_target='_candidate',
                                       parent_image_number_col=parent_image_number_col,
                                       parent_object_number_col=parent_object_number_col,
-                                      non_divided_bac_model=non_divided_bac_model,
-                                      divided_vs_non_divided_model=divided_vs_non_divided_model,
+                                      continuity_links_model=non_divided_bac_model,
+                                      division_vs_continuity_model=divided_vs_non_divided_model,
                                       maintain_exist_link_cost_df=maintain_exist_link_cost_df,
                                       check_maintenance_for='target', coordinate_array=coordinate_array)
 

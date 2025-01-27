@@ -60,7 +60,7 @@ def add_tracking_link(df, neighbors_df, neighbor_list_array, source_bac_idx, tar
 
 
 def restore_tracking_links(df, neighbors_df, neighbor_list_array, parent_image_number_col, parent_object_number_col,
-                           center_coord_cols, df_raw_before_rpl_errors, non_divided_model, divided_bac_model,
+                           center_coord_cols, df_raw_before_rpl_errors, continuity_links_model, division_links_model,
                            coordinate_array):
 
     """
@@ -100,9 +100,9 @@ def restore_tracking_links(df, neighbors_df, neighbor_list_array, parent_image_n
         e.g., `{'x': 'Center_X', 'y': 'Center_Y'}`.
     :param pandas.DataFrame df_raw_before_rpl_errors:
         Original tracking data before resolving RPL errors, used to verify previously existing links.
-    :param sklearn.Model non_divided_model:
+    :param sklearn.Model continuity_links_model:
         Machine learning model to evaluate the validity of non-divided bacteria continuity links.
-    :param sklearn.Model divided_bac_model:
+    :param sklearn.Model division_links_model:
         Machine learning model to evaluate division-based links for bacteria.
     :param numpy.ndarray coordinate_array:
         Array containing precomputed spatial coordinates for bacteria.
@@ -198,7 +198,7 @@ def restore_tracking_links(df, neighbors_df, neighbor_list_array, parent_image_n
                                                         center_coord_cols, col_source='_source', col_target='',
                                                         parent_image_number_col=parent_image_number_col,
                                                         parent_object_number_col=parent_object_number_col,
-                                                        divided_bac_model=divided_bac_model,
+                                                        division_links_model=division_links_model,
                                                         coordinate_array=coordinate_array)
 
         if division_cost_df.shape[0] > 0:
@@ -233,7 +233,7 @@ def restore_tracking_links(df, neighbors_df, neighbor_list_array, parent_image_n
                                                           center_coord_cols, col_source='_source', col_target='',
                                                           parent_image_number_col=parent_image_number_col,
                                                           parent_object_number_col=parent_object_number_col,
-                                                          non_divided_bac_model=non_divided_model,
+                                                          continuity_links_model=continuity_links_model,
                                                           coordinate_array=coordinate_array)
 
         if continuity_cost_df.shape[0] > 0:

@@ -10,7 +10,7 @@ from Trackrefiner.correction.action.helper import calc_neighbors_dir_motion_all,
 
 
 def detect_and_resolve_redundant_parent_link(df, neighbor_df, neighbor_list_array, parent_image_number_col,
-                                             parent_object_number_col, center_coord_cols, non_divided_model,
+                                             parent_object_number_col, center_coord_cols, continuity_links_model,
                                              coordinate_array):
 
     """
@@ -31,7 +31,7 @@ def detect_and_resolve_redundant_parent_link(df, neighbor_df, neighbor_list_arra
     :param dict center_coord_cols:
         Dictionary specifying column names for bacterial centroid coordinates
         (e.g., `{"x": "Center_X", "y": "Center_Y"}`).
-    :param sklearn.Model non_divided_model:
+    :param sklearn.Model continuity_links_model:
         Machine learning model used to evaluate which target bacterium the source bacterium should link to in order to
          continue its life history.
     :param csr_matrix coordinate_array:
@@ -152,7 +152,7 @@ def detect_and_resolve_redundant_parent_link(df, neighbor_df, neighbor_list_arra
                 ['iou', 'min_distance', 'neighbor_ratio', 'length_dynamic', 'MotionAlignmentAngle']
 
             y_prob_non_divided_bac_model = \
-                non_divided_model.predict_proba(
+                continuity_links_model.predict_proba(
                     source_bac_with_rpl[feature_list_for_non_divided_bac_model])[:, 1]
 
             source_bac_with_rpl['prob_non_divided_bac_model'] = y_prob_non_divided_bac_model

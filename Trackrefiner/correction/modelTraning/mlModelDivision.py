@@ -7,9 +7,9 @@ from Trackrefiner.correction.modelTraning.calculation.calcDistanceForML import c
 from Trackrefiner.correction.action.neighborAnalysis import compare_neighbor_sets
 
 
-def train_divided_bacteria_model(df, connected_bac_high_chance_to_be_correct_with_neighbors_info, neighbor_list_array,
-                                 center_coord_cols, parent_image_number_col, parent_object_number_col,
-                                 output_directory, clf, n_cpu, coordinate_array):
+def train_division_links_model(df, connected_bac_high_chance_to_be_correct_with_neighbors_info, neighbor_list_array,
+                               center_coord_cols, parent_image_number_col, parent_object_number_col,
+                               output_directory, clf, n_cpu, coordinate_array):
 
     """
     Constructs a machine learning model to predict whether a bacterium will divide and be born daughters.
@@ -190,8 +190,8 @@ def train_divided_bacteria_model(df, connected_bac_high_chance_to_be_correct_wit
     merged_df = pd.concat([divided_bac[feature_list], divided_bac_with_neighbor_of_source[feature_list]],
                           ignore_index=True)
 
-    divided_bac_model = \
+    division_links_model = \
         train_model(merged_df, feature_list=feature_list[:-1], columns_to_scale=feature_list[1:-1],
-                    model_type='divided', output_directory=output_directory, clf=clf, n_cpu=n_cpu)
+                    model_type='division', output_directory=output_directory, clf=clf, n_cpu=n_cpu)
 
-    return divided_bac_model
+    return division_links_model

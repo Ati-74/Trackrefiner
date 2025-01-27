@@ -60,12 +60,12 @@ def create_pickle_files(df, path, assigning_cell_type):
         # select important columns
         if assigning_cell_type:
             data_frame_current_time_step = data_frame_current_time_step[
-                ['ObjectNumber', 'id', 'label', 'cellType', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory',
+                ['ObjectNumber', 'id', 'label', 'cellType', 'divideFlag', 'cellAge', 'elongationRate', 'LifeHistory',
                  'startVol', 'targetVol', 'pos', 'time', 'radius', 'length', 'dir', 'ends', 'strainRate',
                  'strainRate_rolling']]
         else:
             data_frame_current_time_step = data_frame_current_time_step[
-                ['ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
+                ['ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'elongationRate', 'LifeHistory', 'startVol',
                  'targetVol', 'pos', 'time', 'radius', 'length', 'dir', 'ends', 'strainRate', 'strainRate_rolling']]
         # convert to dictionary
         df_to_dict = data_frame_current_time_step.to_dict('index')
@@ -90,7 +90,7 @@ def write_to_pickle_file(data, path, time_step):
 def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, interval_time, doubling_time,
                          elongation_rate_method, pixel_per_micron, assigning_cell_type, intensity_threshold,
                          disable_tracking_correction, clf, n_cpu, image_boundaries, dynamic_boundaries, out_dir,
-                         save_npy, verbose, command):
+                         save_pickle, verbose, command):
 
     """
     Processes CellProfiler output data, performs tracking correction, assigns cell types,
@@ -132,8 +132,8 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
     :param str dynamic_boundaries:
         Path to a CSV file specifying boundary limits for each time step. The file should contain columns:
         `Time Step`, `Lower X Limit`, `Upper X Limit`, `Lower Y Limit`, `Upper Y Limit`.
-    :param bool save_npy:
-        If True, results are saved in `.npy` format.
+    :param bool save_pickle:
+        If True, results are saved in `.pickle` format.
     :param bool verbose:
         If True, displays warnings and additional details during processing.
     :param str command:
@@ -253,12 +253,13 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
 
             print_progress_bar(10, prefix='Progress:', suffix='', length=50)
 
-            if save_npy:
-                create_pickle_files(processed_df_with_specific_cols, out_dir, assigning_cell_type)
+            if save_pickle:
+                create_pickle_files(processed_df_with_specific_cols, f'{out_dir}/pickle_files/',
+                                    assigning_cell_type)
 
             cp_out_base_name = os.path.basename(cp_output_csv).split('.')[0]
             # Common prefix for all output paths
-            prefix = f"{out_dir}/Trackrefiner.{cp_out_base_name}_{elongation_rate_method}"
+            prefix = f"{out_dir}/Trackrefiner.{cp_out_base_name}_{elongation_rate_method.replace(' ', '_')}"
 
             path = f"{prefix}_analysis"
             path_logs = f"{prefix}_logs"
@@ -269,7 +270,9 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
 
             if not disable_tracking_correction:
                 logs_df.to_csv(f'{path_logs}.csv', index=False)
-                neighbors_df.to_csv(f'{path_neighbors}.csv', index=False)
+                neighbors_df[['First Image Number', 'First Object Number',
+                              'Second Image Number', 'Second Object Number']].to_csv(
+                    f'{path_neighbors}.csv', index=False)
 
             output_log = f"Output Directory: {out_dir}"
             print(output_log)
@@ -282,8 +285,6 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
                              'elongationRate': ["Elongation Rate (um/min)", 'Frequency', 'lifehistory_based'],
                              'velocity': ["Velocity (um/min)", 'Frequency', 'lifehistory_based'],
                              'AverageLength': ["Average Length (um)", 'Frequency', 'lifehistory_based'],
-                             'NumberOfDivisionFamily': ["Number of division per family", 'Number of Families',
-                                                        'family_based'],
                              'AreaShape_MajorAxisLength': ["Length (um)", 'Frequency', 'bacteria_based']}
             draw_feature_distribution(processed_df, features_dict, label_col, interval_time, doubling_time, out_dir)
 

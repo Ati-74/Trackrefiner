@@ -1,6 +1,6 @@
-from Trackrefiner.correction.modelTraning.mlModelDivisionVsNonDivision import train_division_vs_non_division_model
-from Trackrefiner.correction.modelTraning.mlModelNonDividedBacteria import train_non_divided_bacteria_model
-from Trackrefiner.correction.modelTraning.mlModelDividedBacteria import train_divided_bacteria_model
+from Trackrefiner.correction.modelTraning.mlModelDivisionVsContinuity import train_division_vs_continuity_model
+from Trackrefiner.correction.modelTraning.mlModelContinuity import train_continuity_links_model
+from Trackrefiner.correction.modelTraning.mlModelDivision import train_division_links_model
 
 
 def train_bacterial_behavior_models(df, neighbors_df, neighbor_list_array, center_coord_cols, parent_image_number_col,
@@ -34,9 +34,9 @@ def train_bacterial_behavior_models(df, neighbors_df, neighbor_list_array, cente
 
     **Returns**:
         tuple: Three trained machine learning models:
-            - **divided_vs_non_divided_model**: Model to distinguish between dividing and non-dividing bacteria.
-            - **non_divided_model**: Model to predict the behavior of non-dividing bacteria.
-            - **divided_bac_model**: Model to analyze the characteristics of dividing bacteria.
+            - **division_vs_continuity_model**: Model to distinguish between division and continuity links.
+            - **continuity_links_model**: Model to predict the behavior of continuity links.
+            - **division_links_model**: Model to analyze the characteristics of division links.
     """
 
     # first of all we should fine continues life history
@@ -72,10 +72,10 @@ def train_bacterial_behavior_models(df, neighbors_df, neighbor_list_array, cente
     connected_bac_high_chance_to_be_correct = \
         connected_bac.loc[(~ connected_bac['index'].isin(bad_daughters_target['index'].values))]
 
-    divided_vs_non_divided_model = \
-        train_division_vs_non_division_model(connected_bac_high_chance_to_be_correct,
-                                             center_coord_cols, parent_image_number_col,
-                                             parent_object_number_col, output_directory, clf, n_cpu, coordinate_array)
+    division_vs_continuity_model = \
+        train_division_vs_continuity_model(connected_bac_high_chance_to_be_correct,
+                                           center_coord_cols, parent_image_number_col,
+                                           parent_object_number_col, output_directory, clf, n_cpu, coordinate_array)
 
     connected_bac_high_chance_to_be_correct_with_neighbors = \
         connected_bac_high_chance_to_be_correct.merge(neighbors_df, left_on=['ImageNumber_prev', 'ObjectNumber_prev'],
@@ -87,16 +87,16 @@ def train_bacterial_behavior_models(df, neighbors_df, neighbor_list_array, cente
             df[important_cols], left_on=['Second Image Number', 'Second Object Number'],
             right_on=['ImageNumber', 'ObjectNumber'], how='left', suffixes=('', '_prev_neighbor'))
 
-    non_divided_model = \
-        train_non_divided_bacteria_model(df, connected_bac_high_chance_to_be_correct_with_neighbors_info,
-                                         neighbors_df, neighbor_list_array, center_coord_cols,
-                                         parent_image_number_col, parent_object_number_col, output_directory,
-                                         clf, n_cpu, coordinate_array)
-
-    divided_bac_model = \
-        train_divided_bacteria_model(df, connected_bac_high_chance_to_be_correct_with_neighbors_info,
-                                     neighbor_list_array, center_coord_cols,
+    continuity_links_model = \
+        train_continuity_links_model(df, connected_bac_high_chance_to_be_correct_with_neighbors_info,
+                                     neighbors_df, neighbor_list_array, center_coord_cols,
                                      parent_image_number_col, parent_object_number_col, output_directory,
                                      clf, n_cpu, coordinate_array)
 
-    return divided_vs_non_divided_model, non_divided_model, divided_bac_model
+    division_links_model = \
+        train_division_links_model(df, connected_bac_high_chance_to_be_correct_with_neighbors_info,
+                                   neighbor_list_array, center_coord_cols,
+                                   parent_image_number_col, parent_object_number_col, output_directory,
+                                   clf, n_cpu, coordinate_array)
+
+    return division_vs_continuity_model, continuity_links_model, division_links_model

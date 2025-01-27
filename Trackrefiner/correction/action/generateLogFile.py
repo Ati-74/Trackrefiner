@@ -226,8 +226,7 @@ def generate_log_file(raw_df, final_df, logs_list, parent_image_number_col, pare
         logs_df[col] = logs_df[col + '_1'] + logs_df[col + '_2']
 
     logs_df = logs_df.sort_values(by=['ImageNumber', 'ObjectNumber'])
-    logs_df.rename(columns={'ImageNumber': 'stepNum'}, inplace=True)
-    logs_df = logs_df[["stepNum", "ObjectNumber", center_coordinate_columns['x'], center_coordinate_columns['y'],
+    logs_df = logs_df[["ImageNumber", "ObjectNumber", center_coordinate_columns['x'], center_coordinate_columns['y'],
                        'AreaShape_MajorAxisLength', parent_image_number_col, parent_object_number_col, 'id',
                        'parent_id', 'NoiseObject', 'UnexpectedEnd_by_CellProfiler', 'UnexpectedEnd_by_Trackrefiner',
                        'UnexpectedBeginning_by_CellProfiler', 'UnexpectedBeginning_by_Trackrefiner',

@@ -5,7 +5,6 @@ import os
 
 
 def calculate_frequency(array, feature_related_col_name):
-
     """
     Calculate the frequency of unique values in a given array and return the result as a DataFrame.
 
@@ -37,7 +36,6 @@ def calculate_frequency(array, feature_related_col_name):
 
 def plot_frequency_distribution(x_positions, grouped_sel_feature, bin_labels, feature, feature_name, y_axis_value,
                                 output_path):
-
     """
     Plot the frequency distribution of a selected feature and save the output.
 
@@ -64,8 +62,8 @@ def plot_frequency_distribution(x_positions, grouped_sel_feature, bin_labels, fe
     ax.bar(x_positions, grouped_sel_feature["Frequency"], label="Trackrefiner", color="blue")
 
     # Add labels and title
-    ax.set_xlabel(feature_name, fontsize=16, fontweight='bold', fontname='Arial', labelpad=15)
-    ax.set_ylabel(y_axis_value, fontsize=16, fontweight='bold', fontname='Arial', labelpad=15)
+    ax.set_xlabel(feature_name, fontsize=16, fontweight='bold', labelpad=15)
+    ax.set_ylabel(y_axis_value, fontsize=16, fontweight='bold', labelpad=15)
     ax.set_title('')
     ax.set_xticks(x_positions)
     ax.set_xticklabels(bin_labels, rotation=90)
@@ -80,7 +78,6 @@ def plot_frequency_distribution(x_positions, grouped_sel_feature, bin_labels, fe
 
 
 def draw_feature_distribution(df, features_dict, label_col, interval_time, doubling_time, output_path):
-
     """
     Generate and plot the distribution of selected features from a DataFrame.
 
@@ -164,57 +161,58 @@ def draw_feature_distribution(df, features_dict, label_col, interval_time, doubl
 
         grouped_sel_feature = sel_feature_frequency.groupby("bin").sum()
 
+        # Ensure all bins are represented
+        all_bins = pd.Series(0, index=range(len(bin_edges) - 1))  # Create all possible bins
+        grouped_sel_feature = grouped_sel_feature.reindex(all_bins.index, fill_value=0)
+
         # Create x positions for grouped bars
         x_positions = np.arange(len(grouped_sel_feature.index))
 
         # Create labels for the bins
         bin_labels = []
-        if feature_related_col_name != 'NumberOfDivisionFamily':
-            if feature_related_col_name == 'LifeHistory':
-                for i in range(len(bin_edges) - 1):
-                    if i == 0:
-                        if extend_lower:
-                            bin_labels.append(f"<{bin_edges[1]:.0f}")  # Label for the new lower bin
-                        else:
-                            bin_labels.append(f"[{bin_edges[i]:.0f},{bin_edges[i + 1]:.0f}]")
-                    elif i == len(bin_edges) - 2:
-                        if extend_upper:
-                            bin_labels.append(f">{bin_edges[-2]:.0f}")  # Label for the new upper bin
-                        else:
-                            bin_labels.append(f"({bin_edges[i]:.0f},{bin_edges[i + 1]:.0f}]")
+        if feature_related_col_name in ['LifeHistory', 'NumberOfDivisionFamily']:
+            for i in range(len(bin_edges) - 1):
+                if i == 0:
+                    if extend_lower:
+                        bin_labels.append(f"<{bin_edges[1]:.0f}")  # Label for the new lower bin
+                    else:
+                        bin_labels.append(f"[{bin_edges[i]:.0f},{bin_edges[i + 1]:.0f}]")
+                elif i == len(bin_edges) - 2:
+                    if extend_upper:
+                        bin_labels.append(f">{bin_edges[-2]:.0f}")  # Label for the new upper bin
                     else:
                         bin_labels.append(f"({bin_edges[i]:.0f},{bin_edges[i + 1]:.0f}]")
-            elif feature_related_col_name in ['elongationRate', 'velocity']:
-                for i in range(len(bin_edges) - 1):
-                    if i == 0:
-                        if extend_lower:
-                            bin_labels.append(f"<{bin_edges[1]:.4f}")  # Label for the new lower bin
-                        else:
-                            bin_labels.append(f"[{bin_edges[i]:.4f},{bin_edges[i + 1]:.4f}]")
-                    elif i == len(bin_edges) - 2:
-                        if extend_upper:
-                            bin_labels.append(f">{bin_edges[-2]:.4f}")  # Label for the new upper bin
-                        else:
-                            bin_labels.append(f"({bin_edges[i]:.4f},{bin_edges[i + 1]:.4f}]")
+                else:
+                    bin_labels.append(f"({bin_edges[i]:.0f},{bin_edges[i + 1]:.0f}]")
+        elif feature_related_col_name in ['elongationRate', 'velocity']:
+            for i in range(len(bin_edges) - 1):
+                if i == 0:
+                    if extend_lower:
+                        bin_labels.append(f"<{bin_edges[1]:.4f}")  # Label for the new lower bin
+                    else:
+                        bin_labels.append(f"[{bin_edges[i]:.4f},{bin_edges[i + 1]:.4f}]")
+                elif i == len(bin_edges) - 2:
+                    if extend_upper:
+                        bin_labels.append(f">{bin_edges[-2]:.4f}")  # Label for the new upper bin
                     else:
                         bin_labels.append(f"({bin_edges[i]:.4f},{bin_edges[i + 1]:.4f}]")
-            else:
+                else:
+                    bin_labels.append(f"({bin_edges[i]:.4f},{bin_edges[i + 1]:.4f}]")
+        else:
 
-                for i in range(len(bin_edges) - 1):
-                    if i == 0:
-                        if extend_lower:
-                            bin_labels.append(f"<{bin_edges[1]:.2f}")  # Label for the new lower bin
-                        else:
-                            bin_labels.append(f"[{bin_edges[i]:.2f},{bin_edges[i + 1]:.2f}]")
-                    elif i == len(bin_edges) - 2:
-                        if extend_upper:
-                            bin_labels.append(f">{bin_edges[-2]:.2f}")  # Label for the new upper bin
-                        else:
-                            bin_labels.append(f"({bin_edges[i]:.2f},{bin_edges[i + 1]:.2f}]")
+            for i in range(len(bin_edges) - 1):
+                if i == 0:
+                    if extend_lower:
+                        bin_labels.append(f"<{bin_edges[1]:.2f}")  # Label for the new lower bin
+                    else:
+                        bin_labels.append(f"[{bin_edges[i]:.2f},{bin_edges[i + 1]:.2f}]")
+                elif i == len(bin_edges) - 2:
+                    if extend_upper:
+                        bin_labels.append(f">{bin_edges[-2]:.2f}")  # Label for the new upper bin
                     else:
                         bin_labels.append(f"({bin_edges[i]:.2f},{bin_edges[i + 1]:.2f}]")
-        else:
-            bin_labels = np.unique(sel_feature_frequency[feature_related_col_name])
+                else:
+                    bin_labels.append(f"({bin_edges[i]:.2f},{bin_edges[i + 1]:.2f}]")
 
         plot_frequency_distribution(x_positions, grouped_sel_feature, bin_labels, feature_related_col_name,
                                     feature_name, y_axis_value, output_path)

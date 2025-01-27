@@ -134,8 +134,8 @@ def resolve_unexpected_beginning_bacteria(df, neighbors_df, neighbor_list_array,
 
 def handle_unexpected_beginning_bacteria(df, neighbors_df, neighbor_matrix, interval_time,
                                          doubling_time, parent_image_number_col, parent_object_number_col,
-                                         center_coord_cols, divided_vs_non_divided_model,
-                                         non_divided_model, division_model, color_array, coordinate_array):
+                                         center_coord_cols, division_vs_continuity_model,
+                                         continuity_links_model, division_links_model, color_array, coordinate_array):
     """
     Handle unexpected beginning bacteria by finding and validating candidate sources, and creating new links.
 
@@ -164,11 +164,11 @@ def handle_unexpected_beginning_bacteria(df, neighbors_df, neighbor_matrix, inte
     :param dict center_coord_cols:
         Dictionary specifying the column names for x and y coordinates of bacterial centers.
         Example: {'x': 'Center_X', 'y': 'Center_Y'}
-    :param sklearn.Model divided_vs_non_divided_model:
+    :param sklearn.Model division_vs_continuity_model:
         Machine learning model used to compare divided and non-divided states for bacteria.
-    :param sklearn.Model non_divided_model:
+    :param sklearn.Model continuity_links_model:
         Machine learning model used to evaluate candidate links for continuity events.
-    :param sklearn.Model division_model:
+    :param sklearn.Model division_links_model:
         Machine learning model used to validate division links.
     :param np.ndarray color_array:
         Array representing the colors of objects in the tracking data. This is used for mapping
@@ -222,8 +222,8 @@ def handle_unexpected_beginning_bacteria(df, neighbors_df, neighbor_matrix, inte
                                                                  previous_time_step_bacteria, neighbors_df,
                                                                  neighbor_matrix, min_life_history_bac,
                                                                  parent_image_number_col, parent_object_number_col,
-                                                                 center_coord_cols, divided_vs_non_divided_model,
-                                                                 non_divided_model, division_model, color_array,
+                                                                 center_coord_cols, division_vs_continuity_model,
+                                                                 continuity_links_model, division_links_model, color_array,
                                                                  coordinate_array)
 
             if division_cost_df.shape[0] > 0 and continuity_link_cost_df.shape[0] > 0:

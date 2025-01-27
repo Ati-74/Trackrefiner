@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 
 
-def train_non_divided_bacteria_model(df, connected_bac_high_chance_to_be_correct_with_neighbors_info,
-                                     neighbors_df, neighbor_list_array, center_coord_cols, parent_image_number_col,
-                                     parent_object_number_col, output_directory, clf, n_cpu, coordinate_array):
+def train_continuity_links_model(df, connected_bac_high_chance_to_be_correct_with_neighbors_info,
+                                 neighbors_df, neighbor_list_array, center_coord_cols, parent_image_number_col,
+                                 parent_object_number_col, output_directory, clf, n_cpu, coordinate_array):
     """
     Constructs a machine learning model to predict whether a bacterium will continue its life history.
 
@@ -187,8 +187,8 @@ def train_non_divided_bacteria_model(df, connected_bac_high_chance_to_be_correct
         [continues_life_history_bac[feature_list], non_divided_bac_with_neighbor_of_source[feature_list]],
         ignore_index=True, copy=False)
 
-    non_divided_bac_model = \
+    continuity_links_model = \
         train_model(merged_df, feature_list=feature_list[:-1], columns_to_scale=feature_list[1:-1],
-                    model_type='non_divided', output_directory=output_directory, clf=clf, n_cpu=n_cpu)
+                    model_type='continuity', output_directory=output_directory, clf=clf, n_cpu=n_cpu)
 
-    return non_divided_bac_model
+    return continuity_links_model

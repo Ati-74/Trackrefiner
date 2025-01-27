@@ -114,8 +114,8 @@ def resolve_missing_connectivity_links(df, neighbors_df, neighbor_matrix, source
 
 def detect_and_resolve_missing_connectivity_link(df, neighbors_df, neighbor_matrix, doubling_time,
                                                  interval_time, parent_image_number_col, parent_object_number_col,
-                                                 center_coord_cols, divided_vs_non_divided_model,
-                                                 non_divided_model, divided_bac_model, coordinate_array):
+                                                 center_coord_cols, division_vs_continuity_model,
+                                                 continuity_links_model, division_links_model, coordinate_array):
     """
     Detect and resolve missing connectivity links in bacterial tracking data.
 
@@ -141,11 +141,11 @@ def detect_and_resolve_missing_connectivity_link(df, neighbors_df, neighbor_matr
     :param dict center_coord_cols:
         Dictionary specifying the column names for x and y coordinates of bacterial centers.
         Example: {'x': 'Center_X', 'y': 'Center_Y'}
-    :param sklearn.Model divided_vs_non_divided_model:
+    :param sklearn.Model division_vs_continuity_model:
         Machine learning model used to compare divided and non-divided states for bacteria.
-    :param sklearn.Model non_divided_model:
+    :param sklearn.Model continuity_links_model:
         Machine learning model used to evaluate candidate links for non-divided bacteria.
-    :param sklearn.Model divided_bac_model:
+    :param sklearn.Model division_links_model:
         Machine learning model used to validate division links.
     :param csr_matrix coordinate_array:
         Array of spatial coordinates used for evaluating candidate links (calculation of IOU).
@@ -241,19 +241,19 @@ def detect_and_resolve_missing_connectivity_link(df, neighbors_df, neighbor_matr
 
                     maintenance_cost_df = \
                         calc_maintain_exist_link_cost(neighbors_source_bac, neighbors_target_bac, center_coord_cols,
-                                                      divided_vs_non_divided_model, coordinate_array)
+                                                      division_vs_continuity_model, coordinate_array)
                     # try to detect division
                     division_cost_df = \
                         division_detection_cost(df, neighbors_df, neighbor_matrix, mcc_target_neighbors_features,
                                                 min_life_history_of_bacteria_time_step, center_coord_cols,
-                                                parent_image_number_col, parent_object_number_col, divided_bac_model,
-                                                divided_vs_non_divided_model, maintenance_cost_df, coordinate_array)
+                                                parent_image_number_col, parent_object_number_col, division_links_model,
+                                                division_vs_continuity_model, maintenance_cost_df, coordinate_array)
 
                     new_link_cost_df = \
                         create_continuity_link_cost(df, neighbors_df, neighbor_matrix, mcc_target_neighbors_features,
                                                     center_coord_cols, parent_image_number_col,
-                                                    parent_object_number_col, non_divided_model,
-                                                    divided_vs_non_divided_model, maintenance_cost_df, coordinate_array)
+                                                    parent_object_number_col, continuity_links_model,
+                                                    division_vs_continuity_model, maintenance_cost_df, coordinate_array)
 
                     if division_cost_df.shape[0] > 0 and new_link_cost_df.shape[0] > 0:
 

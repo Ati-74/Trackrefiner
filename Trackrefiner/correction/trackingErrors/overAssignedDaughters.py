@@ -5,7 +5,7 @@ from Trackrefiner.correction.modelTraning.calculation.calcDistanceForML import c
 
 
 def resolve_over_assigned_daughters_link(df, parent_image_number_col, parent_object_number_col, center_coord_cols,
-                                         divided_bac_model, coordinate_array):
+                                         division_links_model, coordinate_array):
 
     """
     This function identifies parent bacteria with over-assigned daughter links (OAD), evaluates
@@ -23,7 +23,7 @@ def resolve_over_assigned_daughters_link(df, parent_image_number_col, parent_obj
     :param dict center_coord_cols:
         Dictionary specifying column names for bacterial centroid coordinates
         (e.g., `{"x": "Center_X", "y": "Center_Y"}`).
-    :param sklearn.Model divided_bac_model:
+    :param sklearn.Model division_links_model:
         Machine learning model used to evaluate the probability of valid division links.
     :param csr_matrix coordinate_array:
         Array of spatial coordinates used for evaluating spatial relationships.
@@ -87,7 +87,7 @@ def resolve_over_assigned_daughters_link(df, parent_image_number_col, parent_obj
             # difference_neighbors
             feature_list = ['iou', 'min_distance', 'neighbor_ratio', 'angle_mother_daughter']
 
-            y_prob_compare_division = divided_bac_model.predict_proba(mothers_and_oads[feature_list])[:, 1]
+            y_prob_compare_division = division_links_model.predict_proba(mothers_and_oads[feature_list])[:, 1]
 
             mothers_and_oads['prob_compare'] = y_prob_compare_division
 

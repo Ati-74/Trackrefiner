@@ -646,14 +646,14 @@ def find_fix_tracking_errors(cp_output_df, sorted_seg_npy_files_list, neighbors_
 
     if not disable_tracking_correction:
 
-        divided_vs_non_divided_model, non_divided_model, division_model = \
+        division_vs_continuity_model, continuity_links_model, division_links_model = \
             train_bacterial_behavior_models(df, neighbors_df, neighbor_matrix, center_coord_cols,
                                             parent_image_number_col, parent_object_number_col, out_dir, clf, n_cpu,
                                             coordinate_array)
 
         # more than two daughters
         df = resolve_over_assigned_daughters_link(df, parent_image_number_col, parent_object_number_col,
-                                                  center_coord_cols, division_model, coordinate_array)
+                                                  center_coord_cols, division_links_model, coordinate_array)
 
         df_raw_before_rpl_errors = df.copy()
 
@@ -670,8 +670,8 @@ def find_fix_tracking_errors(cp_output_df, sorted_seg_npy_files_list, neighbors_
 
         # remove redundant links
         df = detect_and_resolve_redundant_parent_link(df, neighbors_df, neighbor_matrix, parent_image_number_col,
-                                                      parent_object_number_col, center_coord_cols, non_divided_model,
-                                                      coordinate_array)
+                                                      parent_object_number_col, center_coord_cols,
+                                                      continuity_links_model, coordinate_array)
 
         end_tracking_errors_correction_time = time.time()
         end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
@@ -687,8 +687,8 @@ def find_fix_tracking_errors(cp_output_df, sorted_seg_npy_files_list, neighbors_
         df = detect_and_resolve_missing_connectivity_link(df, neighbors_df, neighbor_matrix, doubling_time,
                                                           interval_time, parent_image_number_col,
                                                           parent_object_number_col, center_coord_cols,
-                                                          divided_vs_non_divided_model, non_divided_model,
-                                                          division_model, coordinate_array)
+                                                          division_vs_continuity_model, continuity_links_model,
+                                                          division_links_model, coordinate_array)
 
         end_tracking_errors_correction_time = time.time()
         end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
@@ -705,8 +705,8 @@ def find_fix_tracking_errors(cp_output_df, sorted_seg_npy_files_list, neighbors_
         df = handle_unexpected_beginning_bacteria(df, neighbors_df, neighbor_matrix,
                                                   interval_time, doubling_time, parent_image_number_col,
                                                   parent_object_number_col, center_coord_cols,
-                                                  divided_vs_non_divided_model, non_divided_model,
-                                                  division_model, color_array, coordinate_array)
+                                                  division_vs_continuity_model, continuity_links_model,
+                                                  division_links_model, color_array, coordinate_array)
 
         end_tracking_errors_correction_time = time.time()
         end_tracking_errors_correction_time_str = time.strftime('%Y-%m-%d %H:%M:%S',
@@ -721,7 +721,7 @@ def find_fix_tracking_errors(cp_output_df, sorted_seg_npy_files_list, neighbors_
 
         df = handle_unexpected_end_bacteria(df, neighbors_df, neighbor_matrix, interval_time, doubling_time,
                                             parent_image_number_col, parent_object_number_col, center_coord_cols,
-                                            divided_vs_non_divided_model, non_divided_model, division_model,
+                                            division_vs_continuity_model, continuity_links_model, division_links_model,
                                             color_array, coordinate_array)
 
         end_tracking_errors_correction_time = time.time()
@@ -737,7 +737,7 @@ def find_fix_tracking_errors(cp_output_df, sorted_seg_npy_files_list, neighbors_
 
         df = restore_tracking_links(df, neighbors_df, neighbor_matrix, parent_image_number_col,
                                     parent_object_number_col, center_coord_cols, df_raw_before_rpl_errors,
-                                    non_divided_model, division_model, coordinate_array)
+                                    continuity_links_model, division_links_model, coordinate_array)
 
         # remove noise objects
         df = df.loc[df['noise_bac'] == False].reset_index(drop=True)

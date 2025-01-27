@@ -4,8 +4,8 @@ from Trackrefiner.correction.modelTraning.machineLearningPipeline import train_m
 import pandas as pd
 
 
-def train_division_vs_non_division_model(connected_bac, center_coord_cols, parent_image_number_col,
-                                         parent_object_number_col, output_directory, clf, n_cpu, coordinate_array):
+def train_division_vs_continuity_model(connected_bac, center_coord_cols, parent_image_number_col,
+                                       parent_object_number_col, output_directory, clf, n_cpu, coordinate_array):
 
     """
     Constructs a machine learning model to compare divided and non-divided bacteria.
@@ -126,8 +126,8 @@ def train_division_vs_non_division_model(connected_bac, center_coord_cols, paren
     merged_df = pd.concat([non_divided_bac[feature_list], divided_bac[feature_list]], ignore_index=True,
                           copy=False)
 
-    comparing_divided_non_divided_model = \
+    comparing_division_vs_continuity_model = \
         train_model(merged_df, feature_list=feature_list[:-1], columns_to_scale=feature_list[1:-1],
-                    model_type='divided_vs_non_divided', output_directory=output_directory, clf=clf, n_cpu=n_cpu)
+                    model_type='division_vs_continuity', output_directory=output_directory, clf=clf, n_cpu=n_cpu)
 
-    return comparing_divided_non_divided_model
+    return comparing_division_vs_continuity_model
