@@ -3,14 +3,13 @@
 from setuptools import setup
 
 setup(name='TrackRefiner',
-      version='1.1.1.b',
+      version='1.2.1',
       description='analyzing CellProfiler output',
       install_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
-                        'scikit-image', 'psutil', 'seaborn', PyQt5],
+                        'scikit-image', 'psutil', 'seaborn', 'PyQt5'],
       setup_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
-                      'scikit-image', 'psutil', 'seaborn', PyQt5],
-      packages=['Trackrefiner', 'Trackrefiner.strain', 'Trackrefiner.strain.correction',
-                'Trackrefiner.strain.correction.action'],
+                      'scikit-image', 'psutil', 'seaborn', 'PyQt5'],
+      packages=['Trackrefiner'],
       python_requires='>=3',
       url='https://github.com/Ati-74/Trackrefiner',
       author='Atiyeh Ahmadi',
