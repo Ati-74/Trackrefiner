@@ -237,11 +237,11 @@
           <h1>Source code for calculateCreateLinkCostUE</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.findOutlier</span> <span class="kn">import</span> <span class="n">calculate_sum_daughter_to_mother_len_boundary</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.findOutlier</span> <span class="kn">import</span> <span class="n">calculate_sum_daughter_to_mother_len_boundary</span><span class="p">,</span> \
     <span class="n">calculate_max_daughter_to_mother_boundary</span><span class="p">,</span> <span class="n">calculate_upper_statistical_bound</span><span class="p">,</span> <span class="n">calculate_lower_statistical_bound</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.candidateBacteriaFeatureSpace</span> <span class="kn">import</span> <span class="n">find_candidates_for_unexpected_end</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.trackingCost.calculateMaintainingLinkCost</span> <span class="kn">import</span> <span class="n">calc_maintain_exist_link_cost</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.trackingCost.calculateCreateLinkCost</span> <span class="kn">import</span> <span class="p">(</span><span class="n">calc_continuity_link_cost</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.candidateBacteriaFeatureSpace</span> <span class="kn">import</span> <span class="n">find_candidates_for_unexpected_end</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateMaintainingLinkCost</span> <span class="kn">import</span> <span class="n">calc_maintain_exist_link_cost</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost</span> <span class="kn">import</span> <span class="p">(</span><span class="n">calc_continuity_link_cost</span><span class="p">,</span>
                                                                                  <span class="n">calc_division_link_cost</span><span class="p">)</span>
 
 
@@ -306,7 +306,7 @@
 
 <span class="sd">                2. **Overlapping Daughters Across Different Sources**:</span>
 <span class="sd">                    - When different source bacteria propose overlapping daughters in their division scenarios,</span>
-<span class="sd">                      the script compares the average division probabilities for each source.</span>
+<span class="sd">                      the utils compares the average division probabilities for each source.</span>
 <span class="sd">                      The highest likely source-daughter link is retained.</span>
 
 <span class="sd">                3. **Conflict Between Division and Continuity**:</span>
@@ -370,7 +370,7 @@
         <span class="c1"># first I check life history of source bac (unexpected end)</span>
         <span class="n">candidate_unexpected_end_bac_for_division</span> <span class="o">=</span> \
             <span class="n">final_candidate_bac</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">final_candidate_bac</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">min_life_history_time_step</span><span class="p">)</span> <span class="o">|</span>
-                                    <span class="p">(</span><span class="n">final_candidate_bac</span><span class="p">[</span><span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)]</span>
+                                    <span class="p">(</span><span class="n">final_candidate_bac</span><span class="p">[</span><span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">)]</span>
 
         <span class="c1"># unexpected bacteria index is index of raw_division_cost_df</span>
         <span class="n">raw_division_cost_df</span> <span class="o">=</span> \

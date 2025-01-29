@@ -307,10 +307,10 @@
         <span class="c1"># &#39;NeighborIndexList&#39; + col_target</span>
         <span class="k">if</span> <span class="n">index2</span><span class="p">:</span>
             <span class="n">important_info_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                   <span class="s1">&#39;daughter_length_to_mother&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                   <span class="s1">&#39;Total_Daughter_Mother_Length_Ratio&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                    <span class="s1">&#39;index2&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                   <span class="s1">&#39;prev_time_step_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;unexpected_beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                   <span class="s1">&#39;unexpected_end&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                   <span class="s1">&#39;prev_time_step_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                   <span class="s1">&#39;Unexpected_End&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                    <span class="n">parent_object_number_col</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                    <span class="s1">&#39;other_daughter_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span>
 
@@ -320,14 +320,14 @@
             <span class="c1"># &#39;prev_time_step_NeighborIndexList&#39; + col_target</span>
             <span class="n">bacteria_info_dict</span> <span class="o">=</span> <span class="n">selected_rows_df</span><span class="p">[[</span><span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;index2&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                                    <span class="s1">&#39;parent_id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;prev_time_step_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                                   <span class="s1">&#39;unexpected_beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                                   <span class="s1">&#39;unexpected_end&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                                   <span class="s1">&#39;Unexpected_Beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                                   <span class="s1">&#39;Unexpected_End&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                                    <span class="n">parent_image_number_col</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">important_info_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                   <span class="s1">&#39;daughter_length_to_mother&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                   <span class="s1">&#39;prev_time_step_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;unexpected_beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                   <span class="s1">&#39;unexpected_end&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                   <span class="s1">&#39;Total_Daughter_Mother_Length_Ratio&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                   <span class="s1">&#39;prev_time_step_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                   <span class="s1">&#39;Unexpected_End&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="n">parent_image_number_col</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                    <span class="n">parent_object_number_col</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                    <span class="s1">&#39;other_daughter_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span>
 
@@ -337,14 +337,14 @@
             <span class="c1"># &#39;prev_time_step_NeighborIndexList&#39; + col_target</span>
             <span class="n">bacteria_info_dict</span> <span class="o">=</span> <span class="n">selected_rows_df</span><span class="p">[[</span><span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                                    <span class="s1">&#39;parent_id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;prev_time_step_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                                   <span class="s1">&#39;unexpected_beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                                   <span class="s1">&#39;unexpected_end&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                                   <span class="s1">&#39;Unexpected_Beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                                   <span class="s1">&#39;Unexpected_End&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                                    <span class="n">parent_image_number_col</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
 
         <span class="c1"># it means: division doesn&#39;t occurs</span>
-        <span class="n">cond1_1</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;daughter_length_to_mother&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
+        <span class="n">cond1_1</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Total_Daughter_Mother_Length_Ratio&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
 
         <span class="c1"># finding ids of daughters for each mother</span>
         <span class="c1"># &#39;ImageNumber&#39;, &#39;ObjectNumber&#39; --&gt; for last time step of mother</span>
@@ -364,7 +364,7 @@
         <span class="c1"># &#39;NeighborIndexList&#39; + col_target</span>
         <span class="c1"># &#39;prev_time_step_NeighborIndexList&#39; + col_target</span>
         <span class="n">bacteria_info_dict</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
-                                 <span class="s1">&#39;unexpected_beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;unexpected_end&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
+                                 <span class="s1">&#39;Unexpected_Beginning&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span> <span class="s1">&#39;Unexpected_End&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                  <span class="s1">&#39;other_daughter_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                  <span class="s1">&#39;prev_time_step_index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">,</span>
                                  <span class="n">parent_image_number_col</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
@@ -374,8 +374,8 @@
         <span class="c1"># &#39;NeighborIndexList&#39;</span>
         <span class="c1"># &#39;prev_time_step_NeighborIndexList&#39;</span>
         <span class="n">ref_bacteria_info_dict</span> <span class="o">=</span> \
-            <span class="n">selected_time_step_df</span><span class="p">[[</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">,</span>
-                                   <span class="s1">&#39;unexpected_end&#39;</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_time_step_index&#39;</span><span class="p">,</span>
+            <span class="n">selected_time_step_df</span><span class="p">[[</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;Unexpected_End&#39;</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_time_step_index&#39;</span><span class="p">,</span>
                                    <span class="n">parent_image_number_col</span><span class="p">]]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
 
@@ -408,7 +408,7 @@
 
                     <span class="n">prev_time_step_neighbor_id_list</span> <span class="o">=</span> \
                         <span class="p">[</span><span class="n">ref_bacteria_info_dict</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">prev_time_step_neighbor_index_list</span> <span class="k">if</span>
-                         <span class="n">ref_bacteria_info_dict</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;unexpected_end&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">]</span>
+                         <span class="n">ref_bacteria_info_dict</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;Unexpected_End&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">]</span>
 
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">prev_time_step_neighbor_id_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -423,7 +423,7 @@
 
                 <span class="n">neighbor_id_and_parent_id_list</span> <span class="o">=</span> \
                     <span class="p">[(</span><span class="n">ref_bacteria_info_dict</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">ref_bacteria_info_dict</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;parent_id&#39;</span><span class="p">])</span>
-                     <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">neighbor_index_list</span> <span class="k">if</span> <span class="n">ref_bacteria_info_dict</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">]</span>
+                     <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">neighbor_index_list</span> <span class="k">if</span> <span class="n">ref_bacteria_info_dict</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">]</span>
 
                 <span class="n">neighbor_id_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">prev_time_step_neighbor_id_list</span> <span class="k">else</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span>
                                     <span class="ow">in</span> <span class="n">neighbor_id_and_parent_id_list</span><span class="p">]</span>
@@ -479,15 +479,15 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="n">selected_rows_df</span><span class="p">[</span><span class="s1">&#39;index&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
-        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;difference_neighbors&quot;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff_neighbor_list</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;Neighbor_Difference_Count&quot;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff_neighbor_list</span>
 
         <span class="k">if</span> <span class="n">return_common_elements</span><span class="p">:</span>
-            <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s1">&#39;common_neighbors&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">common_neighbor_list</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="s1">&#39;Neighbor_Shared_Count&#39;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">common_neighbor_list</span>
     <span class="k">else</span><span class="p">:</span>
 
-        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;difference_neighbors&quot;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff_neighbor_list</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Neighbor_Difference_Count&quot;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">diff_neighbor_list</span>
         <span class="k">if</span> <span class="n">return_common_elements</span><span class="p">:</span>
-            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;common_neighbors&quot;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">common_neighbor_list</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Neighbor_Shared_Count&quot;</span> <span class="o">+</span> <span class="n">col_target</span><span class="p">]</span> <span class="o">=</span> <span class="n">common_neighbor_list</span>
 
     <span class="k">return</span> <span class="n">df</span></div>
 
@@ -531,7 +531,7 @@
     <span class="k">if</span> <span class="n">prev_time_step_neighbor_index_list</span><span class="p">:</span>
         <span class="n">prev_time_step_neighbor_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">prev_time_step_neighbor_index_list</span><span class="p">]</span>
         <span class="n">prev_time_step_neighbor_id_list</span> <span class="o">=</span> \
-            <span class="n">prev_time_step_neighbor_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">prev_time_step_neighbor_df</span><span class="p">[</span><span class="s1">&#39;unexpected_end&#39;</span><span class="p">]][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">prev_time_step_neighbor_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">prev_time_step_neighbor_df</span><span class="p">[</span><span class="s1">&#39;Unexpected_End&#39;</span><span class="p">]][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">prev_time_step_neighbor_id_list</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -540,7 +540,7 @@
     <span class="k">if</span> <span class="n">neighbor_index_list</span><span class="p">:</span>
 
         <span class="n">neighbor_bac_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neighbor_index_list</span><span class="p">]</span>
-        <span class="n">neighbor_id_and_parent_id_list</span> <span class="o">=</span> <span class="n">neighbor_bac_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">neighbor_bac_df</span><span class="p">[</span><span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">]][</span>
+        <span class="n">neighbor_id_and_parent_id_list</span> <span class="o">=</span> <span class="n">neighbor_bac_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">neighbor_bac_df</span><span class="p">[</span><span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">]][</span>
             <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
         <span class="n">neighbor_id_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">prev_time_step_neighbor_id_list</span> <span class="k">else</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span>
                             <span class="ow">in</span> <span class="n">neighbor_id_and_parent_id_list</span><span class="p">]</span>
@@ -629,7 +629,7 @@
 
         <span class="n">prev_time_step_neighbor_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">prev_time_step_neighbor_index_list</span><span class="p">]</span>
         <span class="n">prev_time_step_neighbor_id_list</span> <span class="o">=</span> \
-            <span class="n">prev_time_step_neighbor_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">prev_time_step_neighbor_df</span><span class="p">[</span><span class="s1">&#39;unexpected_end&#39;</span><span class="p">]][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">prev_time_step_neighbor_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">prev_time_step_neighbor_df</span><span class="p">[</span><span class="s1">&#39;Unexpected_End&#39;</span><span class="p">]][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">prev_time_step_neighbor_id_list</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -639,7 +639,7 @@
         <span class="k">if</span> <span class="n">neighbor_index_list</span><span class="p">:</span>
 
             <span class="n">neighbor_bac_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">neighbor_index_list</span><span class="p">]</span>
-            <span class="n">neighbor_id_and_parent_id_list</span> <span class="o">=</span> <span class="n">neighbor_bac_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">neighbor_bac_df</span><span class="p">[</span><span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">]][</span>
+            <span class="n">neighbor_id_and_parent_id_list</span> <span class="o">=</span> <span class="n">neighbor_bac_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">neighbor_bac_df</span><span class="p">[</span><span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">]][</span>
                 <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
             <span class="n">neighbor_id_list</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">prev_time_step_neighbor_id_list</span> <span class="k">else</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">v</span>
                                 <span class="ow">in</span> <span class="n">neighbor_id_and_parent_id_list</span><span class="p">]</span>

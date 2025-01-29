@@ -236,10 +236,10 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for unexpectedBeginning</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.bacteriaTrackingUpdate</span> <span class="kn">import</span> <span class="n">bacteria_modification</span><span class="p">,</span> <span class="n">remove_redundant_link</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.trackingCost.calculateCreateLinkCostUB</span> <span class="kn">import</span> \
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.bacteriaTrackingUpdate</span> <span class="kn">import</span> <span class="n">bacteria_modification</span><span class="p">,</span> <span class="n">remove_redundant_link</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCostUB</span> <span class="kn">import</span> \
     <span class="n">compute_create_link_to_unexpected_beginning_cost</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.trackingCost.calculateCreateLinkCost</span> <span class="kn">import</span> <span class="n">optimize_assignment_using_hungarian</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost</span> <span class="kn">import</span> <span class="n">optimize_assignment_using_hungarian</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 
@@ -328,7 +328,7 @@
 
                 <span class="c1"># update info</span>
                 <span class="n">source_bac</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">source_bac_idx</span><span class="p">]</span>
-                <span class="n">unexpected_beginning_bac_life_history</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">unexpected_beginning_bac</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]]</span>
+                <span class="n">unexpected_beginning_bac_life_history</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">Unexpected_Beginning_bac</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]]</span>
 
                 <span class="n">df</span> <span class="o">=</span> <span class="n">bacteria_modification</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">source_bac</span><span class="p">,</span> <span class="n">unexpected_beginning_bac_life_history</span><span class="p">,</span>
                                            <span class="n">unexpected_begging_bac_time_step_bacteria</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span>
@@ -433,7 +433,7 @@
 
     <span class="k">while</span> <span class="n">num_unexpected_beginning_bac</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
 
-        <span class="n">unexpected_beginning_bacteria</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;unexpected_beginning&quot;</span><span class="p">]]</span>
+        <span class="n">unexpected_beginning_bacteria</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Unexpected_Beginning&quot;</span><span class="p">]]</span>
 
         <span class="k">if</span> <span class="n">n_iterate</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">prev_unexpected_beginning_bac</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="o">==</span> <span class="n">unexpected_beginning_bacteria</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>

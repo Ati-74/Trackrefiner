@@ -235,12 +235,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for mlModelContinuity</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.calculation.iouCalForML</span> <span class="kn">import</span> <span class="n">calculate_iou_ml</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.calculation.calcDistanceForML</span> <span class="kn">import</span> <span class="n">calc_min_distance_ml</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.calculation.lengthRatio</span> <span class="kn">import</span> <span class="n">check_len_ratio</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.machineLearningPipeline</span> <span class="kn">import</span> <span class="n">train_model</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.neighborAnalysis</span> <span class="kn">import</span> <span class="n">compare_neighbor_sets</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.calculation.calMotionAlignmentAngle</span> <span class="kn">import</span> <span class="n">calc_motion_alignment_angle_ml</span>
+<span></span><span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.calculation.iouCalForML</span> <span class="kn">import</span> <span class="n">calculate_iou_ml</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.calculation.calcDistanceForML</span> <span class="kn">import</span> <span class="n">calc_min_distance_ml</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.calculation.lengthRatio</span> <span class="kn">import</span> <span class="n">check_len_ratio</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.machineLearningPipeline</span> <span class="kn">import</span> <span class="n">train_model</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.neighborAnalysis</span> <span class="kn">import</span> <span class="n">compare_neighbor_sets</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.calculation.calMotionAlignmentAngle</span> <span class="kn">import</span> <span class="n">calc_motion_alignment_angle_ml</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
@@ -292,19 +292,19 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">daughter_length_to_mother_values</span> <span class="o">=</span> \
-        <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors_info</span><span class="p">[</span><span class="s1">&#39;daughter_length_to_mother&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors_info</span><span class="p">[</span><span class="s1">&#39;Total_Daughter_Mother_Length_Ratio&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
 
     <span class="n">index_prev_neighbor_values</span> <span class="o">=</span> <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors_info</span><span class="p">[</span><span class="s1">&#39;index_prev_neighbor&#39;</span><span class="p">]</span>
-    <span class="n">stat_ue_neighbor</span> <span class="o">=</span> <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors_info</span><span class="p">[</span><span class="s1">&#39;unexpected_end_prev_neighbor&#39;</span><span class="p">]</span>
+    <span class="n">stat_ue_neighbor</span> <span class="o">=</span> <span class="n">connected_bac_high_chance_to_be_correct_with_neighbors_info</span><span class="p">[</span><span class="s1">&#39;Unexpected_End_prev_neighbor&#39;</span><span class="p">]</span>
 
     <span class="n">life_continues_signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">daughter_length_to_mother_values</span><span class="p">)</span>
     <span class="n">valid_neighbor</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">index_prev_neighbor_values</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">stat_ue_neighbor</span> <span class="o">==</span> <span class="kc">False</span><span class="p">)</span>
 
     <span class="n">col_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_index&#39;</span><span class="p">,</span> <span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;difference_neighbors&#39;</span><span class="p">,</span> <span class="s1">&#39;common_neighbors&#39;</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">,</span> <span class="s1">&#39;Neighbor_Shared_Count&#39;</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span>
                  <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span>
-                 <span class="s1">&#39;endpoint1_X&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint1_Y&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint2_X&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint2_Y&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;MotionAlignmentAngle&#39;</span><span class="p">,</span> <span class="s1">&#39;daughter_length_to_mother&#39;</span><span class="p">,</span> <span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">,</span> <span class="s1">&#39;unexpected_end&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span>
+                 <span class="s1">&#39;Endpoint1_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint1_Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint2_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint2_Y&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span> <span class="s1">&#39;Total_Daughter_Mother_Length_Ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_End&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span>
                  <span class="p">]</span>
 
     <span class="n">neighbor_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="o">+</span> <span class="s1">&#39;_prev_neighbor&#39;</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">col_names</span><span class="p">]</span>
@@ -339,14 +339,14 @@
     <span class="c1"># just for adding neighbors info into dataframe (correct position of rows in dataframe)</span>
     <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;index2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
 
-    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;LengthChangeRatio&#39;</span><span class="p">]</span> <span class="o">=</span> \
+    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> \
         <span class="p">(</span><span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">]</span> <span class="o">/</span>
          <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_prev&#39;</span><span class="p">])</span>
 
     <span class="c1"># now we should filter links between target bec &amp; source link</span>
     <span class="c1"># bac_bac_length_ratio_boundary = find_bac_len_to_bac_ratio_boundary(non_divided_bac)</span>
     <span class="c1"># non_divided_bac_with_neighbor_of_source = \</span>
-    <span class="c1">#    non_divided_bac_with_neighbor_of_source.loc[non_divided_bac_with_neighbor_of_source[&#39;LengthChangeRatio&#39;] &gt;=</span>
+    <span class="c1">#    non_divided_bac_with_neighbor_of_source.loc[non_divided_bac_with_neighbor_of_source[&#39;Length_Change_Ratio&#39;] &gt;=</span>
     <span class="c1">#                                                (bac_bac_length_ratio_boundary[&#39;avg&#39;] -</span>
     <span class="c1">#                                                 1.96 * bac_bac_length_ratio_boundary[&#39;std&#39;])]</span>
 
@@ -376,8 +376,8 @@
     <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;prev_time_step_index&#39;</span><span class="p">]</span> <span class="o">=</span> \
         <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;index_prev&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int32&#39;</span><span class="p">)</span>
 
-    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;difference_neighbors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;common_neighbors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;Neighbor_Shared_Count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;other_daughter_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;parent_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;id_prev&#39;</span><span class="p">]</span>
 
@@ -388,18 +388,18 @@
                               <span class="n">selected_rows_df</span><span class="o">=</span><span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">,</span> <span class="n">selected_time_step_df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span>
                               <span class="n">return_common_elements</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">col_target</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
 
-    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;adjusted_common_neighbors&#39;</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;common_neighbors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count&#39;</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;Neighbor_Shared_Count&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;adjusted_common_neighbors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;common_neighbors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;Neighbor_Shared_Count&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span>
                                                                                                                      <span class="mi">1</span><span class="p">)</span>
 
     <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="p">(</span><span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;difference_neighbors&#39;</span><span class="p">]</span> <span class="o">/</span>
-         <span class="p">(</span><span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;adjusted_common_neighbors&#39;</span><span class="p">]))</span>
+        <span class="p">(</span><span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">]</span> <span class="o">/</span>
+         <span class="p">(</span><span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count&#39;</span><span class="p">]))</span>
 
     <span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="p">(</span><span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;difference_neighbors&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;adjusted_common_neighbors&#39;</span><span class="p">]))</span>
+        <span class="p">(</span><span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count&#39;</span><span class="p">]))</span>
 
     <span class="c1"># (Length Ratio(source-target)- Length Dynamics source )</span>
     <span class="n">continues_life_history_bac</span> <span class="o">=</span> <span class="n">check_len_ratio</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">continues_life_history_bac</span><span class="p">,</span> <span class="n">col_target</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">col_source</span><span class="o">=</span><span class="s1">&#39;_prev&#39;</span><span class="p">)</span>
@@ -408,7 +408,7 @@
 
     <span class="c1"># motion alignment</span>
     <span class="c1"># calculated for original df and we should calc for new df</span>
-    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s2">&quot;MotionAlignmentAngle&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s2">&quot;Motion_Alignment_Angle&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="n">non_divided_bac_with_neighbor_of_source</span> <span class="o">=</span> \
         <span class="n">calc_motion_alignment_angle_ml</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
                                        <span class="n">selected_rows</span><span class="o">=</span><span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">,</span> <span class="n">col_target</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
@@ -418,8 +418,8 @@
     <span class="n">continues_life_history_bac</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;positive&#39;</span>
     <span class="n">non_divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;negative&#39;</span>
 
-    <span class="c1"># &#39;difference_neighbors&#39;</span>
-    <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;length_dynamic&#39;</span><span class="p">,</span> <span class="s1">&#39;MotionAlignmentAngle&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">]</span>
+    <span class="c1"># &#39;Neighbor_Difference_Count&#39;</span>
+    <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;iou&#39;</span><span class="p">,</span> <span class="s1">&#39;min_distance&#39;</span><span class="p">,</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;length_dynamic&#39;</span><span class="p">,</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span> <span class="s1">&#39;label&#39;</span><span class="p">]</span>
 
     <span class="c1"># merge dfs</span>
     <span class="n">merged_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>

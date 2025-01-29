@@ -236,7 +236,7 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for evaluateDivisionLinkForUB</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.findOutlier</span> <span class="kn">import</span> <span class="p">(</span><span class="n">calculate_upper_statistical_bound</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.findOutlier</span> <span class="kn">import</span> <span class="p">(</span><span class="n">calculate_upper_statistical_bound</span><span class="p">,</span>
                                                         <span class="n">calculate_lower_statistical_bound</span><span class="p">)</span>
 
 
@@ -307,7 +307,7 @@
     <span class="k">if</span> <span class="p">(</span><span class="n">lower_bound_sum_daughter_len</span> <span class="o">&lt;=</span> <span class="n">daughters_bac_len_to_source</span> <span class="o">&lt;=</span> <span class="n">upper_bound_sum_daughter_len</span> <span class="ow">and</span>
             <span class="n">max_daughters_bac_len_to_source</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">max_daughters_bac_len_to_source</span> <span class="o">&lt;=</span> <span class="n">upper_bound_max_daughter_len</span><span class="p">):</span>
 
-        <span class="k">if</span> <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">min_life_history_of_bacteria</span> <span class="ow">or</span> <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;age&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">min_life_history_of_bacteria</span> <span class="ow">or</span> <span class="n">source_bac</span><span class="p">[</span><span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">calc_cost</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">calc_cost</span> <span class="o">=</span> <span class="kc">False</span>

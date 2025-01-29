@@ -235,9 +235,9 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for bacterialBehaviorModelTraining</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.mlModelDivisionVsContinuity</span> <span class="kn">import</span> <span class="n">train_division_vs_continuity_model</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.mlModelContinuity</span> <span class="kn">import</span> <span class="n">train_continuity_links_model</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.mlModelDivision</span> <span class="kn">import</span> <span class="n">train_division_links_model</span>
+<span></span><span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.mlModelDivisionVsContinuity</span> <span class="kn">import</span> <span class="n">train_division_vs_continuity_model</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.mlModelContinuity</span> <span class="kn">import</span> <span class="n">train_continuity_links_model</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.mlModelDivision</span> <span class="kn">import</span> <span class="n">train_division_links_model</span>
 
 
 <div class="viewcode-block" id="train_bacterial_behavior_models">
@@ -282,15 +282,15 @@
     <span class="c1"># inner: for removing unexpected beginning bacteria</span>
     <span class="c1"># also unexpected end bacteria removed</span>
 
-    <span class="n">important_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;unexpected_end&#39;</span><span class="p">,</span> <span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">,</span> <span class="s1">&#39;bad_daughters_flag&#39;</span><span class="p">,</span>
+    <span class="n">important_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_End&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">,</span> <span class="s1">&#39;bad_daughters_flag&#39;</span><span class="p">,</span>
                       <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
-                      <span class="s1">&#39;LengthChangeRatio&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_index&#39;</span><span class="p">,</span>
-                      <span class="s1">&#39;common_neighbors&#39;</span><span class="p">,</span> <span class="s1">&#39;difference_neighbors&#39;</span><span class="p">,</span>
-                      <span class="s1">&#39;direction_of_motion&#39;</span><span class="p">,</span> <span class="s1">&#39;MotionAlignmentAngle&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_index&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Neighbor_Shared_Count&#39;</span><span class="p">,</span> <span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Direction_of_Motion&#39;</span><span class="p">,</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span>
                       <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span>
-                      <span class="s1">&#39;endpoint1_X&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint1_Y&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint2_X&#39;</span><span class="p">,</span> <span class="s1">&#39;endpoint2_Y&#39;</span><span class="p">,</span>
-                      <span class="s1">&#39;daughter_length_to_mother&#39;</span><span class="p">,</span> <span class="s1">&#39;daughter_mother_LengthChangeRatio&#39;</span><span class="p">,</span>
-                      <span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="s1">&#39;bacteria_slope&#39;</span><span class="p">]</span>
+                      <span class="s1">&#39;Endpoint1_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint1_Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint2_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint2_Y&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Total_Daughter_Mother_Length_Ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;Daughter_Mother_Length_Ratio&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">,</span> <span class="s1">&#39;other_daughter_index&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="s1">&#39;Bacterium_Slope&#39;</span><span class="p">]</span>
 
     <span class="n">connected_bac</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">important_cols</span><span class="p">]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
         <span class="n">df</span><span class="p">[</span><span class="n">important_cols</span><span class="p">],</span> <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">],</span>
@@ -300,7 +300,7 @@
                                                     <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;First Image Number&#39;</span><span class="p">,</span> <span class="s1">&#39;First Object Number&#39;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
 
     <span class="n">target_bac_with_neighbors_info</span> <span class="o">=</span> \
-        <span class="n">target_bac_with_neighbors</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">]],</span>
+        <span class="n">target_bac_with_neighbors</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">]],</span>
                                         <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Second Image Number&#39;</span><span class="p">,</span> <span class="s1">&#39;Second Object Number&#39;</span><span class="p">],</span>
                                         <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
                                         <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_neighbor_target&#39;</span><span class="p">))</span>

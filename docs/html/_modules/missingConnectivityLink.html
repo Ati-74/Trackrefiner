@@ -236,12 +236,12 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for missingConnectivityLink</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.findOutlier</span> <span class="kn">import</span> <span class="n">detect_length_change_ratio_outliers</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.trackingCost.calculateCreateLinkCost</span> <span class="kn">import</span> <span class="n">optimize_assignment_using_hungarian</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.trackingCost.calculateCreateLinkCostMCC</span> <span class="kn">import</span> <span class="n">division_detection_cost</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.findOutlier</span> <span class="kn">import</span> <span class="n">detect_length_change_ratio_outliers</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost</span> <span class="kn">import</span> <span class="n">optimize_assignment_using_hungarian</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCostMCC</span> <span class="kn">import</span> <span class="n">division_detection_cost</span><span class="p">,</span> \
     <span class="n">create_continuity_link_cost</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.trackingCost.calculateMaintainingLinkCost</span> <span class="kn">import</span> <span class="n">calc_maintain_exist_link_cost</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.bacteriaTrackingUpdate</span> <span class="kn">import</span> <span class="n">bacteria_modification</span><span class="p">,</span> <span class="n">remove_redundant_link</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateMaintainingLinkCost</span> <span class="kn">import</span> <span class="n">calc_maintain_exist_link_cost</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.bacteriaTrackingUpdate</span> <span class="kn">import</span> <span class="n">bacteria_modification</span><span class="p">,</span> <span class="n">remove_redundant_link</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 
@@ -405,7 +405,7 @@
     <span class="c1"># min life history of bacteria</span>
     <span class="n">min_life_history_of_bacteria_time_step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">doubling_time</span> <span class="o">/</span> <span class="n">interval_time</span><span class="p">))</span>
 
-    <span class="k">while</span> <span class="n">num_incorrect_continuity_links</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;LengthChangeRatio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">while</span> <span class="n">num_incorrect_continuity_links</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Length_Change_Ratio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 
         <span class="c1"># check incorrect continuity link</span>
         <span class="n">max_bac_to_bac_len_ratio_list_outliers_min_boundary</span> <span class="o">=</span> <span class="n">detect_length_change_ratio_outliers</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
@@ -413,7 +413,7 @@
         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">max_bac_to_bac_len_ratio_list_outliers_min_boundary</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;nan&#39;</span><span class="p">:</span>
 
             <span class="n">mcc_links</span> <span class="o">=</span> \
-                <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;LengthChangeRatio&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">max_bac_to_bac_len_ratio_list_outliers_min_boundary</span><span class="p">]</span>
+                <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Length_Change_Ratio&quot;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">max_bac_to_bac_len_ratio_list_outliers_min_boundary</span><span class="p">]</span>
 
             <span class="k">if</span> <span class="n">n_iterate</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">prev_bacteria_with_wrong_continuity_link</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="o">==</span>

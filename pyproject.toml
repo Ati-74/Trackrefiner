@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "TrackRefiner"
+version = "1.2.1"
+description = "Analyzing CellProfiler output"
+requires-python = ">=3.8"
+license = {text = "BSD 3-Clause"}
+authors = [
+    {name = "Atiyeh Ahmadi", email = "a94ahmad@uwaterloo.ca"}
+]
+
+classifiers = [
+    # Intended Audience
+    "Intended Audience :: Science/Research",
+
+    # Topics
+    "Topic :: Scientific/Engineering",
+
+    # Environment
+    "Environment :: Console",
+    "Environment :: X11 Applications :: Qt",
+
+    # Programming Language and Python Versions
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent"
+]
+
+dependencies = [
+    "numpy==1.26.4",
+    "scipy",
+    "pandas>=2.2.2",
+    "scikit-learn",
+    "matplotlib",
+    "opencv-python",
+    "scikit-image",
+    "psutil",
+    "seaborn",
+    "PyQt5"
+]
+
+[project.scripts]
+trackrefiner-cli = "Trackrefiner.cli:main"
+trackrefiner-gui = "Trackrefiner.gui:main"
+trackrefiner-jitter-remover = "Trackrefiner.utils.jitterRemover:main"
+
+
+[project.urls]
+homepage = "https://github.com/ingallslab/Trackrefiner"
+repository = "https://github.com/ingallslab/Trackrefiner"
+tutorial = "https://github.com/ingallslab/Trackrefiner/wiki"
+documentation = "https://github.com/ingallslab/Trackrefiner/tree/main/docs/html"
+faq = "https://github.com/ingallslab/Trackrefiner/issues"
+issues = "https://github.com/ingallslab/Trackrefiner/issues"
+
+[tool.setuptools]
+license-files = ["LICENSE"]

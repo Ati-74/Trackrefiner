@@ -1084,7 +1084,7 @@ The target labels are expected to be in a column named <cite>label</cite>.</p></
 <dd><p>Calculates the statistical boundary for bacterial length change ratios below 1.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the column “LengthChangeRatio”.</p>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the column “Length_Change_Ratio”.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict: A dictionary with ‘avg’ (average) and ‘std’ (standard deviation) for the ratios below 1.</p>
@@ -1113,7 +1113,7 @@ The target labels are expected to be in a column named <cite>label</cite>.</p></
 daughter-to-mother length ratio.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the column “max_daughter_len_to_mother”.</p>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the column “Max_Daughter_Mother_Length_Ratio”.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict: A dictionary with ‘avg’ (average) and ‘std’ (standard deviation) for the ratio.</p>
@@ -1128,7 +1128,7 @@ daughter-to-mother length ratio.</p>
 sum_daughter-to-mother length ratio.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the column “daughter_length_to_mother”.</p>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the column “Total_Daughter_Mother_Length_Ratio”.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict: A dictionary with ‘avg’ (average) and ‘std’ (standard deviation) for the ratio.</p>
@@ -1156,7 +1156,7 @@ sum_daughter-to-mother length ratio.</p>
 <dd><p>Detects outliers in the daughter-to-mother length ratios.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing “daughter_length_to_mother” and “max_daughter_len_to_mother” columns.</p>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing “Total_Daughter_Mother_Length_Ratio” and “Max_Daughter_Mother_Length_Ratio” columns.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>pandas.DataFrame: A subset of the input DataFrame containing rows that exceed
@@ -1171,7 +1171,7 @@ the calculated upper bounds for daughter-to-mother ratios or have ratios &gt; 1.
 <dd><p>Detects bacterial length change ratio outliers</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the column “LengthChangeRatio” for analysis.</p>
+<dd class="field-odd"><p><strong>df</strong> (<em>pandas.DataFrame</em>) – DataFrame containing the column “Length_Change_Ratio” for analysis.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>float: The maximum outlier value for bacterial length change ratios, or NaN if none exist.</p>
@@ -2466,7 +2466,7 @@ and other conflicting scenarios are removed.</p></li>
 <li><dl class="simple">
 <dt><strong>Overlapping Daughters Across Different Sources</strong>:</dt><dd><ul>
 <li><p>When different source bacteria propose overlapping daughters in their division scenarios,
-the script compares the average division probabilities for each source.
+the utils compares the average division probabilities for each source.
 The highest likely source-daughter link is retained.</p></li>
 </ul>
 </dd>
@@ -3635,7 +3635,7 @@ representing the angular difference between the link’s motion and its neighbor
 <dt><strong>Returns</strong>:</dt><dd><p>pandas.DataFrame:</p>
 <dl class="simple">
 <dt>The updated <cite>selected_rows</cite> DataFrame with a new column:</dt><dd><ul class="simple">
-<li><p><cite>“MotionAlignmentAngle” + col_target</cite>: The calculated motion alignment angle (degrees).</p></li>
+<li><p><cite>“Motion_Alignment_Angle” + col_target</cite>: The calculated motion alignment angle (degrees).</p></li>
 </ul>
 </dd>
 </dl>

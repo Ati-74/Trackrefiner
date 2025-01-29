@@ -236,9 +236,9 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for overAssignedDaughters</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.helper</span> <span class="kn">import</span> <span class="n">calculate_angles_between_slopes</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.calculation.iouCalForML</span> <span class="kn">import</span> <span class="n">calculate_iou_ml</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.modelTraning.calculation.calcDistanceForML</span> <span class="kn">import</span> <span class="n">calc_min_distance_ml</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.helper</span> <span class="kn">import</span> <span class="n">calculate_angles_between_slopes</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.calculation.iouCalForML</span> <span class="kn">import</span> <span class="n">calculate_iou_ml</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.modelTraning.calculation.calcDistanceForML</span> <span class="kn">import</span> <span class="n">calc_min_distance_ml</span>
 
 
 <div class="viewcode-block" id="resolve_over_assigned_daughters_link">
@@ -294,29 +294,29 @@
         <span class="n">mothers_and_oads</span> <span class="o">=</span> <span class="n">calc_min_distance_ml</span><span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="s1">&#39;_daughter&#39;</span><span class="p">,</span>
                                                 <span class="s1">&#39;_parent&#39;</span><span class="p">,</span> <span class="n">link_type</span><span class="o">=</span><span class="s1">&#39;div&#39;</span><span class="p">)</span>
 
-        <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;LengthChangeRatio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_daughter&#39;</span><span class="p">]</span> <span class="o">/</span>
+        <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_daughter&#39;</span><span class="p">]</span> <span class="o">/</span>
                                                  <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_parent&#39;</span><span class="p">])</span>
 
         <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;angle_mother_daughter&#39;</span><span class="p">]</span> <span class="o">=</span> \
-            <span class="n">calculate_angles_between_slopes</span><span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;bacteria_slope_parent&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
-                                            <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;bacteria_slope_daughter&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="n">calculate_angles_between_slopes</span><span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;Bacterium_Slope_parent&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                                            <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;Bacterium_Slope_daughter&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
-        <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;adjusted_common_neighbors_daughter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-            <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;common_neighbors_daughter&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;common_neighbors_daughter&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-            <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;common_neighbors_daughter&#39;</span><span class="p">]</span>
+        <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count_daughter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;Neighbor_Shared_Count_daughter&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;Neighbor_Shared_Count_daughter&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;Neighbor_Shared_Count_daughter&#39;</span><span class="p">]</span>
         <span class="p">)</span>
 
         <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;neighbor_ratio_daughter&#39;</span><span class="p">]</span> <span class="o">=</span> \
-            <span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;difference_neighbors_daughter&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span>
-                <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;adjusted_common_neighbors_daughter&#39;</span><span class="p">]))</span>
+            <span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;Neighbor_Difference_Count_daughter&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count_daughter&#39;</span><span class="p">]))</span>
 
         <span class="c1"># rename columns</span>
         <span class="n">mothers_and_oads</span> <span class="o">=</span> <span class="n">mothers_and_oads</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-            <span class="p">{</span><span class="s1">&#39;difference_neighbors_daughter&#39;</span><span class="p">:</span> <span class="s1">&#39;difference_neighbors&#39;</span><span class="p">,</span>
+            <span class="p">{</span><span class="s1">&#39;Neighbor_Difference_Count_daughter&#39;</span><span class="p">:</span> <span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">,</span>
              <span class="s1">&#39;neighbor_ratio_daughter&#39;</span><span class="p">:</span> <span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;direction_of_motion_daughter&#39;</span><span class="p">:</span> <span class="s1">&#39;direction_of_motion&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;MotionAlignmentAngle_daughter&#39;</span><span class="p">:</span> <span class="s1">&#39;MotionAlignmentAngle&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+             <span class="s1">&#39;Direction_of_Motion_daughter&#39;</span><span class="p">:</span> <span class="s1">&#39;Direction_of_Motion&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;Motion_Alignment_Angle_daughter&#39;</span><span class="p">:</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># we ignored the effect of each daughter to another daughters in motion alignment</span>
         <span class="c1"># (because we didn&#39;t calc daughter_length_to_mother for bad mothers)</span>
@@ -353,9 +353,9 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_daughters_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 
         <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">bad_daughters_list</span><span class="p">,</span> <span class="p">[</span>
-            <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;unexpected_beginning&#39;</span><span class="p">,</span> <span class="s1">&#39;LengthChangeRatio&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;TrajectoryX&#39;</span><span class="p">,</span> <span class="s1">&#39;TrajectoryY&#39;</span><span class="p">,</span> <span class="s1">&#39;direction_of_motion&#39;</span><span class="p">,</span> <span class="s1">&#39;MotionAlignmentAngle&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;prev_time_step_index&#39;</span><span class="p">,</span> <span class="s1">&#39;difference_neighbors&#39;</span><span class="p">,</span> <span class="s1">&#39;common_neighbors&#39;</span><span class="p">]]</span> <span class="o">=</span> \
+            <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">,</span> <span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;TrajectoryX&#39;</span><span class="p">,</span> <span class="s1">&#39;TrajectoryY&#39;</span><span class="p">,</span> <span class="s1">&#39;Direction_of_Motion&#39;</span><span class="p">,</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;prev_time_step_index&#39;</span><span class="p">,</span> <span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">,</span> <span class="s1">&#39;Neighbor_Shared_Count&#39;</span><span class="p">]]</span> <span class="o">=</span> \
             <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">bad_daughter_idx</span> <span class="ow">in</span> <span class="n">bad_daughters_list</span><span class="p">:</span>
@@ -393,31 +393,31 @@
 
     <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mothers_idx</span><span class="p">,</span> <span class="s1">&#39;daughters_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mothers_df_last_time_step</span><span class="p">[</span><span class="s1">&#39;daughters_index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
-    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mothers_idx</span><span class="p">,</span> <span class="s1">&#39;daughter_length_to_mother&#39;</span><span class="p">]</span> <span class="o">=</span> \
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mothers_idx</span><span class="p">,</span> <span class="s1">&#39;Total_Daughter_Mother_Length_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> \
         <span class="n">mothers_df_last_time_step</span><span class="p">[</span><span class="s1">&#39;temp_sum_daughters_len_to_mother&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mothers_idx</span><span class="p">,</span> <span class="s1">&#39;max_daughter_len_to_mother&#39;</span><span class="p">]</span> <span class="o">=</span> \
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mothers_idx</span><span class="p">,</span> <span class="s1">&#39;Max_Daughter_Mother_Length_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> \
         <span class="n">mothers_df_last_time_step</span><span class="p">[</span><span class="s1">&#39;temp_max_daughters_len_to_mother&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mothers_idx</span><span class="p">,</span> <span class="s1">&#39;avg_daughters_TrajectoryX&#39;</span><span class="p">]</span> <span class="o">=</span> \
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mothers_idx</span><span class="p">,</span> <span class="s1">&#39;Daughter_Avg_TrajectoryX&#39;</span><span class="p">]</span> <span class="o">=</span> \
         <span class="n">mothers_df_last_time_step</span><span class="p">[</span><span class="s1">&#39;temp_avg_daughters_trajectory_x&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mothers_idx</span><span class="p">,</span> <span class="s1">&#39;avg_daughters_TrajectoryY&#39;</span><span class="p">]</span> <span class="o">=</span> \
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mothers_idx</span><span class="p">,</span> <span class="s1">&#39;Daughter_Avg_TrajectoryY&#39;</span><span class="p">]</span> <span class="o">=</span> \
         <span class="n">mothers_df_last_time_step</span><span class="p">[</span><span class="s1">&#39;temp_avg_daughters_trajectory_y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
-    <span class="n">division</span><span class="p">[</span><span class="s1">&#39;daughter_mother_LengthChangeRatio&#39;</span><span class="p">]</span> <span class="o">=</span> \
+    <span class="n">division</span><span class="p">[</span><span class="s1">&#39;Daughter_Mother_Length_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> \
         <span class="p">(</span><span class="n">division</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_2&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">division</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_1&#39;</span><span class="p">])</span>
 
     <span class="n">division</span><span class="p">[</span><span class="s1">&#39;daughter_mother_slope&#39;</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="n">calculate_angles_between_slopes</span><span class="p">(</span><span class="n">division</span><span class="p">[</span><span class="s1">&#39;bacteria_slope_2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
-                                        <span class="n">division</span><span class="p">[</span><span class="s1">&#39;bacteria_slope_1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">calculate_angles_between_slopes</span><span class="p">(</span><span class="n">division</span><span class="p">[</span><span class="s1">&#39;Bacterium_Slope_2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                                        <span class="n">division</span><span class="p">[</span><span class="s1">&#39;Bacterium_Slope_1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 
     <span class="n">daughters_idx</span> <span class="o">=</span> <span class="n">division</span><span class="p">[</span><span class="s1">&#39;index_2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
-    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">daughters_idx</span><span class="p">,</span> <span class="s1">&#39;daughter_mother_LengthChangeRatio&#39;</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="n">division</span><span class="p">[</span><span class="s1">&#39;daughter_mother_LengthChangeRatio&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">daughters_idx</span><span class="p">,</span> <span class="s1">&#39;Daughter_Mother_Length_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="n">division</span><span class="p">[</span><span class="s1">&#39;Daughter_Mother_Length_Ratio&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
     <span class="c1"># should calc for all bacteria</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">daughters_idx</span><span class="p">,</span> <span class="s1">&#39;slope_bac_bac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">division</span><span class="p">[</span><span class="s1">&#39;daughter_mother_slope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">daughters_idx</span><span class="p">,</span> <span class="s1">&#39;Orientation_Angle_Between_Slopes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">division</span><span class="p">[</span><span class="s1">&#39;daughter_mother_slope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
-    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">daughters_idx</span><span class="p">,</span> <span class="s1">&#39;prev_bacteria_slope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">division</span><span class="p">[</span><span class="s1">&#39;bacteria_slope_1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">daughters_idx</span><span class="p">,</span> <span class="s1">&#39;Prev_Bacterium_Slope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">division</span><span class="p">[</span><span class="s1">&#39;Bacterium_Slope_1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
     <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">daughters_idx</span><span class="p">,</span> <span class="s1">&#39;prev_time_step_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">division</span><span class="p">[</span><span class="s1">&#39;index_1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 

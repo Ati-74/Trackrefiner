@@ -236,7 +236,7 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for candidateBacteriaFeatureSpace</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.correction.action.trackingCost.calculateInitialCostTerms</span> <span class="kn">import</span> <span class="n">calc_distance_and_overlap_matrices</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateInitialCostTerms</span> <span class="kn">import</span> <span class="n">calc_distance_and_overlap_matrices</span>
 
 
 <div class="viewcode-block" id="find_candidates_for_unexpected_beginning">
@@ -340,7 +340,7 @@
     <span class="c1"># we don&#39;t check unexpected end bacteria in this phase</span>
     <span class="n">final_candidate_bacteria</span> <span class="o">=</span> <span class="n">final_candidate_bacteria</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span> <span class="n">final_candidate_bacteria</span><span class="p">[</span><span class="s1">&#39;ImageNumber_candidate&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">()]</span>
 
-    <span class="n">final_candidate_bacteria</span> <span class="o">=</span> <span class="n">final_candidate_bacteria</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">final_candidate_bacteria</span><span class="p">[</span><span class="s1">&#39;unexpected_end_candidate&#39;</span><span class="p">]</span>
+    <span class="n">final_candidate_bacteria</span> <span class="o">=</span> <span class="n">final_candidate_bacteria</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">final_candidate_bacteria</span><span class="p">[</span><span class="s1">&#39;Unexpected_End_candidate&#39;</span><span class="p">]</span>
                                                             <span class="o">==</span> <span class="kc">False</span><span class="p">]</span>
 
     <span class="n">final_candidate_bacteria</span><span class="p">[[</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="s1">&#39;index_candidate&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">final_candidate_bacteria</span><span class="p">[[</span><span class="s1">&#39;index&#39;</span><span class="p">,</span>

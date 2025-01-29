@@ -275,13 +275,13 @@
 <span class="sd">    Detects bacterial length change ratio outliers</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
-<span class="sd">        DataFrame containing the column &quot;LengthChangeRatio&quot; for analysis.</span>
+<span class="sd">        DataFrame containing the column &quot;Length_Change_Ratio&quot; for analysis.</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        float: The maximum outlier value for bacterial length change ratios, or NaN if none exist.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">bac_change_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;LengthChangeRatio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">bac_change_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Length_Change_Ratio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bac_change_length_ratio_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 
@@ -301,7 +301,7 @@
 <span class="sd">    Detects outliers in the daughter-to-mother length ratios.</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
-<span class="sd">        DataFrame containing &quot;daughter_length_to_mother&quot; and &quot;max_daughter_len_to_mother&quot; columns.</span>
+<span class="sd">        DataFrame containing &quot;Total_Daughter_Mother_Length_Ratio&quot; and &quot;Max_Daughter_Mother_Length_Ratio&quot; columns.</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        pandas.DataFrame: A subset of the input DataFrame containing rows that exceed</span>
@@ -309,8 +309,8 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">sum_daughter_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;daughter_length_to_mother&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">max_daughter_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;max_daughter_len_to_mother&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">sum_daughter_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Total_Daughter_Mother_Length_Ratio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">max_daughter_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Max_Daughter_Mother_Length_Ratio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
 
     <span class="n">avg_sum_daughter_length_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">sum_daughter_length_ratio_list</span><span class="p">)</span>
     <span class="n">std_sum_daughter_length_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">sum_daughter_length_ratio_list</span><span class="p">)</span>
@@ -325,9 +325,9 @@
 
     <span class="c1"># Apply the conditions using vectorized operations</span>
     <span class="n">condition</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;daughter_length_to_mother&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">upper_bound_sum_daughter</span><span class="p">)</span> <span class="o">|</span>
-            <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;max_daughter_len_to_mother&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">upper_bound_max_daughter</span><span class="p">)</span> <span class="o">|</span>
-            <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;max_daughter_len_to_mother&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Total_Daughter_Mother_Length_Ratio&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">upper_bound_sum_daughter</span><span class="p">)</span> <span class="o">|</span>
+            <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Max_Daughter_Mother_Length_Ratio&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">upper_bound_max_daughter</span><span class="p">)</span> <span class="o">|</span>
+            <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Max_Daughter_Mother_Length_Ratio&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
     <span class="p">)</span>
 
     <span class="n">df_outliers</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">condition</span><span class="p">]</span>
@@ -344,14 +344,14 @@
 <span class="sd">    daughter-to-mother length ratio.</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
-<span class="sd">        DataFrame containing the column &quot;max_daughter_len_to_mother&quot;.</span>
+<span class="sd">        DataFrame containing the column &quot;Max_Daughter_Mother_Length_Ratio&quot;.</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        dict: A dictionary with &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for the ratio.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">max_daughter_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;max_daughter_len_to_mother&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">max_daughter_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Max_Daughter_Mother_Length_Ratio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
     <span class="n">avg_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">max_daughter_length_ratio_list</span><span class="p">)</span>
     <span class="n">std_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">max_daughter_length_ratio_list</span><span class="p">)</span>
 
@@ -367,13 +367,13 @@
 <span class="sd">    sum_daughter-to-mother length ratio.</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
-<span class="sd">        DataFrame containing the column &quot;daughter_length_to_mother&quot;.</span>
+<span class="sd">        DataFrame containing the column &quot;Total_Daughter_Mother_Length_Ratio&quot;.</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        dict: A dictionary with &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for the ratio.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">sum_daughters_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;daughter_length_to_mother&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">sum_daughters_length_ratio_list</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Total_Daughter_Mother_Length_Ratio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
     <span class="n">avg_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">sum_daughters_length_ratio_list</span><span class="p">)</span>
     <span class="n">std_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">sum_daughters_length_ratio_list</span><span class="p">)</span>
 
@@ -388,14 +388,14 @@
 <span class="sd">    Calculates the statistical boundary for bacterial length change ratios below 1.</span>
 
 <span class="sd">    :param pandas.DataFrame df:</span>
-<span class="sd">        DataFrame containing the column &quot;LengthChangeRatio&quot;.</span>
+<span class="sd">        DataFrame containing the column &quot;Length_Change_Ratio&quot;.</span>
 
 <span class="sd">    :returns:</span>
 <span class="sd">        dict: A dictionary with &#39;avg&#39; (average) and &#39;std&#39; (standard deviation) for the ratios below 1.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">bac_change_length_ratio_list</span> <span class="o">=</span> \
-        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;LengthChangeRatio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;LengthChangeRatio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;Length_Change_Ratio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;Length_Change_Ratio&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">values</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bac_change_length_ratio_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">avg_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">bac_change_length_ratio_list</span><span class="p">)</span>
