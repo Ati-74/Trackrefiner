@@ -61,12 +61,12 @@ def create_pickle_files(df, path, assigning_cell_type):
         # select important columns
         if assigning_cell_type:
             data_frame_current_time_step = data_frame_current_time_step[
-                ['ObjectNumber', 'id', 'label', 'cellType', 'divideFlag', 'cellAge', 'Elongation_Rate', 'LifeHistory',
+                ['ObjectNumber', 'id', 'label', 'cellType', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory',
                  'startVol', 'targetVol', 'pos', 'time', 'radius', 'length', 'dir', 'ends', 'strainRate',
                  'strainRate_rolling']]
         else:
             data_frame_current_time_step = data_frame_current_time_step[
-                ['ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'Elongation_Rate', 'LifeHistory', 'startVol',
+                ['ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
                  'targetVol', 'pos', 'time', 'radius', 'length', 'dir', 'ends', 'strainRate', 'strainRate_rolling']]
         # convert to dictionary
         df_to_dict = data_frame_current_time_step.to_dict('index')
