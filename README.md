@@ -1,3 +1,1 @@
-# Trackrefiner
-Analyzing CellProfiler output
-<div align="justify">
+# Trackrefiner: A precision tracking tool for bacillus cell tracking
