@@ -238,8 +238,8 @@
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.bacteriaTrackingUpdate</span> <span class="kn">import</span> <span class="n">bacteria_modification</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost</span> <span class="kn">import</span> <span class="n">optimize_assignment_using_hungarian</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost</span> <span class="kn">import</span> <span class="n">calc_division_link_cost_for_restoring_links</span><span class="p">,</span> \
-    <span class="n">calc_continuity_link_cost_for_restoring_links</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost</span> <span class="kn">import</span> \
+    <span class="n">calc_division_link_cost_for_restoring_links</span><span class="p">,</span> <span class="n">calc_continuity_link_cost_for_restoring_links</span>
 
 
 <div class="viewcode-block" id="add_tracking_link">
@@ -418,7 +418,8 @@
 
             <span class="c1"># Rename columns for clarity</span>
             <span class="n">agg_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ImageNumber_source&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber_source&#39;</span><span class="p">,</span> <span class="s1">&#39;max_daughter_len_same&#39;</span><span class="p">,</span> <span class="s1">&#39;source_len_same&#39;</span><span class="p">]</span>
-            <span class="n">agg_df</span><span class="p">[</span><span class="s1">&#39;Max_Daughter_Mother_Length_Ratio_same&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">agg_df</span><span class="p">[</span><span class="s1">&#39;max_daughter_len_same&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">agg_df</span><span class="p">[</span><span class="s1">&#39;source_len_same&#39;</span><span class="p">]</span>
+            <span class="n">agg_df</span><span class="p">[</span><span class="s1">&#39;Max_Daughter_Mother_Length_Ratio_same&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">agg_df</span><span class="p">[</span><span class="s1">&#39;max_daughter_len_same&#39;</span><span class="p">]</span> <span class="o">/</span>
+                                                               <span class="n">agg_df</span><span class="p">[</span><span class="s1">&#39;source_len_same&#39;</span><span class="p">])</span>
             <span class="n">merged_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">bac_with_same_source</span><span class="p">,</span> <span class="n">agg_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ImageNumber_source&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber_source&#39;</span><span class="p">],</span>
                                  <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
 

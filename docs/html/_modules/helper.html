@@ -239,6 +239,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">distance_matrix</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">lil_matrix</span>
 
 
 <span class="k">def</span> <span class="nf">print_progress_bar</span><span class="p">(</span><span class="n">iteration</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;█&#39;</span><span class="p">):</span>
@@ -322,7 +323,6 @@
 <div class="viewcode-block" id="calc_neighbors_dir_motion_all">
 <a class="viewcode-back" href="../modules.html#helper.calc_neighbors_dir_motion_all">[docs]</a>
 <span class="k">def</span> <span class="nf">calc_neighbors_dir_motion_all</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">,</span> <span class="n">division_df</span><span class="p">,</span> <span class="n">selected_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates motion alignment features for bacteria based on neighbor trajectories.</span>
 
@@ -505,7 +505,6 @@
 <a class="viewcode-back" href="../modules.html#helper.calculate_bacterial_life_history_features">[docs]</a>
 <span class="k">def</span> <span class="nf">calculate_bacterial_life_history_features</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">calc_all_features</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">,</span> <span class="n">division_df</span><span class="p">,</span>
                                               <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">use_selected_rows</span><span class="p">,</span> <span class="n">original_df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates features related to the continuous life history of bacteria.</span>
 
@@ -554,7 +553,7 @@
     <span class="k">if</span> <span class="n">calc_all_features</span><span class="p">:</span>
         <span class="n">dataframe</span><span class="p">[</span><span class="s1">&#39;Prev_MajorAxisLength&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">dataframe</span><span class="p">[</span><span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataframe</span><span class="p">[</span><span class="s2">&quot;AreaShape_MajorAxisLength&quot;</span><span class="p">]</span> <span class="o">/</span>
-                                          <span class="n">dataframe</span><span class="p">[</span><span class="s1">&#39;Prev_MajorAxisLength&#39;</span><span class="p">])</span>
+                                            <span class="n">dataframe</span><span class="p">[</span><span class="s1">&#39;Prev_MajorAxisLength&#39;</span><span class="p">])</span>
 
     <span class="n">dataframe</span><span class="p">[</span><span class="s1">&#39;Prev_Center_X&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">dataframe</span><span class="p">[</span><span class="s1">&#39;Prev_Center_Y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">)[</span><span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -626,7 +625,6 @@
 <div class="viewcode-block" id="calculate_trajectory_displacement">
 <a class="viewcode-back" href="../modules.html#helper.calculate_trajectory_displacement">[docs]</a>
 <span class="k">def</span> <span class="nf">calculate_trajectory_displacement</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the displacement of objects along a specified axis between consecutive positions.</span>
 
@@ -664,7 +662,6 @@
 <div class="viewcode-block" id="calculate_trajectory_angles">
 <a class="viewcode-back" href="../modules.html#helper.calculate_trajectory_angles">[docs]</a>
 <span class="k">def</span> <span class="nf">calculate_trajectory_angles</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">suffix1</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suffix2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the angles of trajectory directions between two objects.</span>
 
@@ -709,7 +706,6 @@
 <div class="viewcode-block" id="calculate_all_bac_slopes">
 <a class="viewcode-back" href="../modules.html#helper.calculate_all_bac_slopes">[docs]</a>
 <span class="k">def</span> <span class="nf">calculate_all_bac_slopes</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the slopes of lines formed by bacterial endpoints in the input DataFrame.</span>
 
@@ -747,7 +743,6 @@
 <div class="viewcode-block" id="calculate_bac_endpoints">
 <a class="viewcode-back" href="../modules.html#helper.calculate_bac_endpoints">[docs]</a>
 <span class="k">def</span> <span class="nf">calculate_bac_endpoints</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">major</span><span class="p">,</span> <span class="n">angle_rotation</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the endpoints of the major axis of a bacterium based on its center, length, and orientation.</span>
 
@@ -1520,6 +1515,67 @@
     <span class="n">objects_orientation</span> <span class="o">=</span> <span class="n">bacteria_data</span><span class="p">[</span><span class="n">orientation_col</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">objects_center_x</span><span class="p">,</span> <span class="n">objects_center_y</span><span class="p">,</span> <span class="n">objects_major_axis</span><span class="p">,</span> <span class="n">objects_orientation</span></div>
+
+
+
+<div class="viewcode-block" id="find_bacteria_neighbors">
+<a class="viewcode-back" href="../modules.html#helper.find_bacteria_neighbors">[docs]</a>
+<span class="k">def</span> <span class="nf">find_bacteria_neighbors</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Constructs a neighbor adjacency matrix for bacterial objects based on their spatial relationships.</span>
+
+<span class="sd">    This function processes a DataFrame containing bacterial object information and a second DataFrame</span>
+<span class="sd">    specifying neighbor relationships. It generates an adjacency matrix where an entry (i, j) is True</span>
+<span class="sd">    if bacterium i has bacterium j as a neighbor.</span>
+
+<span class="sd">    :param pandas.DataFrame dataframe:</span>
+<span class="sd">        A DataFrame containing bacterial object information, including their unique indices, ImageNumber</span>
+<span class="sd">        and ObjectNumber.</span>
+
+<span class="sd">    :param pandas.DataFrame neighbor_df:</span>
+<span class="sd">        A DataFrame specifying neighbor relationships between bacteria, including object numbers</span>
+<span class="sd">        and their corresponding image numbers. It contains at least the following columns:</span>
+<span class="sd">        - &#39;First Image Number&#39;: Image number of the first bacterium in the pair.</span>
+<span class="sd">        - &#39;First Object Number&#39;: Object number of the first bacterium.</span>
+<span class="sd">        - &#39;Second Image Number&#39;: Image number of the second bacterium in the pair.</span>
+<span class="sd">        - &#39;Second Object Number&#39;: Object number of the second bacterium.</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">        scipy.sparse.lil_matrix:</span>
+<span class="sd">        A sparse adjacency matrix (LIL format) where rows and columns correspond to bacterial objects</span>
+<span class="sd">        (indexed by `index`), and a True value at position (i, j) indicates that bacterium i has bacterium j</span>
+<span class="sd">        as a neighbor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">neighbor_df</span> <span class="o">=</span> <span class="n">neighbor_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">dataframe</span><span class="p">[[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">]],</span>
+                                    <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Second Image Number&#39;</span><span class="p">,</span> <span class="s1">&#39;Second Object Number&#39;</span><span class="p">],</span>
+                                    <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
+
+    <span class="n">df_bac_with_neighbors</span> <span class="o">=</span> \
+        <span class="n">dataframe</span><span class="p">[[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">neighbor_df</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">],</span>
+                                                                  <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;First Image Number&#39;</span><span class="p">,</span>
+                                                                            <span class="s1">&#39;First Object Number&#39;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
+                                                                  <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_neighbor&#39;</span><span class="p">))</span>
+
+    <span class="n">neighbor_list_array</span> <span class="o">=</span> <span class="n">lil_matrix</span><span class="p">((</span><span class="n">df_bac_with_neighbors</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                                      <span class="n">df_bac_with_neighbors</span><span class="p">[</span><span class="s1">&#39;index_neighbor&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+    <span class="c1"># values shows:</span>
+    <span class="c1"># ImageNumber, ObjectNumber, index,	First Image Number,	First Object Number, Second Image Number,</span>
+    <span class="c1"># Second Object Number,	ImageNumber_neighbor, ObjectNumber_neighbor,	index_neighbor</span>
+    <span class="n">df_bac_with_neighbors</span> <span class="o">=</span> <span class="n">df_bac_with_neighbors</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">df_bac_with_neighbors_values</span> <span class="o">=</span> <span class="n">df_bac_with_neighbors</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df_bac_with_neighbors_values</span><span class="p">:</span>
+
+        <span class="n">bac_idx</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">neighbor_idx</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">neighbor_idx</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">neighbor_list_array</span><span class="p">[</span><span class="n">bac_idx</span><span class="p">,</span> <span class="n">neighbor_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">neighbor_list_array</span></div>
 
 </pre></div>
         </article>

@@ -245,7 +245,6 @@
 <a class="viewcode-back" href="../modules.html#overAssignedDaughters.resolve_over_assigned_daughters_link">[docs]</a>
 <span class="k">def</span> <span class="nf">resolve_over_assigned_daughters_link</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
                                          <span class="n">division_links_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function identifies parent bacteria with over-assigned daughter links (OAD), evaluates</span>
 <span class="sd">    the validity of these links using a machine learning model, and resolves the issue by:</span>
@@ -295,7 +294,7 @@
                                                 <span class="s1">&#39;_parent&#39;</span><span class="p">,</span> <span class="n">link_type</span><span class="o">=</span><span class="s1">&#39;div&#39;</span><span class="p">)</span>
 
         <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_daughter&#39;</span><span class="p">]</span> <span class="o">/</span>
-                                                 <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_parent&#39;</span><span class="p">])</span>
+                                                   <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_parent&#39;</span><span class="p">])</span>
 
         <span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;angle_mother_daughter&#39;</span><span class="p">]</span> <span class="o">=</span> \
             <span class="n">calculate_angles_between_slopes</span><span class="p">(</span><span class="n">mothers_and_oads</span><span class="p">[</span><span class="s1">&#39;Bacterium_Slope_parent&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
@@ -353,8 +352,8 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bad_daughters_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 
         <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">bad_daughters_list</span><span class="p">,</span> <span class="p">[</span>
-            <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">,</span> <span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;TrajectoryX&#39;</span><span class="p">,</span> <span class="s1">&#39;TrajectoryY&#39;</span><span class="p">,</span> <span class="s1">&#39;Direction_of_Motion&#39;</span><span class="p">,</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span>
+            <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;TrajectoryX&#39;</span><span class="p">,</span> <span class="s1">&#39;TrajectoryY&#39;</span><span class="p">,</span> <span class="s1">&#39;Direction_of_Motion&#39;</span><span class="p">,</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span>
             <span class="s1">&#39;prev_time_step_index&#39;</span><span class="p">,</span> <span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">,</span> <span class="s1">&#39;Neighbor_Shared_Count&#39;</span><span class="p">]]</span> <span class="o">=</span> \
             <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
 

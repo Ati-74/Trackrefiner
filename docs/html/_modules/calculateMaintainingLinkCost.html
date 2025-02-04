@@ -245,7 +245,6 @@
 <a class="viewcode-back" href="../modules.html#calculateMaintainingLinkCost.calc_maintain_exist_link_cost">[docs]</a>
 <span class="k">def</span> <span class="nf">calc_maintain_exist_link_cost</span><span class="p">(</span><span class="n">sel_source_bacteria_info</span><span class="p">,</span> <span class="n">sel_target_bacteria_info</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span>
                                   <span class="n">divided_vs_non_divided_model</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the cost of maintaining existing links between bacteria in consecutive time steps.</span>
 <span class="sd">    This function calculates features such as IOU, distance, neighbor relationships,</span>
@@ -282,13 +281,15 @@
                                    <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span>
                                    <span class="s1">&#39;Endpoint1_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint1_Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint2_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint2_Y&#39;</span><span class="p">,</span>
                                    <span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">,</span> <span class="s1">&#39;Neighbor_Shared_Count&#39;</span><span class="p">,</span>
-                                   <span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">,</span> <span class="s1">&#39;Direction_of_Motion&#39;</span><span class="p">,</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">]</span>
+                                   <span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">,</span> <span class="s1">&#39;Direction_of_Motion&#39;</span><span class="p">,</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;index&#39;</span><span class="p">]</span>
 
         <span class="n">important_cols_continuity</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;parent_id&#39;</span><span class="p">,</span> <span class="s1">&#39;prev_index&#39;</span><span class="p">,</span>
                                      <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span> <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span>
                                      <span class="s1">&#39;Endpoint1_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint1_Y&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint2_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint2_Y&#39;</span><span class="p">,</span>
                                      <span class="s1">&#39;AreaShape_MajorAxisLength&#39;</span><span class="p">,</span> <span class="s1">&#39;Neighbor_Shared_Count&#39;</span><span class="p">,</span>
-                                     <span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">,</span> <span class="s1">&#39;Direction_of_Motion&#39;</span><span class="p">,</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">,</span> <span class="s1">&#39;Direction_of_Motion&#39;</span><span class="p">,</span> <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span>
+                                     <span class="s1">&#39;index&#39;</span><span class="p">,</span>
                                      <span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">]</span>
 
         <span class="n">division_merged_df</span> <span class="o">=</span> \
@@ -303,7 +304,7 @@
 
         <span class="c1"># IOU</span>
         <span class="n">division_merged_df</span> <span class="o">=</span> <span class="n">calculate_iou_ml</span><span class="p">(</span><span class="n">division_merged_df</span><span class="p">,</span> <span class="n">col_source</span><span class="o">=</span><span class="s1">&#39;prev_index_parent&#39;</span><span class="p">,</span>
-                                              <span class="n">col_target</span><span class="o">=</span><span class="s1">&#39;prev_index_daughter&#39;</span><span class="p">,</span>  <span class="n">link_type</span><span class="o">=</span><span class="s1">&#39;div&#39;</span><span class="p">,</span>
+                                              <span class="n">col_target</span><span class="o">=</span><span class="s1">&#39;prev_index_daughter&#39;</span><span class="p">,</span> <span class="n">link_type</span><span class="o">=</span><span class="s1">&#39;div&#39;</span><span class="p">,</span>
                                               <span class="n">coordinate_array</span><span class="o">=</span><span class="n">coordinate_array</span><span class="p">,</span> <span class="n">both</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="n">continuity_bac_merged_df</span> <span class="o">=</span> <span class="n">calculate_iou_ml</span><span class="p">(</span><span class="n">continuity_bac_merged_df</span><span class="p">,</span> <span class="n">col_source</span><span class="o">=</span><span class="s1">&#39;prev_index_bac1&#39;</span><span class="p">,</span>
@@ -318,7 +319,7 @@
                                                         <span class="s1">&#39;_bac2&#39;</span><span class="p">,</span> <span class="s1">&#39;_bac1&#39;</span><span class="p">)</span>
 
         <span class="n">division_merged_df</span><span class="p">[</span><span class="s1">&#39;Length_Change_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">division_merged_df</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_daughter&#39;</span><span class="p">]</span> <span class="o">/</span>
-                                                   <span class="n">division_merged_df</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_parent&#39;</span><span class="p">])</span>
+                                                     <span class="n">division_merged_df</span><span class="p">[</span><span class="s1">&#39;AreaShape_MajorAxisLength_parent&#39;</span><span class="p">])</span>
 
         <span class="n">division_merged_df</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count_daughter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
             <span class="n">division_merged_df</span><span class="p">[</span><span class="s1">&#39;Neighbor_Shared_Count_daughter&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>

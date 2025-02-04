@@ -309,8 +309,8 @@
                  <span class="n">center_coord_cols</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">],</span>
                  <span class="s1">&#39;Endpoint1_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint1_Y&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;Endpoint2_X&#39;</span><span class="p">,</span> <span class="s1">&#39;Endpoint2_Y&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span> <span class="s1">&#39;Total_Daughter_Mother_Length_Ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_End&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;Bacterium_Slope&#39;</span>
+                 <span class="s1">&#39;Motion_Alignment_Angle&#39;</span><span class="p">,</span> <span class="s1">&#39;Total_Daughter_Mother_Length_Ratio&#39;</span><span class="p">,</span> <span class="s1">&#39;Unexpected_Beginning&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;Unexpected_End&#39;</span><span class="p">,</span> <span class="s1">&#39;age&#39;</span><span class="p">,</span> <span class="s1">&#39;Bacterium_Slope&#39;</span>
                  <span class="p">]</span>
 
     <span class="n">neighbor_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="o">+</span> <span class="s1">&#39;_prev_neighbor&#39;</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">col_names</span><span class="p">]</span>
@@ -408,7 +408,8 @@
         <span class="p">(</span><span class="n">divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">]</span> <span class="o">/</span>
          <span class="p">(</span><span class="n">divided_bac_with_neighbor_of_source</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count&#39;</span><span class="p">]))</span>
 
-    <span class="n">divided_bac</span><span class="p">[</span><span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">divided_bac</span><span class="p">[</span><span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">divided_bac</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count&#39;</span><span class="p">]))</span>
+    <span class="n">divided_bac</span><span class="p">[</span><span class="s1">&#39;neighbor_ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">divided_bac</span><span class="p">[</span><span class="s1">&#39;Neighbor_Difference_Count&#39;</span><span class="p">]</span> <span class="o">/</span>
+                                     <span class="p">(</span><span class="n">divided_bac</span><span class="p">[</span><span class="s1">&#39;adjusted_Neighbor_Shared_Count&#39;</span><span class="p">]))</span>
 
     <span class="c1"># angle between source and target (mother &amp; daughter)</span>
     <span class="n">divided_bac</span><span class="p">[</span><span class="s1">&#39;angle_mother_daughter&#39;</span><span class="p">]</span> <span class="o">=</span> \

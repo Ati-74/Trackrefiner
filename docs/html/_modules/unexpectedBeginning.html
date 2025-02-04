@@ -328,7 +328,7 @@
 
                 <span class="c1"># update info</span>
                 <span class="n">source_bac</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">source_bac_idx</span><span class="p">]</span>
-                <span class="n">unexpected_beginning_bac_life_history</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">Unexpected_Beginning_bac</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]]</span>
+                <span class="n">unexpected_beginning_bac_life_history</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">unexpected_beginning_bac</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]]</span>
 
                 <span class="n">df</span> <span class="o">=</span> <span class="n">bacteria_modification</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">source_bac</span><span class="p">,</span> <span class="n">unexpected_beginning_bac_life_history</span><span class="p">,</span>
                                            <span class="n">unexpected_begging_bac_time_step_bacteria</span><span class="p">,</span> <span class="n">neighbors_df</span><span class="p">,</span>
@@ -465,8 +465,8 @@
                                                                  <span class="n">neighbor_matrix</span><span class="p">,</span> <span class="n">min_life_history_bac</span><span class="p">,</span>
                                                                  <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
                                                                  <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">division_vs_continuity_model</span><span class="p">,</span>
-                                                                 <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">division_links_model</span><span class="p">,</span> <span class="n">color_array</span><span class="p">,</span>
-                                                                 <span class="n">coordinate_array</span><span class="p">)</span>
+                                                                 <span class="n">continuity_links_model</span><span class="p">,</span> <span class="n">division_links_model</span><span class="p">,</span>
+                                                                 <span class="n">color_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">division_cost_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">continuity_link_cost_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 

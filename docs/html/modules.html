@@ -3232,6 +3232,35 @@ Example: {‘x’: ‘Location_Center_X’, ‘y’: ‘Location_Center_Y’}.</
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="helper.find_bacteria_neighbors">
+<span class="sig-prename descclassname"><span class="pre">helper.</span></span><span class="sig-name descname"><span class="pre">find_bacteria_neighbors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataframe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbor_df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/helper.html#find_bacteria_neighbors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#helper.find_bacteria_neighbors" title="Link to this definition">¶</a></dt>
+<dd><p>Constructs a neighbor adjacency matrix for bacterial objects based on their spatial relationships.</p>
+<p>This function processes a DataFrame containing bacterial object information and a second DataFrame
+specifying neighbor relationships. It generates an adjacency matrix where an entry (i, j) is True
+if bacterium i has bacterium j as a neighbor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataframe</strong> (<em>pandas.DataFrame</em>) – A DataFrame containing bacterial object information, including their unique indices, ImageNumber
+and ObjectNumber.</p></li>
+<li><p><strong>neighbor_df</strong> (<em>pandas.DataFrame</em>) – A DataFrame specifying neighbor relationships between bacteria, including object numbers
+and their corresponding image numbers. It contains at least the following columns:
+- ‘First Image Number’: Image number of the first bacterium in the pair.
+- ‘First Object Number’: Object number of the first bacterium.
+- ‘Second Image Number’: Image number of the second bacterium in the pair.
+- ‘Second Object Number’: Object number of the second bacterium.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>scipy.sparse.lil_matrix:
+A sparse adjacency matrix (LIL format) where rows and columns correspond to bacterial objects
+(indexed by <cite>index</cite>), and a True value at position (i, j) indicates that bacterium i has bacterium j
+as a neighbor.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="helper.identify_important_columns">
 <span class="sig-prename descclassname"><span class="pre">helper.</span></span><span class="sig-name descname"><span class="pre">identify_important_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/helper.html#identify_important_columns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#helper.identify_important_columns" title="Link to this definition">¶</a></dt>
 <dd><p>Identifies key columns related to center coordinates, labels, and parent objects
@@ -3832,7 +3861,8 @@ CellProfiler output DataFrame.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="calcElongationRate.calculate_average_elongation_rate">
 <span class="sig-prename descclassname"><span class="pre">calcElongationRate.</span></span><span class="sig-name descname"><span class="pre">calculate_average_elongation_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">division_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">birth_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/calcElongationRate.html#calculate_average_elongation_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#calcElongationRate.calculate_average_elongation_rate" title="Link to this definition">¶</a></dt>
-<dd><p>Calculates the average elongation rate of a bacterium over its lifecycle based on initial and final logarithm lengths.</p>
+<dd><p>Calculates the average elongation rate of a bacterium over its lifecycle based on initial and final
+logarithm lengths.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -4288,6 +4318,7 @@ assigns them to bins, and visualizes the distribution with bar plots.</p>
 <li><a class="reference internal" href="#helper.convert_um_to_pixel"><code class="docutils literal notranslate"><span class="pre">convert_um_to_pixel()</span></code></a></li>
 <li><a class="reference internal" href="#helper.extract_bacteria_features"><code class="docutils literal notranslate"><span class="pre">extract_bacteria_features()</span></code></a></li>
 <li><a class="reference internal" href="#helper.extract_bacteria_info"><code class="docutils literal notranslate"><span class="pre">extract_bacteria_info()</span></code></a></li>
+<li><a class="reference internal" href="#helper.find_bacteria_neighbors"><code class="docutils literal notranslate"><span class="pre">find_bacteria_neighbors()</span></code></a></li>
 <li><a class="reference internal" href="#helper.identify_important_columns"><code class="docutils literal notranslate"><span class="pre">identify_important_columns()</span></code></a></li>
 <li><a class="reference internal" href="#helper.update_dataframe_with_selected_rows"><code class="docutils literal notranslate"><span class="pre">update_dataframe_with_selected_rows()</span></code></a></li>
 </ul>

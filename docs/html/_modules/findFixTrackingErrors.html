@@ -239,7 +239,7 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.helper</span> <span class="kn">import</span> <span class="n">convert_pixel_to_um</span><span class="p">,</span> <span class="n">calculate_all_bac_endpoints</span><span class="p">,</span> \
-    <span class="n">convert_angle_to_radian</span><span class="p">,</span> <span class="n">calculate_all_bac_slopes</span><span class="p">,</span> <span class="n">print_progress_bar</span><span class="p">,</span> \
+    <span class="n">convert_angle_to_radian</span><span class="p">,</span> <span class="n">calculate_all_bac_slopes</span><span class="p">,</span> <span class="n">print_progress_bar</span><span class="p">,</span> <span class="n">find_bacteria_neighbors</span><span class="p">,</span> \
     <span class="n">calculate_bacterial_life_history_features</span><span class="p">,</span> <span class="n">calculate_trajectory_angles</span><span class="p">,</span> <span class="n">calculate_angles_between_slopes</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.featuresCalculation.fluorescenceIntensity</span> <span class="kn">import</span> <span class="n">assign_cell_types</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.trackingErrors.unexpectedBeginning</span> <span class="kn">import</span> <span class="n">handle_unexpected_beginning_bacteria</span>
@@ -247,7 +247,8 @@
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.trackingErrors.redundantParentLink</span> <span class="kn">import</span> <span class="n">detect_and_resolve_redundant_parent_link</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.segmentationErrors.noiseObjects</span> <span class="kn">import</span> <span class="n">detect_and_remove_noise_bacteria</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.action.neighborAnalysis</span> <span class="kn">import</span> <span class="n">compare_neighbor_sets</span>
-<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.trackingErrors.missingConnectivityLink</span> <span class="kn">import</span> <span class="n">detect_and_resolve_missing_connectivity_link</span>
+<span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.trackingErrors.missingConnectivityLink</span> <span class="kn">import</span> \
+    <span class="n">detect_and_resolve_missing_connectivity_link</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.trackingErrors.unExpectedEnd</span> <span class="kn">import</span> <span class="n">handle_unexpected_end_bacteria</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.segmentationErrors.multiRegionsDetection</span> <span class="kn">import</span> <span class="n">map_and_detect_multi_regions</span>
 <span class="kn">from</span> <span class="nn">Trackrefiner.core.correction.trackingErrors.restoringTrackingLinks</span> <span class="kn">import</span> <span class="n">restore_tracking_links</span>
@@ -591,34 +592,8 @@
         <span class="n">calculate_angles_between_slopes</span><span class="p">(</span><span class="n">bac_need_to_cal_dir_motion</span><span class="p">[</span><span class="s1">&#39;Bacterium_Slope&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
                                         <span class="n">bac_need_to_cal_dir_motion</span><span class="p">[</span><span class="s1">&#39;Prev_Bacterium_Slope&#39;</span><span class="p">])</span>
 
-    <span class="c1"># now add neighbor index list</span>
-    <span class="c1"># adding measured features of bacteria to neighbors_df</span>
-    <span class="n">neighbor_df</span> <span class="o">=</span> <span class="n">neighbor_df</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">dataframe</span><span class="p">[[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">]],</span>
-                                    <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Second Image Number&#39;</span><span class="p">,</span> <span class="s1">&#39;Second Object Number&#39;</span><span class="p">],</span>
-                                    <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>
-
-    <span class="n">df_bac_with_neighbors</span> <span class="o">=</span> \
-        <span class="n">dataframe</span><span class="p">[[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">neighbor_df</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;ImageNumber&#39;</span><span class="p">,</span> <span class="s1">&#39;ObjectNumber&#39;</span><span class="p">],</span>
-                                                                  <span class="n">right_on</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;First Image Number&#39;</span><span class="p">,</span>
-                                                                            <span class="s1">&#39;First Object Number&#39;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
-                                                                  <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_neighbor&#39;</span><span class="p">))</span>
-
-    <span class="n">neighbor_list_array</span> <span class="o">=</span> <span class="n">lil_matrix</span><span class="p">((</span><span class="n">df_bac_with_neighbors</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-                                      <span class="n">df_bac_with_neighbors</span><span class="p">[</span><span class="s1">&#39;index_neighbor&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-
-    <span class="c1"># values shows:</span>
-    <span class="c1"># ImageNumber, ObjectNumber, index,	First Image Number,	First Object Number, Second Image Number,</span>
-    <span class="c1"># Second Object Number,	ImageNumber_neighbor, ObjectNumber_neighbor,	index_neighbor</span>
-    <span class="n">df_bac_with_neighbors</span> <span class="o">=</span> <span class="n">df_bac_with_neighbors</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">df_bac_with_neighbors_values</span> <span class="o">=</span> <span class="n">df_bac_with_neighbors</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">df_bac_with_neighbors_values</span><span class="p">:</span>
-
-        <span class="n">bac_idx</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">neighbor_idx</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">neighbor_idx</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-            <span class="n">neighbor_list_array</span><span class="p">[</span><span class="n">bac_idx</span><span class="p">,</span> <span class="n">neighbor_idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1"># Constructs a neighbor adjacency matrix for bacterial objects</span>
+    <span class="n">neighbor_list_array</span> <span class="o">=</span> <span class="n">find_bacteria_neighbors</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">)</span>
 
     <span class="n">dataframe</span><span class="p">[</span><span class="s1">&#39;checked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
