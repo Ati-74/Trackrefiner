@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "TrackRefiner"
-version = "1.2.1"
+version = "1.2.2"
 description = "Analyzing CellProfiler output"
 requires-python = ">=3.8"
 license = {text = "BSD 3-Clause"}
@@ -52,6 +52,7 @@ dependencies = [
 trackrefiner-cli = "Trackrefiner.cli:main"
 trackrefiner-gui = "Trackrefiner.gui:main"
 trackrefiner-jitter-remover = "Trackrefiner.utils.jitterRemover:main"
+trackrefiner-track-editor = "Trackrefiner.bacteriaTrackEditor:main"
 
 
 [project.urls]

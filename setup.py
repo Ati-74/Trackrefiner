@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='TrackRefiner',
-      version='1.2.1',
+      version='1.2.2',
       description='analyzing CellProfiler output',
       install_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
                         'scikit-image', 'psutil', 'seaborn', 'PyQt5'],
@@ -19,6 +19,7 @@ setup(name='TrackRefiner',
           'console_scripts': [
               'trackrefiner-cli=Trackrefiner.cli:main',
               'trackrefiner-gui=Trackrefiner.gui:main',
+              'trackrefiner-track-editor=Trackrefiner.bacteriaTrackEditor:main',
               'trackrefiner-jitter-remover=Trackrefiner.utils.jitterRemover:main',
           ],
       }, project_urls={
@@ -51,4 +52,4 @@ setup(name='TrackRefiner',
           "License :: OSI Approved :: BSD License",
           "Operating System :: OS Independent"
       ],
-    )
+      )
