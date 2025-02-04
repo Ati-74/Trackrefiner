@@ -77,7 +77,7 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
         # Exclude the background color (0,0,0)
         unique_colors = np.delete(unique_colors, 0, axis=0)
 
-        mask_centeroid = []
+        mask_centroid = []
         mask_stat = []
         connected_region_centroid = []
         connected_region_stat = []
@@ -106,7 +106,7 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
 
                 y0_cp, x0_cp = regions_cp[0].centroid
 
-                mask_centeroid.append((x0_cp * pixel_per_micron, y0_cp * pixel_per_micron))
+                mask_centroid.append((x0_cp * pixel_per_micron, y0_cp * pixel_per_micron))
                 mask_stat.append('multi')
 
                 # Separate regions
@@ -139,7 +139,7 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
                 major_length = regions[0].major_axis_length * pixel_per_micron
                 minor_length = regions[0].minor_axis_length * pixel_per_micron
 
-                mask_centeroid.append((x0 * pixel_per_micron, y0 * pixel_per_micron))
+                mask_centroid.append((x0 * pixel_per_micron, y0 * pixel_per_micron))
                 connected_region_centroid.append((x0 * pixel_per_micron, y0 * pixel_per_micron))
 
                 mask_stat.append('natural')
@@ -153,7 +153,7 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
                 regions_coordinates.append(regions[0].coords)
 
         # check objects
-        df_centers_masks = pd.DataFrame(mask_centeroid, columns=['center_x', 'center_y'])
+        df_centers_masks = pd.DataFrame(mask_centroid, columns=['center_x', 'center_y'])
         df_centers_connected_regions = pd.DataFrame(connected_region_centroid, columns=['center_x', 'center_y'])
 
         # rows: index from df_centers_masks
@@ -170,8 +170,8 @@ def map_and_detect_multi_regions(df, sorted_seg_npy_files_list, pixel_per_micron
 
         # Extracting corresponding values
         regions_center_prev_stat = [mask_stat[i] for i in distance_df_raw_objects_min_val_idx]
-        regions_center_raw_x = [mask_centeroid[i][0] for i in distance_df_raw_objects_min_val_idx]
-        regions_center_raw_y = [mask_centeroid[i][1] for i in distance_df_raw_objects_min_val_idx]
+        regions_center_raw_x = [mask_centroid[i][0] for i in distance_df_raw_objects_min_val_idx]
+        regions_center_raw_y = [mask_centroid[i][1] for i in distance_df_raw_objects_min_val_idx]
 
         min_distance_prev_objects_df = pd.DataFrame({
             'cp index': distance_df_cp_masks.columns,

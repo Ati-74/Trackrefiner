@@ -6,7 +6,6 @@ from Trackrefiner.core.correction.modelTraning.calculation.calcDistanceForML imp
 
 def calc_maintain_exist_link_cost(sel_source_bacteria_info, sel_target_bacteria_info, center_coord_cols,
                                   divided_vs_non_divided_model, coordinate_array):
-
     """
     Calculates the cost of maintaining existing links between bacteria in consecutive time steps.
     This function calculates features such as IOU, distance, neighbor relationships,
@@ -43,13 +42,15 @@ def calc_maintain_exist_link_cost(sel_source_bacteria_info, sel_target_bacteria_
                                    center_coord_cols['x'], center_coord_cols['y'],
                                    'Endpoint1_X', 'Endpoint1_Y', 'Endpoint2_X', 'Endpoint2_Y',
                                    'AreaShape_MajorAxisLength', 'Neighbor_Shared_Count',
-                                   'Neighbor_Difference_Count', 'Direction_of_Motion', 'Motion_Alignment_Angle', 'index']
+                                   'Neighbor_Difference_Count', 'Direction_of_Motion', 'Motion_Alignment_Angle',
+                                   'index']
 
         important_cols_continuity = ['id', 'parent_id', 'prev_index',
                                      center_coord_cols['x'], center_coord_cols['y'],
                                      'Endpoint1_X', 'Endpoint1_Y', 'Endpoint2_X', 'Endpoint2_Y',
                                      'AreaShape_MajorAxisLength', 'Neighbor_Shared_Count',
-                                     'Neighbor_Difference_Count', 'Direction_of_Motion', 'Motion_Alignment_Angle', 'index',
+                                     'Neighbor_Difference_Count', 'Direction_of_Motion', 'Motion_Alignment_Angle',
+                                     'index',
                                      'Length_Change_Ratio']
 
         division_merged_df = \
@@ -64,7 +65,7 @@ def calc_maintain_exist_link_cost(sel_source_bacteria_info, sel_target_bacteria_
 
         # IOU
         division_merged_df = calculate_iou_ml(division_merged_df, col_source='prev_index_parent',
-                                              col_target='prev_index_daughter',  link_type='div',
+                                              col_target='prev_index_daughter', link_type='div',
                                               coordinate_array=coordinate_array, both=False)
 
         continuity_bac_merged_df = calculate_iou_ml(continuity_bac_merged_df, col_source='prev_index_bac1',
@@ -79,7 +80,7 @@ def calc_maintain_exist_link_cost(sel_source_bacteria_info, sel_target_bacteria_
                                                         '_bac2', '_bac1')
 
         division_merged_df['Length_Change_Ratio'] = (division_merged_df['AreaShape_MajorAxisLength_daughter'] /
-                                                   division_merged_df['AreaShape_MajorAxisLength_parent'])
+                                                     division_merged_df['AreaShape_MajorAxisLength_parent'])
 
         division_merged_df['adjusted_Neighbor_Shared_Count_daughter'] = np.where(
             division_merged_df['Neighbor_Shared_Count_daughter'] == 0,

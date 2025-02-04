@@ -5,7 +5,8 @@ from sklearn.linear_model import LinearRegression
 def calculate_average_elongation_rate(division_length, birth_length, t):
 
     """
-    Calculates the average elongation rate of a bacterium over its lifecycle based on initial and final logarithm lengths.
+    Calculates the average elongation rate of a bacterium over its lifecycle based on initial and final
+    logarithm lengths.
 
     :param float division_length:
         The length of the bacterium at the time of division (final length).

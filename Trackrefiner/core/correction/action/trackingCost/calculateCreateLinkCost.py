@@ -364,7 +364,8 @@ def calc_continuity_link_cost(df, neighbors_df, neighbor_list_array, source_bac_
             (source_bac_with_can_target['Neighbor_Difference_Count' + col_target] / (
                 source_bac_with_can_target['adjusted_Neighbor_Shared_Count' + col_target]))
 
-        raw_feature_list = ['iou', 'min_distance', 'Neighbor_Difference_Count' + col_target, 'Neighbor_Shared_Count' + col_target,
+        raw_feature_list = ['iou', 'min_distance', 'Neighbor_Difference_Count' + col_target,
+                            'Neighbor_Shared_Count' + col_target,
                             'neighbor_ratio' + col_target, 'length_dynamic' + col_target,
                             'Motion_Alignment_Angle' + col_target,
                             'Direction_of_Motion' + col_target, 'Length_Change_Ratio' + col_target,
@@ -720,7 +721,8 @@ def calc_continuity_link_cost_for_restoring_links(df, neighbors_df, neighbor_lis
             (source_bac_with_can_target['Neighbor_Difference_Count' + col_target] / (
                 source_bac_with_can_target['adjusted_Neighbor_Shared_Count' + col_target]))
 
-        raw_feature_list = ['iou', 'min_distance', 'Neighbor_Difference_Count' + col_target, 'Neighbor_Shared_Count' + col_target,
+        raw_feature_list = ['iou', 'min_distance', 'Neighbor_Difference_Count' + col_target,
+                            'Neighbor_Shared_Count' + col_target,
                             'length_dynamic' + col_target,
                             'neighbor_ratio' + col_target,
                             'Motion_Alignment_Angle' + col_target,

@@ -53,7 +53,8 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
     first_time_step_selected_rows = selected_bacteria['ImageNumber'].min()
     last_time_step_selected_rows = selected_bacteria['ImageNumber'].max()
 
-    selected_bacteria = selected_bacteria.drop(["Total_Daughter_Mother_Length_Ratio", "Max_Daughter_Mother_Length_Ratio",
+    selected_bacteria = selected_bacteria.drop(["Total_Daughter_Mother_Length_Ratio",
+                                                "Max_Daughter_Mother_Length_Ratio",
                                                 'Daughter_Avg_TrajectoryX', 'Daughter_Avg_TrajectoryY'], axis=1)
 
     selected_rows_df_first_time_step = \
@@ -412,7 +413,8 @@ def calc_modified_features(df, selected_bacteria, neighbor_df, neighbor_list_arr
     df.loc[bac_idx_needed_to_update, 'prev_time_step_index'] = \
         updated_selected_rows_df.loc[bac_idx_needed_to_update, 'prev_time_step_index'].fillna(-1).values.astype('int64')
 
-    updated_selected_rows_df['Prev_Bacterium_Slope'] = updated_selected_rows_df.groupby('id')['Bacterium_Slope'].shift(1)
+    updated_selected_rows_df['Prev_Bacterium_Slope'] = \
+        updated_selected_rows_df.groupby('id')['Bacterium_Slope'].shift(1)
     updated_selected_rows_df.loc[bac_idx_not_needed_to_update, 'Prev_Bacterium_Slope'] = \
         df.loc[bac_idx_not_needed_to_update, 'Prev_Bacterium_Slope'].values
 

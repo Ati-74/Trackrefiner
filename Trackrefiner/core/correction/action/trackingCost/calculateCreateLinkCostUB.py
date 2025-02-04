@@ -7,7 +7,7 @@ from Trackrefiner.core.correction.action.trackingCost.evaluateDivisionLinkForUB 
 from Trackrefiner.core.correction.action.candidateBacteriaFeatureSpace import find_candidates_for_unexpected_beginning
 from Trackrefiner.core.correction.action.trackingCost.calculateMaintainingLinkCost import calc_maintain_exist_link_cost
 from Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost import (calc_continuity_link_cost,
-                                                                                 calc_division_link_cost)
+                                                                                      calc_division_link_cost)
 
 
 def compute_create_link_to_unexpected_beginning_cost(df, unexpected_begging_bac_time_step_bacteria,

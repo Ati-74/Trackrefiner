@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from Trackrefiner.core.correction.action.featuresCalculation.calculateOverlap import (track_object_overlaps_to_next_frame,
-                                                                                 calculate_frame_existence_links)
+from Trackrefiner.core.correction.action.featuresCalculation.calculateOverlap import \
+    track_object_overlaps_to_next_frame, calculate_frame_existence_links
 
 
 def calc_distance_term_for_maintain_continuity_links(continuity_df, center_coord_cols):

@@ -1,5 +1,6 @@
 import pandas as pd
-from Trackrefiner.core.correction.action.trackingCost.calculateInitialCostTerms import calc_distance_and_overlap_matrices
+from Trackrefiner.core.correction.action.trackingCost.calculateInitialCostTerms import \
+    calc_distance_and_overlap_matrices
 
 
 def find_candidates_for_unexpected_beginning(

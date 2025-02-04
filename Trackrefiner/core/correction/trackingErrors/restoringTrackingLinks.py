@@ -1,8 +1,8 @@
 import pandas as pd
 from Trackrefiner.core.correction.action.bacteriaTrackingUpdate import bacteria_modification
 from Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost import optimize_assignment_using_hungarian
-from Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost import calc_division_link_cost_for_restoring_links, \
-    calc_continuity_link_cost_for_restoring_links
+from Trackrefiner.core.correction.action.trackingCost.calculateCreateLinkCost import \
+    calc_division_link_cost_for_restoring_links, calc_continuity_link_cost_for_restoring_links
 
 
 def add_tracking_link(df, neighbors_df, neighbor_list_array, source_bac_idx, target_bac_idx,
@@ -176,7 +176,8 @@ def restore_tracking_links(df, neighbors_df, neighbor_list_array, parent_image_n
 
             # Rename columns for clarity
             agg_df.columns = ['ImageNumber_source', 'ObjectNumber_source', 'max_daughter_len_same', 'source_len_same']
-            agg_df['Max_Daughter_Mother_Length_Ratio_same'] = agg_df['max_daughter_len_same'] / agg_df['source_len_same']
+            agg_df['Max_Daughter_Mother_Length_Ratio_same'] = (agg_df['max_daughter_len_same'] /
+                                                               agg_df['source_len_same'])
             merged_df = pd.merge(bac_with_same_source, agg_df, on=['ImageNumber_source', 'ObjectNumber_source'],
                                  how='inner')
 

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import time
 from Trackrefiner.core.correction.action.helper import convert_pixel_to_um, calculate_all_bac_endpoints, \
-    convert_angle_to_radian, calculate_all_bac_slopes, print_progress_bar, \
+    convert_angle_to_radian, calculate_all_bac_slopes, print_progress_bar, find_bacteria_neighbors, \
     calculate_bacterial_life_history_features, calculate_trajectory_angles, calculate_angles_between_slopes
 from Trackrefiner.core.correction.action.featuresCalculation.fluorescenceIntensity import assign_cell_types
 from Trackrefiner.core.correction.trackingErrors.unexpectedBeginning import handle_unexpected_beginning_bacteria
@@ -10,7 +10,8 @@ from Trackrefiner.core.correction.trackingErrors.overAssignedDaughters import re
 from Trackrefiner.core.correction.trackingErrors.redundantParentLink import detect_and_resolve_redundant_parent_link
 from Trackrefiner.core.correction.segmentationErrors.noiseObjects import detect_and_remove_noise_bacteria
 from Trackrefiner.core.correction.action.neighborAnalysis import compare_neighbor_sets
-from Trackrefiner.core.correction.trackingErrors.missingConnectivityLink import detect_and_resolve_missing_connectivity_link
+from Trackrefiner.core.correction.trackingErrors.missingConnectivityLink import \
+    detect_and_resolve_missing_connectivity_link
 from Trackrefiner.core.correction.trackingErrors.unExpectedEnd import handle_unexpected_end_bacteria
 from Trackrefiner.core.correction.segmentationErrors.multiRegionsDetection import map_and_detect_multi_regions
 from Trackrefiner.core.correction.trackingErrors.restoringTrackingLinks import restore_tracking_links
@@ -352,34 +353,8 @@ def calculate_bacteria_features_and_assign_flags(dataframe, intensity_threshold,
         calculate_angles_between_slopes(bac_need_to_cal_dir_motion['Bacterium_Slope'].values,
                                         bac_need_to_cal_dir_motion['Prev_Bacterium_Slope'])
 
-    # now add neighbor index list
-    # adding measured features of bacteria to neighbors_df
-    neighbor_df = neighbor_df.merge(dataframe[['ImageNumber', 'ObjectNumber', 'index']],
-                                    left_on=['Second Image Number', 'Second Object Number'],
-                                    right_on=['ImageNumber', 'ObjectNumber'], how='inner')
-
-    df_bac_with_neighbors = \
-        dataframe[['ImageNumber', 'ObjectNumber', 'index']].merge(neighbor_df, left_on=['ImageNumber', 'ObjectNumber'],
-                                                                  right_on=['First Image Number',
-                                                                            'First Object Number'], how='left',
-                                                                  suffixes=('', '_neighbor'))
-
-    neighbor_list_array = lil_matrix((df_bac_with_neighbors['index'].max().astype('int64') + 1,
-                                      df_bac_with_neighbors['index_neighbor'].max().astype('int64') + 1), dtype=bool)
-
-    # values shows:
-    # ImageNumber, ObjectNumber, index,	First Image Number,	First Object Number, Second Image Number,
-    # Second Object Number,	ImageNumber_neighbor, ObjectNumber_neighbor,	index_neighbor
-    df_bac_with_neighbors = df_bac_with_neighbors.fillna(-1)
-    df_bac_with_neighbors_values = df_bac_with_neighbors.to_numpy(dtype='int64')
-
-    for row in df_bac_with_neighbors_values:
-
-        bac_idx = row[2]
-        neighbor_idx = row[-1]
-
-        if neighbor_idx != -1:
-            neighbor_list_array[bac_idx, neighbor_idx] = True
+    # Constructs a neighbor adjacency matrix for bacterial objects
+    neighbor_list_array = find_bacteria_neighbors(dataframe, neighbor_df)
 
     dataframe['checked'] = True
 

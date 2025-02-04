@@ -89,7 +89,7 @@ def resolve_unexpected_beginning_bacteria(df, neighbors_df, neighbor_list_array,
 
                 # update info
                 source_bac = df.loc[source_bac_idx]
-                unexpected_beginning_bac_life_history = df.loc[df['id'] == Unexpected_Beginning_bac['id']]
+                unexpected_beginning_bac_life_history = df.loc[df['id'] == unexpected_beginning_bac['id']]
 
                 df = bacteria_modification(df, source_bac, unexpected_beginning_bac_life_history,
                                            unexpected_begging_bac_time_step_bacteria, neighbors_df,
@@ -223,8 +223,8 @@ def handle_unexpected_beginning_bacteria(df, neighbors_df, neighbor_matrix, inte
                                                                  neighbor_matrix, min_life_history_bac,
                                                                  parent_image_number_col, parent_object_number_col,
                                                                  center_coord_cols, division_vs_continuity_model,
-                                                                 continuity_links_model, division_links_model, color_array,
-                                                                 coordinate_array)
+                                                                 continuity_links_model, division_links_model,
+                                                                 color_array, coordinate_array)
 
             if division_cost_df.shape[0] > 0 and continuity_link_cost_df.shape[0] > 0:
 

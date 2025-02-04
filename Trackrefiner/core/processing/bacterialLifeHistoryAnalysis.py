@@ -47,6 +47,7 @@ def process_bacterial_life_and_family(processed_cp_out_df, interval_time, elonga
 
     processed_cp_out_df["time"] = pd.to_numeric(processed_cp_out_df["ImageNumber"]) * interval_time
     processed_cp_out_df["radius"] = processed_cp_out_df['AreaShape_MinorAxisLength'] / 2
+    processed_cp_out_df['Average_Length'] = np.nan
     processed_cp_out_df['Average_Length'] = \
         processed_cp_out_df.groupby('id')['AreaShape_MajorAxisLength'].transform('mean')
 
@@ -152,7 +153,8 @@ def process_bacterial_life_and_family(processed_cp_out_df, interval_time, elonga
     data_frame_with_selected_col = \
         processed_cp_out_df.rename(columns={'ImageNumber': 'stepNum', 'AreaShape_MajorAxisLength': 'length',
                                             label_col: 'label', 'age': 'cellAge', 'Elongation_Rate': 'growthRate'})
-    if assigning_cell_type:
+    if 'cellType' in data_frame_with_selected_col.columns:
+
         data_frame_with_selected_col = data_frame_with_selected_col[
             ['stepNum', 'ObjectNumber', 'id', 'label', 'divideFlag', 'cellAge', 'growthRate', 'LifeHistory', 'startVol',
              'targetVol', 'parent_id', 'pos', 'time', 'radius', 'length', 'ends', 'dir', 'cellType', 'strainRate',

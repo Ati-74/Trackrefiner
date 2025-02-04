@@ -6,7 +6,6 @@ from Trackrefiner.core.correction.modelTraning.calculation.calcDistanceForML imp
 
 def resolve_over_assigned_daughters_link(df, parent_image_number_col, parent_object_number_col, center_coord_cols,
                                          division_links_model, coordinate_array):
-
     """
     This function identifies parent bacteria with over-assigned daughter links (OAD), evaluates
     the validity of these links using a machine learning model, and resolves the issue by:
@@ -56,7 +55,7 @@ def resolve_over_assigned_daughters_link(df, parent_image_number_col, parent_obj
                                                 '_parent', link_type='div')
 
         mothers_and_oads['Length_Change_Ratio'] = (mothers_and_oads['AreaShape_MajorAxisLength_daughter'] /
-                                                 mothers_and_oads['AreaShape_MajorAxisLength_parent'])
+                                                   mothers_and_oads['AreaShape_MajorAxisLength_parent'])
 
         mothers_and_oads['angle_mother_daughter'] = \
             calculate_angles_between_slopes(mothers_and_oads['Bacterium_Slope_parent'].values,
@@ -114,8 +113,8 @@ def resolve_over_assigned_daughters_link(df, parent_image_number_col, parent_obj
     if len(bad_daughters_list) > 0:
 
         df.loc[bad_daughters_list, [
-            parent_image_number_col, parent_object_number_col, 'parent_id', 'Unexpected_Beginning', 'Length_Change_Ratio',
-            'TrajectoryX', 'TrajectoryY', 'Direction_of_Motion', 'Motion_Alignment_Angle',
+            parent_image_number_col, parent_object_number_col, 'parent_id', 'Unexpected_Beginning',
+            'Length_Change_Ratio', 'TrajectoryX', 'TrajectoryY', 'Direction_of_Motion', 'Motion_Alignment_Angle',
             'prev_time_step_index', 'Neighbor_Difference_Count', 'Neighbor_Shared_Count']] = \
             [0, 0, 0, True, np.nan, np.nan, np.nan, np.nan, np.nan, -1, 0, 0]
 

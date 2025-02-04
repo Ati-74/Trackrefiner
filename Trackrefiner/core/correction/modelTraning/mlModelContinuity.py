@@ -65,8 +65,8 @@ def train_continuity_links_model(df, connected_bac_high_chance_to_be_correct_wit
                  'Neighbor_Difference_Count', 'Neighbor_Shared_Count', 'other_daughter_index', 'id', 'parent_id',
                  parent_image_number_col, parent_object_number_col, center_coord_cols['x'], center_coord_cols['y'],
                  'Endpoint1_X', 'Endpoint1_Y', 'Endpoint2_X', 'Endpoint2_Y',
-                 'Motion_Alignment_Angle', 'Total_Daughter_Mother_Length_Ratio', 'Unexpected_Beginning', 'Unexpected_End', 'age'
-                 ]
+                 'Motion_Alignment_Angle', 'Total_Daughter_Mother_Length_Ratio', 'Unexpected_Beginning',
+                 'Unexpected_End', 'age']
 
     neighbor_cols = [col + '_prev_neighbor' for col in col_names]
     source_cols = [col + '_prev' for col in col_names]
@@ -152,15 +152,16 @@ def train_continuity_links_model(df, connected_bac_high_chance_to_be_correct_wit
     non_divided_bac_with_neighbor_of_source['adjusted_Neighbor_Shared_Count'] = \
         non_divided_bac_with_neighbor_of_source['Neighbor_Shared_Count'].replace(0, 1)
 
-    continues_life_history_bac['adjusted_Neighbor_Shared_Count'] = continues_life_history_bac['Neighbor_Shared_Count'].replace(0,
-                                                                                                                     1)
+    continues_life_history_bac['adjusted_Neighbor_Shared_Count'] = \
+        continues_life_history_bac['Neighbor_Shared_Count'].replace(0, 1)
 
     non_divided_bac_with_neighbor_of_source['neighbor_ratio'] = \
         (non_divided_bac_with_neighbor_of_source['Neighbor_Difference_Count'] /
          (non_divided_bac_with_neighbor_of_source['adjusted_Neighbor_Shared_Count']))
 
     continues_life_history_bac['neighbor_ratio'] = \
-        (continues_life_history_bac['Neighbor_Difference_Count'] / (continues_life_history_bac['adjusted_Neighbor_Shared_Count']))
+        (continues_life_history_bac['Neighbor_Difference_Count'] /
+         (continues_life_history_bac['adjusted_Neighbor_Shared_Count']))
 
     # (Length Ratio(source-target)- Length Dynamics source )
     continues_life_history_bac = check_len_ratio(df, continues_life_history_bac, col_target='', col_source='_prev')

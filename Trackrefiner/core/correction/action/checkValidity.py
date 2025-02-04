@@ -279,7 +279,7 @@ def validate_dynamic_boundaries(dynamic_boundaries):
             raise ValueError(f"Missing required column in dynamic boundaries CSV: {col}")
 
     # Validate column values
-    if not all(df[col].apply(lambda x: isinstance(x, int) and x > 0).all() for col in required_columns):
+    if not all(df[col].apply(lambda x: isinstance(x, int) and x >= 0).all() for col in required_columns):
         raise ValueError("All values in dynamic boundaries CSV must be positive integers.")
 
     # Validate boundary ranges

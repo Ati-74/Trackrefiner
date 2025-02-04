@@ -169,14 +169,14 @@ class TrackRefinerGUI(QWidget):
         self.help_button = QPushButton("Help")
         self.help_button.setToolTip("View the Trackrefiner wiki")
         self.help_button.clicked.connect(lambda: QDesktopServices.openUrl(
-            QUrl("https://github.com/Ati-74/Trackrefiner")))
+            QUrl("https://github.com/ingallslab/Trackrefiner/wiki")))
         help_issue_layout.addWidget(self.help_button)
 
         # Issue button
         self.issue_button = QPushButton("Report Issue")
         self.issue_button.setToolTip("Report an issue with the Trackrefiner")
         self.issue_button.clicked.connect(
-            lambda: QDesktopServices.openUrl(QUrl("https://github.com/Ati-74/Trackrefiner/issues")))
+            lambda: QDesktopServices.openUrl(QUrl("https://github.com/ingallslab/Trackrefiner/issues")))
         help_issue_layout.addWidget(self.issue_button)
 
         # Add Help and Issue layout

@@ -225,7 +225,8 @@ def detect_and_resolve_redundant_parent_link(df, neighbor_df, neighbor_list_arra
 
                     # now we should change features of prev parent bacterium
                     df.loc[parent_with_redundant_link_idx, ['daughters_index', 'Total_Daughter_Mother_Length_Ratio',
-                                                            'Max_Daughter_Mother_Length_Ratio', 'Daughter_Avg_TrajectoryX',
+                                                            'Max_Daughter_Mother_Length_Ratio',
+                                                            'Daughter_Avg_TrajectoryX',
                                                             'Daughter_Avg_TrajectoryY']] = \
                         [np.nan, np.nan, np.nan, np.nan, np.nan, ]
 
@@ -324,7 +325,8 @@ def detect_and_resolve_redundant_parent_link(df, neighbor_df, neighbor_list_arra
                 df.loc[wrong_daughters_index_list, [parent_image_number_col, parent_object_number_col,
                                                     'Unexpected_Beginning', 'Direction_of_Motion', "TrajectoryX",
                                                     "TrajectoryY", 'prev_time_step_index',
-                                                    'other_daughter_index', 'Prev_Bacterium_Slope', 'Orientation_Angle_Between_Slopes',
+                                                    'other_daughter_index', 'Prev_Bacterium_Slope',
+                                                    'Orientation_Angle_Between_Slopes',
                                                     'parent_index', 'Daughter_Mother_Length_Ratio']] = \
                     [0, 0, True, np.nan, np.nan, np.nan, -1, np.nan, np.nan, np.nan, np.nan, np.nan]
 
@@ -355,7 +357,8 @@ def detect_and_resolve_redundant_parent_link(df, neighbor_df, neighbor_list_arra
                                                                                  'ImageNumber_2', 'ObjectNumber_2',
                                                                                  'AreaShape_MajorAxisLength_1',
                                                                                  'AreaShape_MajorAxisLength_2',
-                                                                                 'Bacterium_Slope_1', 'Bacterium_Slope_2',
+                                                                                 'Bacterium_Slope_1',
+                                                                                 'Bacterium_Slope_2',
                                                                                  center_coord_cols['x'] + '_1',
                                                                                  center_coord_cols['y'] + '_1',
                                                                                  center_coord_cols['x'] + '_2',

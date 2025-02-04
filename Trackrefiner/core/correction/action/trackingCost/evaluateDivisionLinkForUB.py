@@ -1,6 +1,6 @@
 import numpy as np
 from Trackrefiner.core.correction.action.findOutlier import (calculate_upper_statistical_bound,
-                                                        calculate_lower_statistical_bound)
+                                                             calculate_lower_statistical_bound)
 
 
 def evaluate_division_link_feasibility(df_source_daughter_cost, division_cost_dict, source_bac_ndx, source_bac,

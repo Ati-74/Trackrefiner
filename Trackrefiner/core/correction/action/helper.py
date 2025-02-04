@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import sys
 from scipy.spatial import distance_matrix
+from scipy.sparse import lil_matrix
 
 
 def print_progress_bar(iteration, total=10, prefix='', suffix='', decimals=1, length=100, fill='█'):
@@ -80,7 +81,6 @@ def calc_movement(bac2, bac1, center_coordinate_columns):
 
 
 def calc_neighbors_dir_motion_all(df, neighbor_df, division_df, selected_rows=None):
-
     """
     Calculates motion alignment features for bacteria based on neighbor trajectories.
 
@@ -257,7 +257,6 @@ def update_dataframe_with_selected_rows(df, selected_rows):
 
 def calculate_bacterial_life_history_features(dataframe, calc_all_features, neighbor_df, division_df,
                                               center_coord_cols, use_selected_rows, original_df=None):
-
     """
     Calculates features related to the continuous life history of bacteria.
 
@@ -306,7 +305,7 @@ def calculate_bacterial_life_history_features(dataframe, calc_all_features, neig
     if calc_all_features:
         dataframe['Prev_MajorAxisLength'] = dataframe.groupby('id')["AreaShape_MajorAxisLength"].shift(1)
         dataframe['Length_Change_Ratio'] = (dataframe["AreaShape_MajorAxisLength"] /
-                                          dataframe['Prev_MajorAxisLength'])
+                                            dataframe['Prev_MajorAxisLength'])
 
     dataframe['Prev_Center_X'] = dataframe.groupby('id')[center_coord_cols['x']].shift(1)
     dataframe['Prev_Center_Y'] = dataframe.groupby('id')[center_coord_cols['y']].shift(1)
@@ -375,7 +374,6 @@ def calculate_bacterial_life_history_features(dataframe, calc_all_features, neig
 
 
 def calculate_trajectory_displacement(df, center_coord_cols, axis):
-
     """
     Calculates the displacement of objects along a specified axis between consecutive positions.
 
@@ -410,7 +408,6 @@ def calculate_trajectory_displacement(df, center_coord_cols, axis):
 
 
 def calculate_trajectory_angles(df, center_coord_cols, suffix1='', suffix2=None):
-
     """
     Calculates the angles of trajectory directions between two objects.
 
@@ -452,7 +449,6 @@ def calculate_trajectory_angles(df, center_coord_cols, suffix1='', suffix2=None)
 
 
 def calculate_all_bac_slopes(df):
-
     """
     Calculates the slopes of lines formed by bacterial endpoints in the input DataFrame.
 
@@ -487,7 +483,6 @@ def calculate_all_bac_slopes(df):
 # https://math.stackexchange.com/questions/426150/what-is-the-general-equation-of-the-ellipse-that-is-not-in-the-origin-and-rotate
 # https://math.stackexchange.com/questions/2645689/what-is-the-parametric-equation-of-a-rotated-ellipse-given-the-angle-of-rotatio
 def calculate_bac_endpoints(center, major, angle_rotation, angle_tolerance=1e-6):
-
     """
     Calculates the endpoints of the major axis of a bacterium based on its center, length, and orientation.
 
@@ -1224,3 +1219,61 @@ def extract_bacteria_info(bacteria_data, pixels_per_micron, center_coord_cols, m
     objects_orientation = bacteria_data[orientation_col]
 
     return objects_center_x, objects_center_y, objects_major_axis, objects_orientation
+
+
+def find_bacteria_neighbors(dataframe, neighbor_df):
+
+    """
+    Constructs a neighbor adjacency matrix for bacterial objects based on their spatial relationships.
+
+    This function processes a DataFrame containing bacterial object information and a second DataFrame
+    specifying neighbor relationships. It generates an adjacency matrix where an entry (i, j) is True
+    if bacterium i has bacterium j as a neighbor.
+
+    :param pandas.DataFrame dataframe:
+        A DataFrame containing bacterial object information, including their unique indices, ImageNumber
+        and ObjectNumber.
+
+    :param pandas.DataFrame neighbor_df:
+        A DataFrame specifying neighbor relationships between bacteria, including object numbers
+        and their corresponding image numbers. It contains at least the following columns:
+        - 'First Image Number': Image number of the first bacterium in the pair.
+        - 'First Object Number': Object number of the first bacterium.
+        - 'Second Image Number': Image number of the second bacterium in the pair.
+        - 'Second Object Number': Object number of the second bacterium.
+
+    :returns:
+        scipy.sparse.lil_matrix:
+        A sparse adjacency matrix (LIL format) where rows and columns correspond to bacterial objects
+        (indexed by `index`), and a True value at position (i, j) indicates that bacterium i has bacterium j
+        as a neighbor.
+    """
+
+    neighbor_df = neighbor_df.merge(dataframe[['ImageNumber', 'ObjectNumber', 'index']],
+                                    left_on=['Second Image Number', 'Second Object Number'],
+                                    right_on=['ImageNumber', 'ObjectNumber'], how='inner')
+
+    df_bac_with_neighbors = \
+        dataframe[['ImageNumber', 'ObjectNumber', 'index']].merge(neighbor_df, left_on=['ImageNumber', 'ObjectNumber'],
+                                                                  right_on=['First Image Number',
+                                                                            'First Object Number'], how='left',
+                                                                  suffixes=('', '_neighbor'))
+
+    neighbor_list_array = lil_matrix((df_bac_with_neighbors['index'].max().astype('int64') + 1,
+                                      df_bac_with_neighbors['index_neighbor'].max().astype('int64') + 1), dtype=bool)
+
+    # values shows:
+    # ImageNumber, ObjectNumber, index,	First Image Number,	First Object Number, Second Image Number,
+    # Second Object Number,	ImageNumber_neighbor, ObjectNumber_neighbor,	index_neighbor
+    df_bac_with_neighbors = df_bac_with_neighbors.fillna(-1)
+    df_bac_with_neighbors_values = df_bac_with_neighbors.to_numpy(dtype='int64')
+
+    for row in df_bac_with_neighbors_values:
+
+        bac_idx = row[2]
+        neighbor_idx = row[-1]
+
+        if neighbor_idx != -1:
+            neighbor_list_array[bac_idx, neighbor_idx] = True
+
+    return neighbor_list_array

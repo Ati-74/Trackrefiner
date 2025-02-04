@@ -97,7 +97,8 @@ def calc_motion_alignment_angle_ml(df, neighbor_df, center_coord_cols, selected_
                                 'ImageNumber' + col_source, 'ObjectNumber' + col_source], how='inner')
 
     selected_rows["Motion_Alignment_Angle" + col_target] = selected_rows['angle_degrees']
-    selected_rows["Motion_Alignment_Angle" + col_target] = selected_rows["Motion_Alignment_Angle" + col_target].fillna(0)
+    selected_rows["Motion_Alignment_Angle" + col_target] = \
+        selected_rows["Motion_Alignment_Angle" + col_target].fillna(0)
     selected_rows.drop(columns=['angle_degrees'], inplace=True)
 
     return selected_rows

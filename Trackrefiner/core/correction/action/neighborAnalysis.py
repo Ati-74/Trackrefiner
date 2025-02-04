@@ -72,8 +72,7 @@ def compare_neighbor_sets(df, neighbor_list_array, parent_image_number_col, pare
                                    'index2' + col_target,
                                    'prev_time_step_index' + col_target, 'Unexpected_Beginning' + col_target,
                                    'Unexpected_End' + col_target, parent_image_number_col + col_target,
-                                   parent_object_number_col + col_target, 'id' + col_target, 'parent_id' + col_target,
-                                   'other_daughter_index' + col_target]
+                                   parent_object_number_col + col_target, 'id' + col_target, 'parent_id' + col_target]
 
             selected_rows_df = selected_rows_df[important_info_list]
 
@@ -82,15 +81,14 @@ def compare_neighbor_sets(df, neighbor_list_array, parent_image_number_col, pare
             bacteria_info_dict = selected_rows_df[['index' + col_target, 'index2' + col_target, 'id' + col_target,
                                                    'parent_id' + col_target, 'prev_time_step_index' + col_target,
                                                    'Unexpected_Beginning' + col_target,
-                                                   'Unexpected_End' + col_target, 'other_daughter_index' + col_target,
+                                                   'Unexpected_End' + col_target,
                                                    parent_image_number_col + col_target]].to_dict(orient='index')
         else:
             important_info_list = ['ImageNumber' + col_target, 'ObjectNumber' + col_target,
                                    'Total_Daughter_Mother_Length_Ratio' + col_target, 'index' + col_target,
                                    'prev_time_step_index' + col_target, 'Unexpected_Beginning' + col_target,
                                    'Unexpected_End' + col_target, parent_image_number_col + col_target,
-                                   parent_object_number_col + col_target, 'id' + col_target, 'parent_id' + col_target,
-                                   'other_daughter_index' + col_target]
+                                   parent_object_number_col + col_target, 'id' + col_target, 'parent_id' + col_target]
 
             selected_rows_df = selected_rows_df[important_info_list]
 
@@ -99,7 +97,7 @@ def compare_neighbor_sets(df, neighbor_list_array, parent_image_number_col, pare
             bacteria_info_dict = selected_rows_df[['index' + col_target, 'id' + col_target,
                                                    'parent_id' + col_target, 'prev_time_step_index' + col_target,
                                                    'Unexpected_Beginning' + col_target,
-                                                   'Unexpected_End' + col_target, 'other_daughter_index' + col_target,
+                                                   'Unexpected_End' + col_target,
                                                    parent_image_number_col + col_target]].to_dict(orient='index')
 
     else:
@@ -126,7 +124,6 @@ def compare_neighbor_sets(df, neighbor_list_array, parent_image_number_col, pare
         # 'prev_time_step_NeighborIndexList' + col_target
         bacteria_info_dict = df[['index' + col_target, 'id' + col_target, 'parent_id' + col_target,
                                  'Unexpected_Beginning' + col_target, 'Unexpected_End' + col_target,
-                                 'other_daughter_index' + col_target,
                                  'prev_time_step_index' + col_target,
                                  parent_image_number_col + col_target]].to_dict(orient='index')
 
@@ -136,7 +133,7 @@ def compare_neighbor_sets(df, neighbor_list_array, parent_image_number_col, pare
         # 'prev_time_step_NeighborIndexList'
         ref_bacteria_info_dict = \
             selected_time_step_df[['index', 'id', 'parent_id', 'Unexpected_Beginning',
-                                   'Unexpected_End', 'other_daughter_index', 'prev_time_step_index',
+                                   'Unexpected_End', 'prev_time_step_index',
                                    parent_image_number_col]].to_dict(orient='index')
     else:
 

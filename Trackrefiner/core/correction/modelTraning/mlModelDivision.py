@@ -70,8 +70,8 @@ def train_division_links_model(df, connected_bac_high_chance_to_be_correct_with_
                  center_coord_cols['y'],
                  'Endpoint1_X', 'Endpoint1_Y',
                  'Endpoint2_X', 'Endpoint2_Y',
-                 'Motion_Alignment_Angle', 'Total_Daughter_Mother_Length_Ratio', 'Unexpected_Beginning', 'Unexpected_End', 'age',
-                 'Bacterium_Slope'
+                 'Motion_Alignment_Angle', 'Total_Daughter_Mother_Length_Ratio', 'Unexpected_Beginning',
+                 'Unexpected_End', 'age', 'Bacterium_Slope'
                  ]
 
     neighbor_cols = [col + '_prev_neighbor' for col in col_names]
@@ -169,7 +169,8 @@ def train_division_links_model(df, connected_bac_high_chance_to_be_correct_with_
         (divided_bac_with_neighbor_of_source['Neighbor_Difference_Count'] /
          (divided_bac_with_neighbor_of_source['adjusted_Neighbor_Shared_Count']))
 
-    divided_bac['neighbor_ratio'] = (divided_bac['Neighbor_Difference_Count'] / (divided_bac['adjusted_Neighbor_Shared_Count']))
+    divided_bac['neighbor_ratio'] = (divided_bac['Neighbor_Difference_Count'] /
+                                     (divided_bac['adjusted_Neighbor_Shared_Count']))
 
     # angle between source and target (mother & daughter)
     divided_bac['angle_mother_daughter'] = \

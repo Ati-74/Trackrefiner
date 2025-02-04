@@ -57,8 +57,9 @@ def check_len_ratio(df, selected_rows, col_target, col_source):
     condition5 = other_bac_should_cal['ImageNumber_org_df'] < other_bac_should_cal['ImageNumber' + col_target]
 
     other_bac_should_cal.loc[condition5, 'avg_source_bac_changes'] = \
-        other_bac_should_cal.loc[condition5].groupby(['ImageNumber' + col_target, 'ObjectNumber' + col_target,
-                                                      'id' + col_source])['Length_Change_Ratio_org_df'].transform('mean')
+        other_bac_should_cal.loc[condition5].groupby(
+            ['ImageNumber' + col_target, 'ObjectNumber' + col_target,
+             'id' + col_source])['Length_Change_Ratio_org_df'].transform('mean')
 
     other_bac_should_cal = \
         other_bac_should_cal.loc[condition5].groupby(['ImageNumber' + col_target, 'ObjectNumber' + col_target,
