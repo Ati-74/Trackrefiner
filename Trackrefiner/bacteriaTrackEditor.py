@@ -136,7 +136,7 @@ class TrackingGUI(tk.Tk):
         self.out_dir = None
 
         # Conversion factors and settings
-        self.um_per_pixel = 0.144
+        self.um_per_pixel = None
         self.object_color = "#56e64e"
         self.font_size = 12
 
@@ -239,6 +239,10 @@ class TrackingGUI(tk.Tk):
         if color_code:
             self.object_color = color_code[1]  # Get the hexadecimal color code
             print(f"Selected color: {self.object_color}")
+            if self.object_color is None:
+                self.object_color = "#56e64e"
+        else:
+            self.object_color = "#56e64e"
 
     def update_font_size(self):
         try:
@@ -246,12 +250,13 @@ class TrackingGUI(tk.Tk):
         except ValueError:
             self.font_size = 12  # Set a default value if input is invalid
 
-    def update_um_per_pixel(self):
+    def update_pixel_per_micron(self):
+
         try:
             self.um_per_pixel = float(
                 self.entry_pixel_per_micron.get())  # Get font size from input and convert to float
         except ValueError:
-            self.um_per_pixel = 0.144  # Set a default value if input is invalid
+            self.um_per_pixel = None
 
     def refine_tracking(self):
         # Open a new window to specify time step 1, time step 2, ID, parent ID, and neighbor distance
@@ -368,7 +373,7 @@ class TrackingGUI(tk.Tk):
     def show_two_steps(self):
 
         self.update_font_size()  # Update font size before performing actions
-        self.update_um_per_pixel()
+        self.update_pixel_per_micron()
 
         # Open a new window to specify time step 1, time step 2, ID, parent ID, and neighbor distance
         new_window = tk.Toplevel(self)
@@ -458,6 +463,10 @@ class TrackingGUI(tk.Tk):
 
     def run_create_links(self, target_bac_time_steps, target_bac_ids, source_bac_ids, source_bac_time_steps, window):
 
+        if self.df_neighbor.shape[0] == 0:
+            messagebox.showerror("Error", "Please set the Neighbor CSV file.")
+            return
+
         print(f"Target objects Time Step: {target_bac_time_steps}, Target Objects IDs: {target_bac_ids}, "
               f"Source Objects Time steps: {source_bac_time_steps}, Source Objects IDs: {source_bac_ids}")
 
@@ -509,6 +518,10 @@ class TrackingGUI(tk.Tk):
 
     def run_remove_links(self, incorrect_target_bac_time_steps, incorrect_target_bac_ids, window):
 
+        if self.df_neighbor.shape[0] == 0:
+            messagebox.showerror("Error", "Please set the Neighbor CSV file.")
+            return
+
         print(f"Time Step: {incorrect_target_bac_time_steps}, Target Objects IDs: {incorrect_target_bac_ids}")
 
         incorrect_target_bac_time_steps = \
@@ -541,6 +554,10 @@ class TrackingGUI(tk.Tk):
 
         if self.change_happened:
 
+            if not interval_time.isdigit():
+                messagebox.showerror("Error", "Please Specify Interval Time.")
+                return
+
             interval_time = int(interval_time)
 
             assigning_cell_type = False
@@ -561,11 +578,11 @@ class TrackingGUI(tk.Tk):
 
             if save_pickle:
 
-                folder_name = f'{self.out_dir}/pickle_files'
+                folder_name = os.path.join(self.out_dir, 'pickle_files')
                 while os.path.exists(folder_name):
                     folder_name += "#"
 
-                create_pickle_files(processed_df_with_specific_cols, f'{folder_name}/',
+                create_pickle_files(processed_df_with_specific_cols, f'{folder_name}',
                                     assigning_cell_type)
 
             trackrefiner_out_file_name = f'{self.csv_file}'
@@ -576,7 +593,14 @@ class TrackingGUI(tk.Tk):
 
             messagebox.showinfo("Success", f"saved successfully in {self.out_dir} directory!")
 
+        else:
+            messagebox.showerror("Error", f"No refinement has been done by user.")
+            return
+
     def handle_two_steps(self, t1, t2, object_numbers, ids, parent_ids, distance, mode, window):
+
+        self.update_font_size()
+        self.update_pixel_per_micron()
 
         # Logic to handle the specified input and show the visualizations
         print(f"Time Step 1: {t1}, Time Step 2: {t2}, Object Numbers: {object_numbers}, IDs: {ids}, "
@@ -584,7 +608,7 @@ class TrackingGUI(tk.Tk):
               f"\nCSV file containing neighboring data of bacteria: {self.csv_neighbor_file}")
         # window.destroy()
         # Use this data to display images based on user input
-        self.display_images(t1, t2, object_numbers, ids, parent_ids, distance, mode)
+        self.display_images(t1.replace(' ', ''), t2.replace(' ', ''), object_numbers, ids, parent_ids, distance, mode)
 
     def display_images(self, timestep1, timestep2, specified_object_numbers, specified_ids_str,
                        specified_parent_ids_str, neighbor_distance_str, selected_mode):
@@ -609,21 +633,47 @@ class TrackingGUI(tk.Tk):
 
         # Load the data
         if self.bacteria_df is None:
-            messagebox.showerror("No CSV File", "Please select a CSV file.")
+            messagebox.showerror("Error", "Please set the Trackrefiner Refined Tracking CSV File")
             return
 
         # Get the unique time steps from the dataset
         available_time_steps = self.bacteria_df['ImageNumber'].unique()
 
         # Check if the time steps are valid
-        if int(timestep1) not in available_time_steps or int(timestep2) not in available_time_steps:
-            max_time_step = available_time_steps.max()
-            messagebox.showerror("Invalid Time Step", f"Specified time step is incorrect. "
-                                                      f"The dataset has time steps ranging from 1 to {max_time_step}.")
+        if not timestep1.isdigit() or not timestep2.isdigit():
+            messagebox.showerror("Error", f"Invalid Time Step. Specified time steps should be integers.")
             return
 
-        if len(self.raw_images) == 0:
-            messagebox.showerror("No Image Directory", "Please select a raw images directory.")
+        if int(timestep1) not in available_time_steps or int(timestep2) not in available_time_steps:
+            max_time_step = available_time_steps.max()
+            messagebox.showerror("Invalid Time Step",
+                                 f"Specified time step is incorrect. "
+                                 f"The dataset has time steps ranging from 1 to {max_time_step}.")
+            return
+
+        timestep1 = int(timestep1)
+        timestep2 = int(timestep2)
+
+        if timestep1 == timestep2:
+            messagebox.showerror("Error", f"Invalid Time Step. Specified time steps cannot be identical.")
+            return
+
+        if abs(timestep1 - timestep2) != 1:
+            messagebox.showwarning("Warning", f"Specified time steps are not consecutive.")
+
+        if timestep1 > timestep2:
+            messagebox.showwarning("Warning", f"Specified Time step 1 is greater than time step 2.")
+
+        if len(self.raw_images) != self.bacteria_df['ImageNumber'].max():
+            messagebox.showerror("Error",
+                                 "Bacteria Raw Images Directory is either unavailable or "
+                                 "the number of images does not match the number of time steps in "
+                                 "Trackrefiner Refined Tracking CSV File.")
+            return
+
+        if self.um_per_pixel is None:
+            messagebox.showerror("Error",
+                                 "Specified conversion factor for pixels to micrometers is not numeric.")
             return
 
         # Filter for timestep 1 and 2
@@ -1081,137 +1131,153 @@ class TrackingGUI(tk.Tk):
 
     def show_all_time_steps(self):
 
-        self.update_font_size()  # Update font size before performing actions
-        self.update_um_per_pixel()
+        self.update_font_size()
+        self.update_pixel_per_micron()
 
         # Close any previously opened windows
         self.close_previous_windows()
 
-        # Get all available time steps from the dataset
-        available_time_steps = self.bacteria_df['ImageNumber'].unique()
+        if self.bacteria_df is not None and self.um_per_pixel is not None:
+            if len(self.raw_images) == self.bacteria_df['ImageNumber'].max():
+                # Get all available time steps from the dataset
+                available_time_steps = self.bacteria_df['ImageNumber'].unique()
 
-        if not available_time_steps.size:
-            messagebox.showerror("No Time Steps", "No time steps found in the dataset.")
-            return
+                if not available_time_steps.size:
+                    messagebox.showerror("No Time Steps", "No time steps found in the dataset.")
+                    return
 
-        # Create a new window for the sliding plot
-        slide_window = tk.Toplevel(self)
-        slide_window.title("Trackrefiner Show All Time Steps")
+                # Create a new window for the sliding plot
+                slide_window = tk.Toplevel(self)
+                slide_window.title("Trackrefiner Show All Time Steps")
 
-        # Keep track of this window
-        self.open_windows.append(slide_window)
+                # Keep track of this window
+                self.open_windows.append(slide_window)
 
-        # Create a frame to hold the canvas and toolbar
-        canvas_frame = tk.Frame(slide_window)
-        toolbar_frame = tk.Frame(slide_window)
+                # Create a frame to hold the canvas and toolbar
+                canvas_frame = tk.Frame(slide_window)
+                toolbar_frame = tk.Frame(slide_window)
 
-        canvas_frame.grid(row=0, column=0, sticky='nsew')
-        toolbar_frame.grid(row=1, column=0, sticky='ew')
+                canvas_frame.grid(row=0, column=0, sticky='nsew')
+                toolbar_frame.grid(row=1, column=0, sticky='ew')
 
-        canvas_frame.grid_rowconfigure(0, weight=1)
-        canvas_frame.grid_columnconfigure(0, weight=1)
+                canvas_frame.grid_rowconfigure(0, weight=1)
+                canvas_frame.grid_columnconfigure(0, weight=1)
 
-        # Create a figure and adjust it to fit the canvas
-        fig, ax = plt.subplots()
+                # Create a figure and adjust it to fit the canvas
+                fig, ax = plt.subplots()
 
-        # Label for showing time step name dynamically
-        time_step_label = tk.Label(slide_window, text=f"Time Step {available_time_steps[0]}")
-        time_step_label.grid(row=3, column=0, sticky='ew')
+                # Label for showing time step name dynamically
+                time_step_label = tk.Label(slide_window, text=f"Time Step {available_time_steps[0]}")
+                time_step_label.grid(row=3, column=0, sticky='ew')
 
-        # Variables to store zoom level and position
-        current_x_lim = None
-        current_y_lim = None
+                # Variables to store zoom level and position
+                current_x_lim = None
+                current_y_lim = None
 
-        # Function to update the image based on the slider value
-        def update_image(val):
+                # Function to update the image based on the slider value
+                def update_image(val):
 
-            nonlocal current_x_lim, current_y_lim
+                    nonlocal current_x_lim, current_y_lim
 
-            line_objects = {}
+                    line_objects = {}
 
-            time_step_index = int(val)
-            timestep = available_time_steps[time_step_index]
+                    time_step_index = int(val)
+                    timestep = available_time_steps[time_step_index]
 
-            # Store the current zoom level if it's the first time switching
-            if current_x_lim is None and current_y_lim is None:
-                current_x_lim = ax.get_xlim()
-                current_y_lim = ax.get_ylim()
+                    # Store the current zoom level if it's the first time switching
+                    if current_x_lim is None and current_y_lim is None:
+                        current_x_lim = ax.get_xlim()
+                        current_y_lim = ax.get_ylim()
 
-            # Clear the axes
-            ax.clear()
+                    # Clear the axes
+                    ax.clear()
 
-            # Update the time step label dynamically
-            time_step_label.config(text=f"Time Step {timestep}")
+                    # Update the time step label dynamically
+                    time_step_label.config(text=f"Time Step {timestep}")
 
-            # Filter data for the current time step
-            df_current = self.bacteria_df.loc[self.bacteria_df['ImageNumber'] == timestep].reset_index(drop=True)
+                    # Filter data for the current time step
+                    df_current = self.bacteria_df.loc[self.bacteria_df['ImageNumber'] == timestep].reset_index(
+                        drop=True)
 
-            # Load the corresponding image
-            img_path = self.raw_images[timestep - 1]
-            img = cv2.imread(img_path)
-            img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                    # Load the corresponding image
+                    img_path = self.raw_images[timestep - 1]
+                    img = cv2.imread(img_path)
+                    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-            ax.imshow(img_rgb)
-            self.plot_bacteria_on_image(ax, df_current, [], [], [],
-                                        None, None, line_objects)
+                    ax.imshow(img_rgb)
+                    self.plot_bacteria_on_image(ax, df_current, [], [], [],
+                                                None, None, line_objects)
 
-            # Reapply the stored zoom level
-            ax.set_xlim(current_x_lim)
-            ax.set_ylim(current_y_lim)
+                    # Reapply the stored zoom level
+                    ax.set_xlim(current_x_lim)
+                    ax.set_ylim(current_y_lim)
 
-            # Draw the updated canvas
-            canvas.draw()
+                    # Draw the updated canvas
+                    canvas.draw()
 
-            def on_click(event):
-                """Callback function for mouse clicks on plot."""
-                for line, metadata in line_objects.items():
-                    if line.contains(event.mouseevent)[0]:  # Ensure mouseevent is used
-                        obj_num, obj_id, parent_id = metadata
-                        messagebox.showinfo("Object Clicked",
-                                            f"Object Number: {obj_num}\nID: {obj_id}\nParent ID: {parent_id}")
-                        break
+                    def on_click(event):
+                        """Callback function for mouse clicks on plot."""
+                        for line, metadata in line_objects.items():
+                            if line.contains(event.mouseevent)[0]:  # Ensure mouseevent is used
+                                obj_num, obj_id, parent_id = metadata
+                                messagebox.showinfo("Object Clicked",
+                                                    f"Object Number: {obj_num}\nID: {obj_id}\nParent ID: {parent_id}")
+                                break
 
-            fig.canvas.mpl_connect('pick_event', on_click)  # Rebind the event each time the image updates
+                    fig.canvas.mpl_connect('pick_event', on_click)  # Rebind the event each time the image updates
 
-        # Display the first image (corresponding to the first time step)
-        first_time_step = available_time_steps[0]
-        img = cv2.imread(self.raw_images[first_time_step - 1])
-        img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        ax.imshow(img_rgb)
+                # Display the first image (corresponding to the first time step)
+                first_time_step = available_time_steps[0]
+                img = cv2.imread(self.raw_images[first_time_step - 1])
+                img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                ax.imshow(img_rgb)
 
-        line_objects = {}
+                line_objects = {}
 
-        # Plot bacteria objects for the first time step
-        df_t1 = self.bacteria_df[self.bacteria_df['ImageNumber'] == first_time_step].reset_index(drop=True)
-        self.plot_bacteria_on_image(ax, df_t1, [], [], [],
-                                    None, None, line_objects)
+                # Plot bacteria objects for the first time step
+                df_t1 = self.bacteria_df[self.bacteria_df['ImageNumber'] == first_time_step].reset_index(drop=True)
+                self.plot_bacteria_on_image(ax, df_t1, [], [], [],
+                                            None, None, line_objects)
 
-        # Embed the figure into the Tkinter window with zoom functionality
-        canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
-        canvas.draw()
-        canvas.get_tk_widget().grid(row=0, column=0, sticky='nsew')
+                # Embed the figure into the Tkinter window with zoom functionality
+                canvas = FigureCanvasTkAgg(fig, master=canvas_frame)
+                canvas.draw()
+                canvas.get_tk_widget().grid(row=0, column=0, sticky='nsew')
 
-        def on_click(event):
-            """Callback function for mouse clicks on plot."""
-            for line, metadata in line_objects.items():
-                if line.contains(event.mouseevent)[0]:
-                    obj_num, obj_id, parent_id = metadata
-                    messagebox.showinfo("Object Clicked",
-                                        f"Object Number: {obj_num}\nID: {obj_id}\nParent ID: {parent_id}")
-                    break  # Stop after finding the first matching line
+                def on_click(event):
+                    """Callback function for mouse clicks on plot."""
+                    for line, metadata in line_objects.items():
+                        if line.contains(event.mouseevent)[0]:
+                            obj_num, obj_id, parent_id = metadata
+                            messagebox.showinfo("Object Clicked",
+                                                f"Object Number: {obj_num}\nID: {obj_id}\nParent ID: {parent_id}")
+                            break  # Stop after finding the first matching line
 
-        # Add event listener for clicks (closure method, avoids global variables)
-        fig.canvas.mpl_connect('pick_event', on_click)
+                # Add event listener for clicks (closure method, avoids global variables)
+                fig.canvas.mpl_connect('pick_event', on_click)
 
-        # Add toolbar for zooming
-        toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
-        toolbar.update()
-        toolbar.pack()
+                # Add toolbar for zooming
+                toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
+                toolbar.update()
+                toolbar.pack()
 
-        # Create a slider widget to switch between time steps
-        slider = tk.Scale(slide_window, from_=0, to=len(available_time_steps) - 1, orient=tk.HORIZONTAL, label="Slide",
-                          command=update_image)
-        slider.grid(row=2, column=0, sticky='ew')
+                # Create a slider widget to switch between time steps
+                slider = tk.Scale(slide_window, from_=0, to=len(available_time_steps) - 1, orient=tk.HORIZONTAL,
+                                  label="Slide", command=update_image)
+                slider.grid(row=2, column=0, sticky='ew')
+            else:
+
+                messagebox.showerror("Error",
+                                     "Bacteria Raw Images Directory is either unavailable or "
+                                     "the number of images does not match the number of time steps in "
+                                     "Trackrefiner Refined Tracking CSV File.")
+        else:
+            if self.bacteria_df is None:
+                messagebox.showerror("Error", "Please set the Trackrefiner Refined Tracking CSV File")
+
+            if self.um_per_pixel is None:
+                messagebox.showerror("Error",
+                                     "Specified conversion factor for pixels to micrometers is not numeric.")
 
     def remove_specific_window(self, target_window_name_list):
         for window in self.open_windows[:]:  # Iterate over a copy to safely modify the list
