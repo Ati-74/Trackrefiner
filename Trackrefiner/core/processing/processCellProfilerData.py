@@ -38,7 +38,7 @@ def write_log_file(log_list, path):
     log_list = [v for v in log_list if v != '']
 
     # Open a file for writing
-    with open(f'{path}log.txt', 'w') as file:
+    with open(os.path.join(path, 'log.txt'), 'w') as file:
         # Write each element to the file
         for element in log_list:
             file.write(element + '\n')
@@ -82,7 +82,7 @@ def write_to_pickle_file(data, path, time_step):
     if not os.path.exists(path):
         os.mkdir(path)
 
-    output_file = f"{path}Trackrefiner.step-{time_step:06}.pickle"
+    output_file = os.path.join(path, f"Trackrefiner.step-{time_step:06}.pickle")
 
     with open(output_file, 'wb') as export:
         pickle.dump(data, export, protocol=-1)
@@ -191,6 +191,7 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
         if not os.path.exists(neighbor_csv):
             raise FileNotFoundError(f"Neighbors CSV file not found: {neighbor_csv}")
 
+        neighbor_csv = os.path.abspath(neighbor_csv)
         neighbors_df = pd.read_csv(neighbor_csv)
         neighbors_df = neighbors_df.loc[
             neighbors_df['Relationship'] == 'Neighbors'][['First Image Number', 'First Object Number',
@@ -199,7 +200,8 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
         if not disable_tracking_correction:
 
             if segmentation_res_dir is not None:
-                sorted_seg_npy_files_list = sorted(glob.glob(segmentation_res_dir + '/*.npy'))
+                segmentation_res_dir = os.path.abspath(segmentation_res_dir)
+                sorted_seg_npy_files_list = sorted(glob.glob(os.path.join(segmentation_res_dir, "*.npy")))
             else:
                 sorted_seg_npy_files_list = []
 
@@ -211,13 +213,18 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
         if ((len(sorted_seg_npy_files_list) > 0 and neighbors_df.shape[0] > 0) or
                 (disable_tracking_correction and neighbors_df.shape[0] > 0)):
 
-            if out_dir is not None:
-                out_dir = f"{out_dir}/"
-            else:
+            if out_dir is None:
                 # Create the directory if it does not exist
-                out_dir = os.path.dirname(cp_output_csv)
-                out_dir = f"{out_dir}/Trackrefiner/"
+                out_dir = os.path.dirname(os.path.abspath(cp_output_csv))
+                out_dir = os.path.join(out_dir, "Trackrefiner")
+
+                while os.path.exists(out_dir):
+                    out_dir += "#"
+
                 os.makedirs(out_dir, exist_ok=True)
+
+            if dynamic_boundaries is not None:
+                dynamic_boundaries = os.path.abspath(dynamic_boundaries)
 
             (cp_output_df, find_fix_errors_log, logs_df, neighbors_df, cell_type_array) = \
                 find_fix_tracking_errors(cp_output_df=cp_output_df, sorted_seg_npy_files_list=sorted_seg_npy_files_list,
@@ -290,12 +297,14 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
             print_progress_bar(10, prefix='Progress:', suffix='', length=50)
 
             if save_pickle:
-                create_pickle_files(processed_df_with_specific_cols, f'{out_dir}/pickle_files/',
+                create_pickle_files(processed_df_with_specific_cols, os.path.join(out_dir, 'pickle_files'),
                                     assigning_cell_type)
 
             cp_out_base_name = os.path.basename(cp_output_csv).split('.')[0]
             # Common prefix for all output paths
-            prefix = f"{out_dir}/Trackrefiner.{cp_out_base_name}_{elongation_rate_method.replace(' ', '_')}"
+            prefix = os.path.join(out_dir,
+                                  f"Trackrefiner.{cp_out_base_name}_"
+                                  f"{elongation_rate_method.replace(' ', '_')}")
 
             path = f"{prefix}_analysis"
             path_logs = f"{prefix}_logs"

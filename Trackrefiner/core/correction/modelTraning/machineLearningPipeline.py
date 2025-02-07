@@ -59,7 +59,8 @@ def draw_kde_plot(pos_class_prob_values_dict, model_type, clf, output_directory,
     # Add legend with a title
     plt.legend(title="Classes")
 
-    output_file = f"{output_directory}/{model_type}_{clf}_{dsc.lower().replace(' ', '_')}_distribution.jpg"
+    output_file = os.path.join(output_directory,
+                               f"{model_type}_{clf}_{dsc.lower().replace(' ', '_')}_distribution.jpg")
     plt.savefig(output_file, dpi=600)
     plt.close()
 
@@ -95,7 +96,7 @@ def log_model_performance(output_directory, model_type, pos_class_prob_values_di
         None
     """
 
-    output_directory = output_directory + '/ML/'
+    output_directory = os.path.join(output_directory, 'ML')
     os.makedirs(output_directory, exist_ok=True)
 
     draw_kde_plot(pos_class_prob_values_dict, model_type, clf, output_directory, dsc)
@@ -115,10 +116,10 @@ def log_model_performance(output_directory, model_type, pos_class_prob_values_di
     # Convert to DataFrame
     pref_df = pd.DataFrame(total_rows, columns=columns)
 
-    pref_df.to_csv(output_directory + '/' + model_type + '.' + clf + '.performance.csv', index=False)
+    pref_df.to_csv(os.path.join(output_directory, f'{model_type}.{clf}.performance.csv'), index=False)
 
-    with open(output_directory + '/' + model_type + '.' + clf +
-              '.feature_weights_training_all_data.log.txt', "w") as file:
+    with open(os.path.join(output_directory,
+                           f'{model_type}.{clf}.feature_weights_training_all_data.log.txt'), "w")as file:
         # Write the outputs to the file
         if feature_importance_df.shape[0] > 0:
             file.write(f"Feature Weights based on model training on all data: {feature_importance_df}\n")

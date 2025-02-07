@@ -72,7 +72,7 @@ def plot_frequency_distribution(x_positions, grouped_sel_feature, bin_labels, fe
 
     # Show the plot
     plt.tight_layout()
-    plt.savefig(f'{output_path}/plots/{feature}.jpg', dpi=600)
+    plt.savefig(os.path.join(output_path, "plots", f'{feature}.jpg'), dpi=600)
     plt.clf()
     plt.close()
 
@@ -101,7 +101,7 @@ def draw_feature_distribution(df, features_dict, label_col, interval_time, doubl
         None. The plots are saved as JPG files in the specified output directory.
     """
 
-    os.makedirs(f'{output_path}/plots/', exist_ok=True)
+    os.makedirs(os.path.join(output_path, 'plots'), exist_ok=True)
 
     for feature in features_dict.items():
 
