@@ -3,14 +3,14 @@
 from setuptools import setup, find_packages
 
 setup(name='TrackRefiner',
-      version='1.2.2',
-      description='analyzing CellProfiler output',
+      version='1.2.3',
+      description='A precision tracking tool for bacillus cell tracking',
       install_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
                         'scikit-image', 'psutil', 'seaborn', 'PyQt5'],
       setup_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
                       'scikit-image', 'psutil', 'seaborn', 'PyQt5'],
       packages=find_packages(include=["Trackrefiner", "Trackrefiner.*"]),
-      python_requires='>=3.8',
+      python_requires='>=3.9',
       url='https://github.com/ingallslab/Trackrefiner',
       author='Atiyeh Ahmadi',
       author_email='a94ahmad@uwaterloo.ca',
@@ -48,6 +48,7 @@ setup(name='TrackRefiner',
           "Programming Language :: Python :: 3.10",
           "Programming Language :: Python :: 3.11",
           "Programming Language :: Python :: 3.12",
+          "Programming Language :: Python :: 3.13",
 
           "License :: OSI Approved :: BSD License",
           "Operating System :: OS Independent"
