@@ -1,0 +1,4 @@
+Process Type,Total number of samples,Number of highly likely correct links,Number of highly likely incorrect links,TN,FP,FN,TP,Accuracy,Specificity,Sensitivity
+Training on all data,31931,4898,27033,27011,22,24,4874,0.9985593936926498,0.9991861798542522,0.9951000408329931
+Training on train split,25544,3918,21626,21609,17,20,3898,0.9985515189476981,0.9992139091833904,0.9948953547728433
+Evaluation on test split,6387,980,5407,5402,5,4,976,0.9985908877407234,0.9990752727945256,0.9959183673469387

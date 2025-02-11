@@ -1,0 +1,6 @@
+Feature Weights based on model training on all data:                           Feature     Weight
+0            scaler__min_distance  -4.281969
+1          scaler__neighbor_ratio  -2.610915
+2          scaler__length_dynamic   0.523505
+3  scaler__Motion_Alignment_Angle  -0.617082
+4                  remainder__iou -10.981143

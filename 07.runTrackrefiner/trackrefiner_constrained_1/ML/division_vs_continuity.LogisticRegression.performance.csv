@@ -1,0 +1,4 @@
+Process Type,Total number of samples,Number of continuity links,Number of division links,TN,FP,FN,TP,Accuracy,Specificity,Sensitivity
+Training on all data,1745,1497,248,241,7,15,1482,0.9873925501432664,0.9717741935483871,0.9899799599198397
+Training on train split,1396,1198,198,194,4,12,1186,0.9885386819484241,0.9797979797979798,0.989983305509182
+Evaluation on test split,349,299,50,45,5,1,298,0.9828080229226361,0.9,0.9966555183946488
