@@ -1,5 +1,7 @@
 # Trackrefiner: A precision tracking tool for bacillus cell tracking
 
+<div align="justify"> 
+  
 **TrackRefiner** is a post-processing tool specifically designed to refine the tracking outputs of CellProfiler, a widely used image processing tool. It improves tracking accuracy by refining segmentation and tracking outputs, pruning incorrect links, and adding missing ones. TrackRefiner combines traditional tracking methods with machine learning classifiers, requiring minimal user input while leveraging a data-driven approach to optimize results.
 
 The general pipeline of TrackRefiner is illustrated in the following figure:
@@ -23,3 +25,4 @@ If you use **TrackRefiner** in your research, please cite it using the following
 
 <a href='https://www.biorxiv.org/content/10.1101/2025.02.13.637647v1'>TrackRefiner: A tool for refinement of bacillus cell tracking data</a>
 
+</div>
