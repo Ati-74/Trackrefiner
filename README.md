@@ -4,7 +4,7 @@
 
 The general pipeline of TrackRefiner is illustrated in the following figure:
 
-
+<br/><br/>
 ![image](https://github.com/user-attachments/assets/27ab0b8c-5437-4376-80a9-13c5163ec20e)
 
 <br/><br/>
