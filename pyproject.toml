@@ -4,8 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "TrackRefiner"
-version = "1.2.3"
+version = "1.2.4"
 description = "A precision tracking tool for bacillus cell tracking"
+readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "BSD 3-Clause"}
 authors = [
@@ -58,7 +59,6 @@ trackrefiner-track-editor = "Trackrefiner.bacteriaTrackEditor:main"
 
 [project.urls]
 homepage = "https://github.com/ingallslab/Trackrefiner"
-repository = "https://github.com/ingallslab/Trackrefiner"
 tutorial = "https://github.com/ingallslab/Trackrefiner/wiki"
 documentation = "https://github.com/ingallslab/Trackrefiner/tree/main/docs/html"
 faq = "https://github.com/ingallslab/Trackrefiner/issues"
