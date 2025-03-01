@@ -3,6 +3,8 @@ import glob
 from skimage import io
 from skimage.registration import phase_cross_correlation
 from scipy.ndimage import shift
+from skimage import color
+import cv2
 import os
 import argparse
 
@@ -24,17 +26,28 @@ def find_background_color(image):
         The estimated background color as a single value (for grayscale) or an array (for color images).
     """
 
-    # Extract the top edge of the image
-    top_edge = image[0, :]
+    if image.ndim == 3:  # RGB image
 
-    # Extract the bottom edge of the image
-    bottom_edge = image[-1, :]
+        top_edge = image[0, :, :]
 
-    # Extract the left edge of the image
-    left_edge = image[:, 0]
+        bottom_edge = image[-1, :, :]
 
-    # Extract the right edge of the image
-    right_edge = image[:, -1]
+        left_edge = image[:, 0, :]
+
+        right_edge = image[:, -1, :]
+
+    else:  # Grayscale image
+        # Extract the top edge of the image
+        top_edge = image[0, :]
+
+        # Extract the bottom edge of the image
+        bottom_edge = image[-1, :]
+
+        # Extract the left edge of the image
+        left_edge = image[:, 0]
+
+        # Extract the right edge of the image
+        right_edge = image[:, -1]
 
     # Concatenate the edges
     edges = np.concatenate((top_edge, bottom_edge, left_edge, right_edge))
@@ -46,7 +59,6 @@ def find_background_color(image):
 
 
 def main():
-
     """
     Main function for the jitter remover utils.
 
@@ -70,7 +82,7 @@ def main():
     parser = argparse.ArgumentParser(description='jitter remover')
 
     # Add arguments
-    parser.add_argument('-i', '--input',  required=True, help='This folder contains input images.')
+    parser.add_argument('-i', '--input', required=True, help='This folder contains input images.')
     parser.add_argument('-o', '--output', default=None,
                         help="Where to save output images. Default value: save to the input images folder")
 
@@ -92,12 +104,21 @@ def main():
     images_list = sorted(glob.glob(images_path + '/*.tif'))
 
     # Iterate through images in reverse order
-    for img_indx in range(len(images_list)-1, 0, -1):
+    for img_indx in range(len(images_list) - 1, 0, -1):
 
         # Iterate through images in reverse order
-        if img_indx == len(images_list)-1:
-            reference_image = io.imread(images_list[img_indx])
-            io.imsave(output_path + os.path.basename(images_list[img_indx]), reference_image)
+        if img_indx == len(images_list) - 1:
+            reference_image = cv2.imread(images_list[img_indx], cv2.IMREAD_UNCHANGED)
+            if reference_image.ndim == 3:
+                reference_image = cv2.cvtColor(reference_image, cv2.COLOR_BGR2RGB)
+
+            # io.imsave(output_path + os.path.basename(images_list[img_indx]), reference_image)
+
+            if len(reference_image.shape) == 2:  # Grayscale image
+                cv2.imwrite(output_path + os.path.basename(images_list[img_indx]), reference_image)
+            elif reference_image.shape[2] == 3:  # RGB Image (convert to BGR)
+                reference_image_bgr = cv2.cvtColor(reference_image, cv2.COLOR_RGB2BGR)
+                cv2.imwrite(output_path + os.path.basename(images_list[img_indx]), reference_image_bgr)
 
             print("Reference Image: ")
             print(images_list[img_indx])
@@ -105,10 +126,16 @@ def main():
 
             print("Reference Image: ")
             print(output_path + os.path.basename(images_list[img_indx]))
-            reference_image = io.imread(output_path + os.path.basename(images_list[img_indx]))
+            reference_image = cv2.imread(output_path + os.path.basename(images_list[img_indx]), cv2.IMREAD_UNCHANGED)
+
+            if reference_image.ndim == 3:
+                reference_image = cv2.cvtColor(reference_image, cv2.COLOR_BGR2RGB)
 
         # Read the current image to align
-        moving_image = io.imread(images_list[img_indx - 1])
+        moving_image = cv2.imread(images_list[img_indx - 1], cv2.IMREAD_UNCHANGED)
+
+        if moving_image.ndim == 3:
+            moving_image = cv2.cvtColor(moving_image, cv2.COLOR_BGR2RGB)
 
         print("Moving Image: ")
         print(images_list[img_indx - 1])
@@ -122,10 +149,21 @@ def main():
         background_color = find_background_color(moving_image)
 
         # Apply shift to the moving image and save
-        corrected_image = shift(moving_image, shift=(shifted[0], shifted[1]), mode='constant',
-                                cval=background_color)
+        if moving_image.ndim == 3 and moving_image.shape[2] == 3:
+            # Apply shift to each channel and stack them back together
+            corrected_image = np.stack([shift(moving_image[..., i], shift=(shifted[0], shifted[1]),
+                                              mode='constant', cval=background_color[i])
+                                        for i in range(3)], axis=-1)
+        else:
+            corrected_image = shift(moving_image, shift=(shifted[0], shifted[1]), mode='constant',
+                                    cval=background_color)
 
-        io.imsave(output_path + os.path.basename(images_list[img_indx - 1]), corrected_image)
+        # io.imsave(output_path + os.path.basename(images_list[img_indx - 1]), corrected_image)
+        if len(corrected_image.shape) == 2:  # Grayscale image
+            cv2.imwrite(output_path + os.path.basename(images_list[img_indx - 1]), corrected_image)
+        elif corrected_image.shape[2] == 3:  # RGB Image (convert to BGR)
+            corrected_image_bgr = cv2.cvtColor(corrected_image, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(output_path + os.path.basename(images_list[img_indx - 1]), corrected_image_bgr)
 
 
 if __name__ == "__main__":
