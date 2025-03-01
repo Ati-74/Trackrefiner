@@ -2,9 +2,15 @@
 
 from setuptools import setup, find_packages
 
+# Read the long description from README.md
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(name='TrackRefiner',
-      version='1.2.3',
+      version='1.2.4',
       description='A precision tracking tool for bacillus cell tracking',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       install_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
                         'scikit-image', 'psutil', 'seaborn', 'PyQt5'],
       setup_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
@@ -24,7 +30,6 @@ setup(name='TrackRefiner',
           ],
       }, project_urls={
         "Homepage": "https://github.com/ingallslab/Trackrefiner",
-        "Repository": "https://github.com/ingallslab/Trackrefiner",
         "Tutorial": "https://github.com/ingallslab/Trackrefiner/wiki",
         "Documentation": "https://github.com/ingallslab/Trackrefiner/tree/main/docs/html",
         "FAQ": "https://github.com/ingallslab/Trackrefiner/issues",
