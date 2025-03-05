@@ -1,9 +1,8 @@
 import numpy as np
 import glob
-from skimage import io
+import pandas as pd
 from skimage.registration import phase_cross_correlation
 from scipy.ndimage import shift
-from skimage import color
 import cv2
 import os
 import argparse
@@ -58,6 +57,266 @@ def find_background_color(image):
     return estimated_bg_color
 
 
+def reverse_jitter_removal(images_list, output_path):
+
+    """
+    Perform reverse-order jitter removal on a sequence of images.
+
+    This function aligns images by processing them in reverse order using phase cross-correlation.
+    It estimates and corrects misalignment (jitter) between consecutive images and saves the corrected
+    images to the specified output path.
+
+    :param list images_list:
+        A list of file paths to the input images.
+
+    :param str output_path:
+        Directory where the corrected images will be saved.
+
+    :returns:
+        None. The corrected images and a CSV file (`shift_dataframe_R.csv`) containing shift values
+        are saved in the output directory.
+    """
+
+    shift_dict = {'ImageNumber': [], 'Shift_X': [], 'Shift_Y': []}
+
+    # Iterate through images in reverse order
+    for img_idx in range(len(images_list) - 1, 0, -1):
+
+        # Iterate through images in reverse order
+        if img_idx == len(images_list) - 1:
+
+            reference_image = cv2.imread(images_list[img_idx], cv2.IMREAD_UNCHANGED)
+
+            cv2.imwrite(output_path + os.path.basename(images_list[img_idx]), reference_image)
+
+            print("Reference Image: ")
+            print(images_list[img_idx])
+
+            shift_dict['ImageNumber'].append(img_idx + 1)
+            shift_dict['Shift_X'].append(0)
+            shift_dict['Shift_Y'].append(0)
+
+        else:
+
+            print("Reference Image: ")
+            print(output_path + os.path.basename(images_list[img_idx]))
+            reference_image = cv2.imread(output_path + os.path.basename(images_list[img_idx]), cv2.IMREAD_UNCHANGED)
+
+            if reference_image.ndim == 3:
+                reference_image = cv2.cvtColor(reference_image, cv2.COLOR_BGR2RGB)
+
+        # Read the current image to align
+        moving_image = cv2.imread(images_list[img_idx - 1], cv2.IMREAD_UNCHANGED)
+
+        if moving_image.ndim == 3:
+            moving_image = cv2.cvtColor(moving_image, cv2.COLOR_BGR2RGB)
+
+        print("Moving Image: ")
+        print(images_list[img_idx - 1])
+        print('=============================================================')
+
+        # Calculate the phase cross-correlation between the reference and the moving images
+        # In some scenarios, setting normalization to None (normalization=None) may yield improved results
+        # default value: normalization="phase".
+        if reference_image.ndim == 3:
+
+            reference_image_gray = cv2.cvtColor(reference_image, cv2.COLOR_RGB2GRAY)
+            moving_image_gray = cv2.cvtColor(moving_image, cv2.COLOR_RGB2GRAY)
+            shifted, error, diffphase = phase_cross_correlation(reference_image_gray, moving_image_gray,
+                                                                upsample_factor=100)
+        else:
+            shifted, error, diffphase = phase_cross_correlation(reference_image, moving_image, upsample_factor=100)
+
+        shift_dict['ImageNumber'].append(img_idx)
+        shift_dict['Shift_X'].append(shifted[1])
+        shift_dict['Shift_Y'].append(shifted[0])
+
+        # Estimate the background color of the moving image
+        background_color = find_background_color(moving_image)
+
+        # Apply shift to the moving image and save
+        if moving_image.ndim == 3 and moving_image.shape[2] == 3:
+            # Apply shift to each channel and stack them back together
+            corrected_image = np.stack([shift(moving_image[..., i], shift=(shifted[0], shifted[1]),
+                                              mode='constant', cval=background_color[i])
+                                        for i in range(3)], axis=-1)
+        else:
+            corrected_image = shift(moving_image, shift=(shifted[0], shifted[1]), mode='constant',
+                                    cval=background_color)
+
+        if len(corrected_image.shape) == 2:  # Grayscale image
+            cv2.imwrite(output_path + os.path.basename(images_list[img_idx - 1]), corrected_image)
+
+        elif corrected_image.shape[2] == 3:  # RGB Image (convert to BGR)
+            corrected_image_bgr = cv2.cvtColor(corrected_image, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(output_path + os.path.basename(images_list[img_idx - 1]), corrected_image_bgr)
+
+    shift_df = pd.DataFrame.from_dict(shift_dict)
+    # sort
+    shift_df = shift_df.sort_values(by='ImageNumber')
+    shift_df.to_csv(output_path + 'shift_dataframe_R.csv', index=False)
+
+
+def forward_jitter_removal(images_list, output_path):
+
+    """
+    Perform forward-order jitter removal on a sequence of images.
+
+    This function aligns images by processing them in forward order using phase cross-correlation.
+    It estimates and corrects misalignment (jitter) between consecutive images and saves the corrected
+    images to the specified output path.
+
+    :param list images_list:
+        A list of file paths to the input images.
+
+    :param str output_path:
+        Directory where the corrected images will be saved.
+
+    :returns:
+        None. The corrected images and a CSV file (`shift_dataframe_F.csv`) containing shift values
+        are saved in the output directory.
+    """
+
+    shift_dict = {'ImageNumber': [], 'Shift_X': [], 'Shift_Y': []}
+
+    # Iterate through images
+    for img_idx in range(len(images_list) - 1):
+
+        # Iterate through images in reverse order
+        if img_idx == 0:
+
+            reference_image = cv2.imread(images_list[img_idx], cv2.IMREAD_UNCHANGED)
+            cv2.imwrite(output_path + os.path.basename(images_list[img_idx]), reference_image)
+
+            shift_dict['ImageNumber'].append(img_idx + 1)
+            shift_dict['Shift_X'].append(0)
+            shift_dict['Shift_Y'].append(0)
+
+            print("Reference Image: ")
+            print(images_list[img_idx])
+        else:
+
+            print("Reference Image: ")
+            print(output_path + os.path.basename(images_list[img_idx]))
+            reference_image = cv2.imread(output_path + os.path.basename(images_list[img_idx]), cv2.IMREAD_UNCHANGED)
+
+            if reference_image.ndim == 3:
+                reference_image = cv2.cvtColor(reference_image, cv2.COLOR_BGR2RGB)
+
+        # Read the current image to align
+        moving_image = cv2.imread(images_list[img_idx + 1], cv2.IMREAD_UNCHANGED)
+
+        if moving_image.ndim == 3:
+            moving_image = cv2.cvtColor(moving_image, cv2.COLOR_BGR2RGB)
+
+        print("Moving Image: ")
+        print(images_list[img_idx + 1])
+        print('=============================================================')
+
+        # Calculate the phase cross-correlation between the reference and the moving images
+        # In some scenarios, setting normalization to None (normalization=None) may yield improved results
+        # default value: normalization="phase".
+        if reference_image.ndim == 3:
+            reference_image_gray = cv2.cvtColor(reference_image, cv2.COLOR_RGB2GRAY)
+            moving_image_gray = cv2.cvtColor(moving_image, cv2.COLOR_RGB2GRAY)
+            shifted, error, diffphase = phase_cross_correlation(reference_image_gray, moving_image_gray,
+                                                                upsample_factor=100)
+        else:
+            shifted, error, diffphase = phase_cross_correlation(reference_image, moving_image, upsample_factor=100)
+
+        shift_dict['ImageNumber'].append(img_idx + 2)
+        shift_dict['Shift_X'].append(shifted[1])
+        shift_dict['Shift_Y'].append(shifted[0])
+
+        # Estimate the background color of the moving image
+        background_color = find_background_color(moving_image)
+
+        # Apply shift to the moving image and save
+        if moving_image.ndim == 3 and moving_image.shape[2] == 3:
+            # Apply shift to each channel and stack them back together
+            corrected_image = np.stack([shift(moving_image[..., i], shift=(shifted[0], shifted[1]),
+                                              mode='constant', cval=background_color[i])
+                                        for i in range(3)], axis=-1)
+        else:
+            corrected_image = shift(moving_image, shift=(shifted[0], shifted[1]), mode='constant',
+                                    cval=background_color)
+
+        if len(corrected_image.shape) == 2:  # Grayscale image
+            cv2.imwrite(output_path + os.path.basename(images_list[img_idx + 1]), corrected_image)
+        elif corrected_image.shape[2] == 3:  # RGB Image (convert to BGR)
+            corrected_image_bgr = cv2.cvtColor(corrected_image, cv2.COLOR_RGB2BGR)
+            cv2.imwrite(output_path + os.path.basename(images_list[img_idx + 1]), corrected_image_bgr)
+
+    shift_df = pd.DataFrame.from_dict(shift_dict)
+    # sort
+    shift_df = shift_df.sort_values(by='ImageNumber')
+    shift_df.to_csv(output_path + 'shift_dataframe_F.csv', index=False)
+
+
+def apply_predefined_shifts(images_list, output_path, shift_df):
+
+    """
+    Apply predefined shifts to correct jitter in a sequence of images.
+
+    This function reads a predefined shift table (CSV file) and applies the corresponding shifts
+    to each image in the sequence. The corrected images are saved to the specified output path.
+
+    :param list images_list:
+        A list of file paths to the input images.
+
+    :param str output_path:
+        Directory where the corrected images will be saved.
+
+    :param pandas.DataFrame shift_df:
+        Dataframe containing predefined shift values with columns:
+        'ImageNumber' (matching images in order), 'Shift_X' (horizontal shift), and 'Shift_Y' (vertical shift).
+
+    :returns:
+        None. The corrected images are saved in the output directory.
+    """
+
+    # Iterate through images in reverse order
+    for img_idx in range(len(images_list)):
+
+        # Read the current image to align
+        moving_image = cv2.imread(images_list[img_idx], cv2.IMREAD_UNCHANGED)
+
+        print("Moving Image: ")
+        print(images_list[img_idx])
+        print('=============================================================')
+
+        shift_x, shift_y = \
+            shift_df.loc[shift_df['ImageNumber'] == (img_idx + 1)][['Shift_X', 'Shift_Y']].values.tolist()[0]
+
+        if shift_x != 0 or shift_y != 0:
+
+            if moving_image.ndim == 3:
+                moving_image = cv2.cvtColor(moving_image, cv2.COLOR_BGR2RGB)
+
+            # Estimate the background color of the moving image
+            background_color = find_background_color(moving_image)
+
+            # Apply shift to the moving image and save
+            if moving_image.ndim == 3 and moving_image.shape[2] == 3:
+
+                # Apply shift to each channel and stack them back together
+                corrected_image = np.stack([shift(moving_image[..., i], shift=(shift_y, shift_x),
+                                                  mode='constant', cval=background_color[i])
+                                            for i in range(3)], axis=-1)
+            else:
+                corrected_image = shift(moving_image, shift=(shift_y, shift_x), mode='constant',
+                                        cval=background_color)
+
+            if len(corrected_image.shape) == 2:  # Grayscale image
+                cv2.imwrite(output_path + os.path.basename(images_list[img_idx]), corrected_image)
+            elif corrected_image.shape[2] == 3:  # RGB Image (convert to BGR)
+                corrected_image_bgr = cv2.cvtColor(corrected_image, cv2.COLOR_RGB2BGR)
+                cv2.imwrite(output_path + os.path.basename(images_list[img_idx]), corrected_image_bgr)
+
+        else:
+            cv2.imwrite(output_path + os.path.basename(images_list[img_idx]), moving_image)
+
+
 def main():
     """
     Main function for the jitter remover utils.
@@ -83,6 +342,22 @@ def main():
 
     # Add arguments
     parser.add_argument('-i', '--input', required=True, help='This folder contains input images.')
+    parser.add_argument('-d', '--processing_order', default='R',
+                        help="Specifies the processing order for jitter removal. "
+                             "'R' (Reverse) processes images from last to first (high-density to low-density), "
+                             "which typically yields better results. "
+                             "'F' (Forward) processes from first to last (low-density to high-density). "
+                             "Default: 'R'. Allowed values: 'R' (Reverse), 'F' (Forward). "
+                             "This argument is used when no predefined shift values are provided via"
+                             " '--shift_dataframe'.")
+    parser.add_argument('-s', '--shift_dataframe', default=None,
+                        help="Optional: Path to a CSV file containing predefined shift values for jitter removal. "
+                             "The file must have three columns: 'imageNumber' (to match images in order), "
+                             "'Shift_X' (horizontal shift), and 'Shift_Y' (vertical shift). "
+                             "If provided, the processing will follow the order in the file, "
+                             "starting from the first image. "
+                             "In this case, specifying '--processing_order' is not necessary.")
+
     parser.add_argument('-o', '--output', default=None,
                         help="Where to save output images. Default value: save to the input images folder")
 
@@ -92,78 +367,55 @@ def main():
     # Define paths for input and output images
     images_path = args.input
     output_path = args.output
+    processing_order = args.processing_order
+    shift_dataframe = args.shift_dataframe
 
     if output_path is not None:
         output_path = output_path + "/"
     else:
         # Create the directory if it does not exist
-        os.makedirs(images_path + '/modified_images', exist_ok=True)
-        output_path = images_path + '/modified_images/'
+        os.makedirs(images_path + '/jitter_removed_images', exist_ok=True)
+        output_path = images_path + '/jitter_removed_images/'
 
     # Sort and store the list of image file paths
     images_list = sorted(glob.glob(images_path + '/*.tif'))
 
-    # Iterate through images in reverse order
-    for img_indx in range(len(images_list) - 1, 0, -1):
+    if shift_dataframe is None:
 
-        # Iterate through images in reverse order
-        if img_indx == len(images_list) - 1:
-            reference_image = cv2.imread(images_list[img_indx], cv2.IMREAD_UNCHANGED)
-            if reference_image.ndim == 3:
-                reference_image = cv2.cvtColor(reference_image, cv2.COLOR_BGR2RGB)
-
-            # io.imsave(output_path + os.path.basename(images_list[img_indx]), reference_image)
-
-            if len(reference_image.shape) == 2:  # Grayscale image
-                cv2.imwrite(output_path + os.path.basename(images_list[img_indx]), reference_image)
-            elif reference_image.shape[2] == 3:  # RGB Image (convert to BGR)
-                reference_image_bgr = cv2.cvtColor(reference_image, cv2.COLOR_RGB2BGR)
-                cv2.imwrite(output_path + os.path.basename(images_list[img_indx]), reference_image_bgr)
-
-            print("Reference Image: ")
-            print(images_list[img_indx])
+        if processing_order == 'R':
+            reverse_jitter_removal(images_list, output_path)
         else:
+            forward_jitter_removal(images_list, output_path)
 
-            print("Reference Image: ")
-            print(output_path + os.path.basename(images_list[img_indx]))
-            reference_image = cv2.imread(output_path + os.path.basename(images_list[img_indx]), cv2.IMREAD_UNCHANGED)
+    else:
 
-            if reference_image.ndim == 3:
-                reference_image = cv2.cvtColor(reference_image, cv2.COLOR_BGR2RGB)
+        shift_df = pd.read_csv(shift_dataframe)
+        shift_df = shift_df.sort_values(by='ImageNumber')
 
-        # Read the current image to align
-        moving_image = cv2.imread(images_list[img_indx - 1], cv2.IMREAD_UNCHANGED)
+        if shift_df.shape[0] == len(images_list):
+            required_columns = {'ImageNumber', 'Shift_X', 'Shift_Y'}
 
-        if moving_image.ndim == 3:
-            moving_image = cv2.cvtColor(moving_image, cv2.COLOR_BGR2RGB)
-
-        print("Moving Image: ")
-        print(images_list[img_indx - 1])
-
-        # Calculate the phase cross-correlation between the reference and the moving images
-        # In some scenarios, setting normalization to None (normalization=None) may yield improved results
-        # default value: normalization="phase".
-        shifted, error, diffphase = phase_cross_correlation(reference_image, moving_image, upsample_factor=100)
-
-        # Estimate the background color of the moving image
-        background_color = find_background_color(moving_image)
-
-        # Apply shift to the moving image and save
-        if moving_image.ndim == 3 and moving_image.shape[2] == 3:
-            # Apply shift to each channel and stack them back together
-            corrected_image = np.stack([shift(moving_image[..., i], shift=(shifted[0], shifted[1]),
-                                              mode='constant', cval=background_color[i])
-                                        for i in range(3)], axis=-1)
+            if required_columns.issubset(shift_df.columns):
+                # Ensure all columns are numeric
+                if (shift_df['ImageNumber'].apply(lambda x: isinstance(x, (int, float))).all() and
+                        shift_df['Shift_X'].apply(lambda x: isinstance(x, (int, float))).all() and
+                        shift_df['Shift_Y'].apply(lambda x: isinstance(x, (int, float))).all()):
+                    # Ensure ImageNumber is positive
+                    if (shift_df['ImageNumber'] > 0).all():
+                        apply_predefined_shifts(images_list, output_path, shift_df)
+                    else:
+                        raise ValueError("Error: 'ImageNumber' column must contain only positive values.")
+                else:
+                    raise ValueError(
+                        "Error: 'ImageNumber', 'Shift_X', and 'Shift_Y' columns must contain only numeric values.")
+            else:
+                raise ValueError("Error: The provided shift dataframe must contain the columns "
+                                 "'ImageNumber', 'Shift_X', and 'Shift_Y'.")
         else:
-            corrected_image = shift(moving_image, shift=(shifted[0], shifted[1]), mode='constant',
-                                    cval=background_color)
+            raise ValueError(f"Error: The number of rows in the shift dataframe ({shift_df.shape[0]}) does not "
+                             f"match the number of images ({len(images_list)}).")
 
-        # io.imsave(output_path + os.path.basename(images_list[img_indx - 1]), corrected_image)
-        if len(corrected_image.shape) == 2:  # Grayscale image
-            cv2.imwrite(output_path + os.path.basename(images_list[img_indx - 1]), corrected_image)
-        elif corrected_image.shape[2] == 3:  # RGB Image (convert to BGR)
-            corrected_image_bgr = cv2.cvtColor(corrected_image, cv2.COLOR_RGB2BGR)
-            cv2.imwrite(output_path + os.path.basename(images_list[img_indx - 1]), corrected_image_bgr)
+    print(f"Jitter removal completed. The processed images are saved in the folder: {output_path}.")
 
 
 if __name__ == "__main__":
