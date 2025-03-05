@@ -1259,8 +1259,8 @@ def find_bacteria_neighbors(dataframe, neighbor_df):
                                                                             'First Object Number'], how='left',
                                                                   suffixes=('', '_neighbor'))
 
-    neighbor_list_array = lil_matrix((df_bac_with_neighbors['index'].max().astype('int64') + 1,
-                                      df_bac_with_neighbors['index_neighbor'].max().astype('int64') + 1), dtype=bool)
+    neighbor_list_array = lil_matrix((int(df_bac_with_neighbors['index'].max()) + 1,
+                                      int(df_bac_with_neighbors['index_neighbor'].max()) + 1), dtype=bool)
 
     # values shows:
     # ImageNumber, ObjectNumber, index,	First Image Number,	First Object Number, Second Image Number,
