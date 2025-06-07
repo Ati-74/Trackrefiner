@@ -2,6 +2,7 @@ import tkinter as tk
 from idlelib.tooltip import Hovertip
 from tkinter import filedialog, colorchooser
 import tkinter.messagebox as messagebox
+from tkinter import PhotoImage
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.patches as mpatches
@@ -25,6 +26,10 @@ class TrackingGUI(tk.Tk):
         self.title("Bacterial Tracking Visualizer and Editor")
 
         self.geometry("400x400")
+
+        # Set the window icon
+        logo = PhotoImage(file="logo.png")
+        self.iconphoto(False, logo)
 
         self.frame = tk.Frame(self)
         self.frame.pack(expand=True)
@@ -929,9 +934,8 @@ class TrackingGUI(tk.Tk):
             time_step = int(val)
 
             # Store the current zoom level if it's the first time switching
-            if current_x_lim is None and current_y_lim is None:
-                current_x_lim = ax.get_xlim()
-                current_y_lim = ax.get_ylim()
+            current_x_lim = ax.get_xlim()
+            current_y_lim = ax.get_ylim()
 
             ax.clear()
 
@@ -1185,9 +1189,8 @@ class TrackingGUI(tk.Tk):
                     timestep = available_time_steps[time_step_index]
 
                     # Store the current zoom level if it's the first time switching
-                    if current_x_lim is None and current_y_lim is None:
-                        current_x_lim = ax.get_xlim()
-                        current_y_lim = ax.get_ylim()
+                    current_x_lim = ax.get_xlim()
+                    current_y_lim = ax.get_ylim()
 
                     # Clear the axes
                     ax.clear()
