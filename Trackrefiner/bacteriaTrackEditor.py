@@ -28,7 +28,9 @@ class TrackingGUI(tk.Tk):
         self.geometry("400x400")
 
         # Set the window icon
-        logo = PhotoImage(file="logo.png")
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(script_dir, "logo.png")
+        logo = PhotoImage(file=icon_path)
         self.iconphoto(False, logo)
 
         self.frame = tk.Frame(self)

@@ -38,7 +38,9 @@ class TrackRefinerGUI(QWidget):
     def init_ui(self):
         self.setWindowTitle("Trackrefiner")
         # Set the window icon
-        self.setWindowIcon(QIcon("logo.png"))
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        icon_path = os.path.join(script_dir, "logo.png")
+        self.setWindowIcon(QIcon(icon_path))
         self.layout = QVBoxLayout()
 
         self.layout.setSpacing(5)  # Consistent spacing between rows
