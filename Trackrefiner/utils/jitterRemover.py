@@ -57,25 +57,7 @@ def find_background_color(image):
     return estimated_bg_color
 
 
-def reverse_jitter_removal(images_list, output_path):
-
-    """
-    Perform reverse-order jitter removal on a sequence of images.
-
-    This function aligns images by processing them in reverse order using phase cross-correlation.
-    It estimates and corrects misalignment (jitter) between consecutive images and saves the corrected
-    images to the specified output path.
-
-    :param list images_list:
-        A list of file paths to the input images.
-
-    :param str output_path:
-        Directory where the corrected images will be saved.
-
-    :returns:
-        None. The corrected images and a CSV file (`shift_dataframe_R.csv`) containing shift values
-        are saved in the output directory.
-    """
+def reverse_jitter_removing(images_list, output_path):
 
     shift_dict = {'ImageNumber': [], 'Shift_X': [], 'Shift_Y': []}
 
@@ -157,25 +139,7 @@ def reverse_jitter_removal(images_list, output_path):
     shift_df.to_csv(output_path + 'shift_dataframe_R.csv', index=False)
 
 
-def forward_jitter_removal(images_list, output_path):
-
-    """
-    Perform forward-order jitter removal on a sequence of images.
-
-    This function aligns images by processing them in forward order using phase cross-correlation.
-    It estimates and corrects misalignment (jitter) between consecutive images and saves the corrected
-    images to the specified output path.
-
-    :param list images_list:
-        A list of file paths to the input images.
-
-    :param str output_path:
-        Directory where the corrected images will be saved.
-
-    :returns:
-        None. The corrected images and a CSV file (`shift_dataframe_F.csv`) containing shift values
-        are saved in the output directory.
-    """
+def forward_jitter_removing(images_list, output_path):
 
     shift_dict = {'ImageNumber': [], 'Shift_X': [], 'Shift_Y': []}
 
@@ -253,27 +217,7 @@ def forward_jitter_removal(images_list, output_path):
     shift_df.to_csv(output_path + 'shift_dataframe_F.csv', index=False)
 
 
-def apply_predefined_shifts(images_list, output_path, shift_df):
-
-    """
-    Apply predefined shifts to correct jitter in a sequence of images.
-
-    This function reads a predefined shift table (CSV file) and applies the corresponding shifts
-    to each image in the sequence. The corrected images are saved to the specified output path.
-
-    :param list images_list:
-        A list of file paths to the input images.
-
-    :param str output_path:
-        Directory where the corrected images will be saved.
-
-    :param pandas.DataFrame shift_df:
-        Dataframe containing predefined shift values with columns:
-        'ImageNumber' (matching images in order), 'Shift_X' (horizontal shift), and 'Shift_Y' (vertical shift).
-
-    :returns:
-        None. The corrected images are saved in the output directory.
-    """
+def jitter_removing_predefined_shifts(images_list, output_path, shift_df):
 
     # Iterate through images in reverse order
     for img_idx in range(len(images_list)):
@@ -383,9 +327,9 @@ def main():
     if shift_dataframe is None:
 
         if processing_order == 'R':
-            reverse_jitter_removal(images_list, output_path)
+            reverse_jitter_removing(images_list, output_path)
         else:
-            forward_jitter_removal(images_list, output_path)
+            forward_jitter_removing(images_list, output_path)
 
     else:
 
@@ -402,7 +346,7 @@ def main():
                         shift_df['Shift_Y'].apply(lambda x: isinstance(x, (int, float))).all()):
                     # Ensure ImageNumber is positive
                     if (shift_df['ImageNumber'] > 0).all():
-                        apply_predefined_shifts(images_list, output_path, shift_df)
+                        jitter_removing_predefined_shifts(images_list, output_path, shift_df)
                     else:
                         raise ValueError("Error: 'ImageNumber' column must contain only positive values.")
                 else:
