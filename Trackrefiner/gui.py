@@ -4,6 +4,7 @@ from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, \
     QFileDialog, QComboBox, QSpinBox, QDoubleSpinBox, QCheckBox, QTextEdit
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtGui import QIcon
 import os
 from Trackrefiner import process_objects_data
 
@@ -36,6 +37,8 @@ class TrackRefinerGUI(QWidget):
 
     def init_ui(self):
         self.setWindowTitle("Trackrefiner")
+        # Set the window icon
+        self.setWindowIcon(QIcon("logo.png"))
         self.layout = QVBoxLayout()
 
         self.layout.setSpacing(5)  # Consistent spacing between rows
@@ -96,6 +99,7 @@ class TrackRefinerGUI(QWidget):
         )
 
         self.intensity_threshold = self.create_double_spinbox(0.0, 1.0, 0.1)
+        self.intensity_threshold.setSingleStep(0.05)
         self.intensity_threshold_label = QLabel("Intensity Threshold:")
         self.intensity_threshold_label.setToolTip("Threshold for cell intensity used in cell type assignment.")
 
@@ -107,7 +111,7 @@ class TrackRefinerGUI(QWidget):
 
         # Classifier and Number of CPUs in one row
         self.clf = self.create_combobox([
-            "LogisticRegression", "GaussianProcessClassifier", "C-Support Vector Classifier"
+            "LogisticRegression",  "C-Support Vector Classifier"
         ])
         self.n_cpu = self.create_spinbox(-1, 64, -1)
         self.add_two_part_row(
@@ -352,22 +356,22 @@ class TrackRefinerGUI(QWidget):
 
         # Map GUI inputs to arguments
         arguments = {
-            '--cp-output-csv': get_text_or_none(self.cp_output_csv_file),
-            '--segmentation-results': get_text_or_none(self.segmentation_results_dir),
-            '--neighbor-csv': get_text_or_none(self.neighbor_csv),
-            '--interval-time': str(self.interval_time.value()) if self.interval_time.value() > 0 else None,
-            '--doubling-time': str(
+            '--cp_output_csv': get_text_or_none(self.cp_output_csv_file),
+            '--segmentation_results': get_text_or_none(self.segmentation_results_dir),
+            '--neighbor_csv': get_text_or_none(self.neighbor_csv),
+            '--interval_time': str(self.interval_time.value()) if self.interval_time.value() > 0 else None,
+            '--doubling_time': str(
                 self.doubling_time_of_bacteria.value()) if self.doubling_time_of_bacteria.value() > 0 else None,
-            '--elongation-rate-method': self.elongation_rate_method.currentText(),
-            '--pixel-per-micron': str(self.pixel_per_micron.value()),
-            '--intensity-threshold': str(
+            '--elongation_rate_method': self.elongation_rate_method.currentText(),
+            '--pixel_per_micron': str(self.pixel_per_micron.value()),
+            '--intensity_threshold': str(
                 self.intensity_threshold.value()) if self.assigning_cell_type.isChecked() else None,
-            '--assign-cell-type': False if not self.assigning_cell_type.isChecked() else True,
-            '--disable-tracking-correction': False if not self.disable_tracking_correction.isChecked() else True,
-            '--clf': self.clf.currentText(),
-            '--num-cpus': str(self.n_cpu.value()),
-            '--boundary-limits': self.boundary_limits.text().strip() if self.boundary_limits.text().strip() else None,
-            '--dynamic-boundaries': get_text_or_none(self.dynamic_boundaries),
+            '--assign_cell_type': False if not self.assigning_cell_type.isChecked() else True,
+            '--disable_tracking_correction': False if not self.disable_tracking_correction.isChecked() else True,
+            '--classifier': self.clf.currentText(),
+            '--num_cpus': str(self.n_cpu.value()),
+            '--boundary_limits': self.boundary_limits.text().strip() if self.boundary_limits.text().strip() else None,
+            '--dynamic_boundaries': get_text_or_none(self.dynamic_boundaries),
             '--output': get_text_or_none(self.out_dir),
             '--save_pickle': False if not self.save_pickle.isChecked() else True,
             '--verbose': False if not self.verbose.isChecked() else True,
@@ -419,6 +423,7 @@ class TrackRefinerGUI(QWidget):
 
         # Run process_objects_data with validated inputs
         process_objects_data(
+            is_gui_mode=True,
             cp_output_csv=get_text_or_none(self.cp_output_csv_file),
             segmentation_res_dir=get_text_or_none(self.segmentation_results_dir),
             neighbor_csv=get_text_or_none(self.neighbor_csv),

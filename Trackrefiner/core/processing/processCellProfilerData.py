@@ -8,8 +8,18 @@ from Trackrefiner.core.correction.findFixTrackingErrors import find_fix_tracking
 from Trackrefiner.core.correction.action.helper import identify_important_columns, print_progress_bar
 from Trackrefiner.core.correction.action.drawDistributionPlot import draw_feature_distribution
 from Trackrefiner.core.correction.action.checkValidity import check_validity
+from PyQt5.QtWidgets import QMessageBox
 import psutil
 import threading
+
+
+def show_success_message(msg, title="Success"):
+    success_box = QMessageBox()
+    success_box.setIcon(QMessageBox.Information)
+    success_box.setWindowTitle(title)
+    success_box.setText(msg)
+    success_box.setStandardButtons(QMessageBox.Ok)
+    success_box.exec_()
 
 
 def monitor_system_usage(stats, interval=1, stop_event=None):
@@ -88,7 +98,7 @@ def write_to_pickle_file(data, path, time_step):
         pickle.dump(data, export, protocol=-1)
 
 
-def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, interval_time, doubling_time,
+def process_objects_data(is_gui_mode, cp_output_csv, segmentation_res_dir, neighbor_csv, interval_time, doubling_time,
                          elongation_rate_method, pixel_per_micron, assigning_cell_type, intensity_threshold,
                          disable_tracking_correction, clf, n_cpu, image_boundaries, dynamic_boundaries, out_dir,
                          save_pickle, verbose, command):
@@ -97,7 +107,9 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
     Processes CellProfiler output data, performs tracking correction, assigns cell types,
     and calculates additional features related to the life history of bacteria.
 
-
+    :param bool is_gui_mode:
+        Flag indicating whether the function is called from the GUI (True) or the command line (False).
+        Used for GUI-friendly error handling and messages.
     :param str cp_output_csv:
         Path to the CellProfiler output file in CSV format, which contains measured bacterial features.
     :param str segmentation_res_dir:
@@ -174,8 +186,8 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
         print(command_log)
         log_list.append(command_log)
 
-        check_validity(cp_output_csv, segmentation_res_dir, neighbor_csv, interval_time, doubling_time,
-                       elongation_rate_method, pixel_per_micron, intensity_threshold,
+        check_validity(is_gui_mode, cp_output_csv, segmentation_res_dir, neighbor_csv, interval_time, doubling_time,
+                       elongation_rate_method, pixel_per_micron, assigning_cell_type, intensity_threshold,
                        disable_tracking_correction, clf, n_cpu, image_boundaries, dynamic_boundaries)
 
         # Initial call to print 0% progress
@@ -283,9 +295,14 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
                 "Velocity", "Instant_Velocity", "Average_Instant_Velocity",
                 "Elongation_Rate", "Instant_Elongation_Rate",
                 "strainRate", "strainRate_rolling",
-                "cellType", "startVol", "targetVol",
-                "Prev_Bacterium_Slope", "Prev_MajorAxisLength", "Bacterium_Movement",
             ]
+
+            if assigning_cell_type:
+                ordered_columns.extend(["cellType", "startVol", "targetVol",  "Prev_Bacterium_Slope",
+                                        "Prev_MajorAxisLength", "Bacterium_Movement"])
+            else:
+                ordered_columns.extend(["startVol", "targetVol", "Prev_Bacterium_Slope",
+                                        "Prev_MajorAxisLength", "Bacterium_Movement"])
 
             # Add any remaining columns at the end to preserve all data
             remaining_columns = [col for col in processed_df.columns if col not in ordered_columns]
@@ -355,6 +372,9 @@ def process_objects_data(cp_output_csv, segmentation_res_dir, neighbor_csv, inte
     end_time_log = f"Trackrefiner Process completed at: {end_time_str}"
     print(end_time_log)
     log_list.append(end_time_log)
+
+    if is_gui_mode:
+        show_success_message(end_time_log, title="Success")
 
     execution_time = end_time - start_time
 

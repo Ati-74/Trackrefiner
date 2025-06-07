@@ -41,7 +41,7 @@ def main():
 
     parser.add_argument('-c', '--classifier', default='LogisticRegression',
                         help='Classifier for track refining. '
-                             'Options: `LogisticRegression`, `GaussianProcessClassifier`, '
+                             'Options: `LogisticRegression`, '
                              '`C-Support Vector Classifier`. Default: `LogisticRegression`.')
 
     parser.add_argument('-z', '--num_cpus', default=-1,
@@ -85,9 +85,9 @@ def main():
     for arg, value in vars(args).items():
         if isinstance(value, bool):
             if value:  # Add the flag if it's True
-                command += f" --{arg.replace('_', '-')}"
+                command += f" --{arg}"
         elif value is not None:  # Add the argument and its value if not None
-            command += f" --{arg.replace('_', '-')} {value}"
+            command += f" --{arg} {value}"
 
     cp_output_csv_file = args.cp_output_csv
     segmentation_results_dir = args.segmentation_results
@@ -139,10 +139,10 @@ def main():
     save_pickle = args.save_pickle
 
     # run post-processing
-    process_objects_data(cp_output_csv=cp_output_csv_file, segmentation_res_dir=segmentation_results_dir,
-                         neighbor_csv=neighbor_csv, interval_time=interval_time,
-                         elongation_rate_method=elongation_rate_method, pixel_per_micron=pixel_per_micron,
-                         intensity_threshold=intensity_threshold,
+    process_objects_data(is_gui_mode=False, cp_output_csv=cp_output_csv_file,
+                         segmentation_res_dir=segmentation_results_dir, neighbor_csv=neighbor_csv,
+                         interval_time=interval_time, elongation_rate_method=elongation_rate_method,
+                         pixel_per_micron=pixel_per_micron, intensity_threshold=intensity_threshold,
                          assigning_cell_type=assigning_cell_type, doubling_time=doubling_time_of_bacteria,
                          disable_tracking_correction=disable_tracking_correction, clf=clf, n_cpu=n_cpu,
                          image_boundaries=boundary_limits, dynamic_boundaries=dynamic_boundaries, out_dir=out_dir,
