@@ -99,16 +99,19 @@ def determine_final_cell_type(dataframe, cell_type_array):
         classification for each bacterium:
 
             - 3: Assigned if the fluorescence intensities of at least two channels exceed the defined threshold.
-            - Specific values (e.g., 2, 3, etc.): Assigned if only one channel’s intensity exceeds the threshold.
+            - Channel name (e.g., 'GFP', 'RFP', etc.): Assigned if only one channel’s intensity exceeds the threshold.
             - 0: Assigned if none of the fluorescence intensities across all channels exceed the defined threshold.
             - 1: Default cell type assigned when only one intensity column exists.
     """
 
-    num_intensity_cols = len(get_fluorescence_intensity_columns(dataframe.columns))
+    intensity_cols = get_fluorescence_intensity_columns(dataframe.columns)
+
+    num_intensity_cols = len(intensity_cols)
 
     if num_intensity_cols > 1:
 
         dataframe['cellType'] = 0
+        dataframe['cellType'] = dataframe['cellType'].astype(str)
 
         num_1_value_per_bac = np.sum(cell_type_array, axis=1)
         num_0_value_per_bac = cell_type_array.shape[1] - num_1_value_per_bac
@@ -118,12 +121,15 @@ def determine_final_cell_type(dataframe, cell_type_array):
 
         cond3 = ~ cond1_more_than_2_1_value & ~ cond2_more_than_2_0_value
 
-        indices_of_ones_in_columns = np.where(cell_type_array[cond3] == 1)[0]
+        indices_of_ones_in_columns = np.argmax(cell_type_array[cond3], axis=1)
         cond3_value = indices_of_ones_in_columns + 1
 
         dataframe.loc[cond1_more_than_2_1_value, 'cellType'] = 3
         dataframe.loc[cond3, 'cellType'] = cond3_value
 
+        for idx, intensity_col in enumerate(intensity_cols):
+            dataframe.loc[dataframe['cellType'] == (idx + 1), 'cellType'] = \
+                intensity_col.replace('Intensity_MeanIntensity_', '')
     else:
         dataframe['cellType'] = 1
 
