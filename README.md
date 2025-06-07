@@ -6,6 +6,10 @@
 | Meta | [![DOI](https://img.shields.io/badge/DOI-10.1101/2025.02.13.637647-blue.svg)](https://www.biorxiv.org/content/10.1101/2025.02.13.637647v1) [![License - BSD 3-Clause](https://img.shields.io/github/license/ati-74/trackrefiner)](https://github.com/Ati-74/Trackrefiner/blob/main/LICENSE.md) |
 
 
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/4d8233d0-e699-4c7b-9fc3-6a25920e515f" alt="image" width="40%"/>
+</p>
+
 <div align="justify"> 
   
 **TrackRefiner** is a post-processing tool specifically designed to refine the tracking outputs of CellProfiler, a widely used image processing tool. It improves tracking accuracy by refining segmentation and tracking outputs, pruning incorrect links, and adding missing ones. TrackRefiner combines traditional tracking methods with machine learning classifiers, requiring minimal user input while leveraging a data-driven approach to optimize results.
