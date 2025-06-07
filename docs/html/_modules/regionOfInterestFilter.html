@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>regionOfInterestFilter - Trackrefiner 2025 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+        <title>regionOfInterestFilter - Trackrefiner 1.2.6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Trackrefiner 2025 documentation</div></a>
+      <a href="../index.html"><div class="brand">Trackrefiner 1.2.6 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -189,7 +189,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
   
-  <span class="sidebar-brand-text">Trackrefiner 2025 documentation</span>
+  <span class="sidebar-brand-text">Trackrefiner 1.2.6 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -235,12 +235,12 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for regionOfInterestFilter</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 
 <div class="viewcode-block" id="filter_objects_outside_boundary">
 <a class="viewcode-back" href="../modules.html#regionOfInterestFilter.filter_objects_outside_boundary">[docs]</a>
-<span class="k">def</span> <span class="nf">filter_objects_outside_boundary</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">,</span> <span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_objects_outside_boundary</span><span class="p">(</span><span class="n">x_min</span><span class="p">,</span> <span class="n">x_max</span><span class="p">,</span> <span class="n">y_min</span><span class="p">,</span> <span class="n">y_max</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Identifies and marks objects outside a user-defined boundary in the image, applying the same boundary</span>
@@ -286,7 +286,7 @@
 
 <div class="viewcode-block" id="filter_objects_outside_dynamic_boundary">
 <a class="viewcode-back" href="../modules.html#regionOfInterestFilter.filter_objects_outside_dynamic_boundary">[docs]</a>
-<span class="k">def</span> <span class="nf">filter_objects_outside_dynamic_boundary</span><span class="p">(</span><span class="n">dynamic_boundaries</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_objects_outside_dynamic_boundary</span><span class="p">(</span><span class="n">dynamic_boundaries</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Identifies and marks objects outside user-defined, time-dependent boundaries in the image.</span>
@@ -335,7 +335,7 @@
 
 <div class="viewcode-block" id="find_inside_boundary_objects">
 <a class="viewcode-back" href="../modules.html#regionOfInterestFilter.find_inside_boundary_objects">[docs]</a>
-<span class="k">def</span> <span class="nf">find_inside_boundary_objects</span><span class="p">(</span><span class="n">boundary_limits</span><span class="p">,</span> <span class="n">dynamic_boundaries</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_inside_boundary_objects</span><span class="p">(</span><span class="n">boundary_limits</span><span class="p">,</span> <span class="n">dynamic_boundaries</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Identifies and retains objects within specified boundary limits, either static or time-dependent,</span>
 <span class="sd">    by filtering out objects outside these boundaries.</span>
@@ -407,7 +407,7 @@
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=cb975c41"></script>
+</div><script src="../_static/documentation_options.js?v=010db75e"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>

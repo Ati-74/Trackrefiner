@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>multiRegionsCorrection - Trackrefiner 2025 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+        <title>multiRegionsCorrection - Trackrefiner 1.2.6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Trackrefiner 2025 documentation</div></a>
+      <a href="../index.html"><div class="brand">Trackrefiner 1.2.6 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -189,7 +189,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
   
-  <span class="sidebar-brand-text">Trackrefiner 2025 documentation</span>
+  <span class="sidebar-brand-text">Trackrefiner 1.2.6 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -235,15 +235,14 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for multiRegionsCorrection</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 
 <div class="viewcode-block" id="modify_existing_object">
 <a class="viewcode-back" href="../modules.html#multiRegionsCorrection.modify_existing_object">[docs]</a>
-<span class="k">def</span> <span class="nf">modify_existing_object</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">modify_existing_object</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span>
                            <span class="n">color_array</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Modifies attributes of an existing object in the image and updates the relevant data structures.</span>
 
@@ -290,7 +289,7 @@
 
 <div class="viewcode-block" id="remove_object_from_image">
 <a class="viewcode-back" href="../modules.html#multiRegionsCorrection.remove_object_from_image">[docs]</a>
-<span class="k">def</span> <span class="nf">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Removes an object from the image by removing its region in the image array and marking it as noise in the DataFrame.</span>
 
@@ -319,7 +318,7 @@
 
 <div class="viewcode-block" id="update_object_records">
 <a class="viewcode-back" href="../modules.html#multiRegionsCorrection.update_object_records">[docs]</a>
-<span class="k">def</span> <span class="nf">update_object_records</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">regions_features</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_object_records</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">regions_features</span><span class="p">,</span>
                           <span class="n">all_center_coord_cols</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
                           <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -400,12 +399,11 @@
 
 <div class="viewcode-block" id="multi_region_correction">
 <a class="viewcode-back" href="../modules.html#multiRegionsCorrection.multi_region_correction">[docs]</a>
-<span class="k">def</span> <span class="nf">multi_region_correction</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">distance_df_cp_connected_regions</span><span class="p">,</span> <span class="n">img_number</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">multi_region_correction</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">distance_df_cp_connected_regions</span><span class="p">,</span> <span class="n">img_number</span><span class="p">,</span>
                             <span class="n">regions_center_particles_stat</span><span class="p">,</span> <span class="n">regions_center_particles</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span>
                             <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">regions_features</span><span class="p">,</span> <span class="n">all_rel_center_coord_cols</span><span class="p">,</span>
                             <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">min_distance_prev_objects_df</span><span class="p">,</span>
                             <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Corrects multi-region objects by identifying mismatched or faulty associations and updating or removing objects</span>
 <span class="sd">    as necessary. Ensures consistency between regions and objects while maintaining accurate data records.</span>
@@ -419,7 +417,7 @@
 <span class="sd">    :param int img_number:</span>
 <span class="sd">        Current image number</span>
 <span class="sd">    :param list regions_center_particles_stat:</span>
-<span class="sd">        List of statistics for regions&#39; center points.</span>
+<span class="sd">        List of status for regions&#39; center points.</span>
 <span class="sd">    :param list regions_center_particles:</span>
 <span class="sd">        List of coordinates for regions&#39; center points.</span>
 <span class="sd">    :param list regions_color:</span>
@@ -449,98 +447,101 @@
 
     <span class="c1"># two same regions from multi regions</span>
     <span class="k">if</span> <span class="n">rows_with_duplicates</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+
+        <span class="n">cols_should_remove</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">rows_should_remove</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">cp_idx</span> <span class="ow">in</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">rows_with_duplicates</span><span class="p">]:</span>
+
+            <span class="n">cols_should_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cp_idx</span><span class="p">)</span>
+
+            <span class="n">df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">cp_idx</span><span class="p">,</span> <span class="s1">&#39;noise_bac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">row_idxs</span> <span class="o">=</span> \
+                <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+                    <span class="n">distance_df_cp_connected_regions</span><span class="p">[</span><span class="n">cp_idx</span><span class="p">]</span> <span class="o">==</span> <span class="n">distance_df_cp_connected_regions</span><span class="p">[</span><span class="n">cp_idx</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+                <span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+
+            <span class="n">rows_should_remove</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">row_idxs</span><span class="p">)</span>
+            <span class="c1"># Update the img_array with the new color for this region</span>
+            <span class="k">for</span> <span class="n">row_idx</span> <span class="ow">in</span> <span class="n">row_idxs</span><span class="p">:</span>
+                <span class="n">img_array</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">regions_coordinates</span><span class="p">[</span><span class="n">row_idx</span><span class="p">]))]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Drop from distance_df_cp_connected_regions</span>
+        <span class="n">distance_df_cp_connected_regions</span> <span class="o">=</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">rows_should_remove</span><span class="p">,</span>
+            <span class="n">columns</span><span class="o">=</span><span class="n">cols_should_remove</span>
+        <span class="p">)</span>
+
+        <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;distance_df_cp_connected_regions_after.csv&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Duplicate regions detected in multi-region correction. &quot;</span>
             <span class="sa">f</span><span class="s2">&quot;Time step: </span><span class="si">{</span><span class="n">img_number</span><span class="si">}</span><span class="s2">. This situation must be resolved.&quot;</span>
         <span class="p">)</span>
 
-    <span class="k">else</span><span class="p">:</span>
+    <span class="n">distance_df_particles_min_val_idx</span> <span class="o">=</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
+    <span class="n">distance_df_particles_min_val</span> <span class="o">=</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
 
-        <span class="n">distance_df_particles_min_val_idx</span> <span class="o">=</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
-        <span class="n">distance_df_particles_min_val</span> <span class="o">=</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="c1"># Extracting corresponding values</span>
+    <span class="n">regions_center_min_particles_stat</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_particles_stat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+                                         <span class="n">distance_df_particles_min_val_idx</span><span class="p">]</span>
+    <span class="n">regions_center_particles_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_particles</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_particles_min_val_idx</span><span class="p">]</span>
+    <span class="n">regions_center_particles_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_particles</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_particles_min_val_idx</span><span class="p">]</span>
 
-        <span class="c1"># Extracting corresponding values</span>
-        <span class="n">regions_center_min_particles_stat</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_particles_stat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
-                                             <span class="n">distance_df_particles_min_val_idx</span><span class="p">]</span>
-        <span class="n">regions_center_particles_x</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_particles</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_particles_min_val_idx</span><span class="p">]</span>
-        <span class="n">regions_center_particles_y</span> <span class="o">=</span> <span class="p">[</span><span class="n">regions_center_particles</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">distance_df_particles_min_val_idx</span><span class="p">]</span>
+    <span class="n">min_distance_particles_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&#39;cp index&#39;</span><span class="p">:</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+        <span class="s1">&#39;row idx par&#39;</span><span class="p">:</span> <span class="n">distance_df_particles_min_val_idx</span><span class="p">,</span>
+        <span class="s1">&#39;Cost par&#39;</span><span class="p">:</span> <span class="n">distance_df_particles_min_val</span><span class="p">,</span>
+        <span class="s1">&#39;stat par&#39;</span><span class="p">:</span> <span class="n">regions_center_min_particles_stat</span><span class="p">,</span>
+        <span class="s1">&#39;center_x_par&#39;</span><span class="p">:</span> <span class="n">regions_center_particles_x</span><span class="p">,</span>
+        <span class="s1">&#39;center_y_par&#39;</span><span class="p">:</span> <span class="n">regions_center_particles_y</span><span class="p">,</span>
+    <span class="p">})</span>
 
-        <span class="n">min_distance_particles_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
-            <span class="s1">&#39;cp index&#39;</span><span class="p">:</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
-            <span class="s1">&#39;row idx par&#39;</span><span class="p">:</span> <span class="n">distance_df_particles_min_val_idx</span><span class="p">,</span>
-            <span class="s1">&#39;Cost par&#39;</span><span class="p">:</span> <span class="n">distance_df_particles_min_val</span><span class="p">,</span>
-            <span class="s1">&#39;stat par&#39;</span><span class="p">:</span> <span class="n">regions_center_min_particles_stat</span><span class="p">,</span>
-            <span class="s1">&#39;center_x_par&#39;</span><span class="p">:</span> <span class="n">regions_center_particles_x</span><span class="p">,</span>
-            <span class="s1">&#39;center_y_par&#39;</span><span class="p">:</span> <span class="n">regions_center_particles_y</span><span class="p">,</span>
-        <span class="p">})</span>
+    <span class="n">merged_distance_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">min_distance_prev_objects_df</span><span class="p">,</span> <span class="n">min_distance_particles_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;cp index&#39;</span><span class="p">)</span>
 
-        <span class="n">merged_distance_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">min_distance_prev_objects_df</span><span class="p">,</span> <span class="n">min_distance_particles_df</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&#39;cp index&#39;</span><span class="p">)</span>
+    <span class="c1"># if both stats are `natural` --&gt; compare stat is True</span>
+    <span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;compare_stat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;stat prev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;stat par&#39;</span><span class="p">]</span>
 
-        <span class="c1"># if both stats are `natural` --&gt; compare stat is True</span>
-        <span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;compare_stat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;stat prev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;stat par&#39;</span><span class="p">]</span>
+    <span class="c1"># how it can be possible stat = False:</span>
+    <span class="c1"># 1. prev: Multi - particle: N</span>
+    <span class="c1"># 2. prev: Multi - particle: particle</span>
+    <span class="c1"># 3. prev: natural - particle: particle</span>
+    <span class="n">faulty_rows_df</span> <span class="o">=</span> <span class="n">merged_distance_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;compare_stat&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">]</span>
 
-        <span class="c1"># how it can be possible stat = False:</span>
-        <span class="c1"># 1. prev: Multi - particle: N</span>
-        <span class="c1"># 2. prev: Multi - particle: particle</span>
-        <span class="c1"># 3. prev: natural - particle: particle</span>
-        <span class="n">faulty_rows_df</span> <span class="o">=</span> <span class="n">merged_distance_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;compare_stat&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">False</span><span class="p">]</span>
+    <span class="n">correct_rows_df</span> <span class="o">=</span> <span class="n">merged_distance_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;compare_stat&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span>
 
-        <span class="n">correct_rows_df</span> <span class="o">=</span> <span class="n">merged_distance_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;compare_stat&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span>
+    <span class="c1"># noise regions</span>
+    <span class="n">par_not_in_min_df</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span>
+                         <span class="n">min_distance_particles_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
 
-        <span class="c1"># noise regions</span>
-        <span class="n">par_not_in_min_df</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">distance_df_cp_connected_regions</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">not</span> <span class="ow">in</span>
-                             <span class="n">min_distance_particles_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">faulty_row_ndx</span><span class="p">,</span> <span class="n">faulty_row</span> <span class="ow">in</span> <span class="n">faulty_rows_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
 
-        <span class="k">for</span> <span class="n">faulty_row_ndx</span><span class="p">,</span> <span class="n">faulty_row</span> <span class="ow">in</span> <span class="n">faulty_rows_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">number_of_occ_par</span> <span class="o">=</span> \
+            <span class="n">merged_distance_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">])</span> <span class="o">&amp;</span>
+                                   <span class="p">(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;Cost par&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;Cost prev&#39;</span><span class="p">])]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-            <span class="n">number_of_occ_par</span> <span class="o">=</span> \
-                <span class="n">merged_distance_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">])</span> <span class="o">&amp;</span>
-                                       <span class="p">(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;Cost par&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;Cost prev&#39;</span><span class="p">])]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># (merged_distance_df[&#39;row idx prev&#39;] == faulty_row[&#39;row idx prev&#39;])</span>
+        <span class="n">second_cond_number_of_occ_par</span> <span class="o">=</span> \
+            <span class="n">merged_distance_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">])</span> <span class="o">&amp;</span>
+                                   <span class="p">(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;stat prev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;multi&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-            <span class="c1"># (merged_distance_df[&#39;row idx prev&#39;] == faulty_row[&#39;row idx prev&#39;])</span>
-            <span class="n">second_cond_number_of_occ_par</span> <span class="o">=</span> \
-                <span class="n">merged_distance_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">])</span> <span class="o">&amp;</span>
-                                       <span class="p">(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;stat prev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;multi&#39;</span><span class="p">)]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">number_of_occ_par</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">second_cond_number_of_occ_par</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">number_of_occ_par</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">second_cond_number_of_occ_par</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;stat prev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">:</span>
 
-            <span class="k">elif</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;stat prev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">:</span>
+            <span class="c1"># stat prev : natural</span>
+            <span class="c1"># Idea: There should be an object that maps to the natural region in both data frames.</span>
+            <span class="c1"># Otherwise, if all the records mapped to the natural region in the `prev` df are mapped to particles</span>
+            <span class="c1"># in the `particle` df, it can indicate an error. So we delete them.</span>
+            <span class="n">number_of_occ</span> <span class="o">=</span> \
+                <span class="n">merged_distance_df</span><span class="p">[</span>
+                    <span class="p">(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;row idx prev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx prev&#39;</span><span class="p">])</span> <span class="o">&amp;</span>
+                    <span class="p">(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;stat par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">)</span>
+                    <span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-                <span class="c1"># stat prev : natural</span>
-                <span class="c1"># Idea: There should be an object that maps to the natural region in both data frames.</span>
-                <span class="c1"># Otherwise, if all the records mapped to the natural region in the `prev` df are mapped to particles</span>
-                <span class="c1"># in the `particle` df, it can indicate an error. So we delete them.</span>
-                <span class="n">number_of_occ</span> <span class="o">=</span> \
-                    <span class="n">merged_distance_df</span><span class="p">[</span>
-                        <span class="p">(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;row idx prev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx prev&#39;</span><span class="p">])</span> <span class="o">&amp;</span>
-                        <span class="p">(</span><span class="n">merged_distance_df</span><span class="p">[</span><span class="s1">&#39;stat par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">)</span>
-                        <span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-                <span class="k">if</span> <span class="n">number_of_occ</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;stat par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">:</span>
-
-                        <span class="n">num_row_in_corrected_rows</span> <span class="o">=</span> \
-                            <span class="n">correct_rows_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">correct_rows_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                        <span class="k">if</span> <span class="n">num_row_in_corrected_rows</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                            <span class="c1"># remove</span>
-                            <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> \
-                                <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
-                                <span class="n">modify_existing_object</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span>
-                                                       <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
-                            <span class="n">modify_existing_object</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span>
-                                                   <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span><span class="p">)</span>
-
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> \
-                        <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
-
-            <span class="k">elif</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost par&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost prev&#39;</span><span class="p">]:</span>
-
+            <span class="k">if</span> <span class="n">number_of_occ</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;stat par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">:</span>
 
                     <span class="n">num_row_in_corrected_rows</span> <span class="o">=</span> \
@@ -550,66 +551,89 @@
                         <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> \
                             <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="c1"># stat prev: multi, stat par: particle or natural!</span>
                         <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
                             <span class="n">modify_existing_object</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span>
                                                    <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
+                        <span class="n">modify_existing_object</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span>
+                                               <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> \
+                    <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost par&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost prev&#39;</span><span class="p">]:</span>
+
+            <span class="k">if</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;stat par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">:</span>
+
+                <span class="n">num_row_in_corrected_rows</span> <span class="o">=</span> \
+                    <span class="n">correct_rows_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">correct_rows_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">num_row_in_corrected_rows</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># remove</span>
+                    <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> \
+                        <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># stat prev: multi, stat par: particle or natural!</span>
                     <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
                         <span class="n">modify_existing_object</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span>
                                                <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># stat prev: multi, stat par: particle or natural!</span>
+                <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
+                    <span class="n">modify_existing_object</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span>
+                                           <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost prev&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost par&#39;</span><span class="p">]:</span>
+        <span class="k">elif</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost prev&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost par&#39;</span><span class="p">]:</span>
 
-                <span class="k">if</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;stat par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;stat par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;natural&#39;</span><span class="p">:</span>
 
-                    <span class="n">num_row_in_corrected_rows</span> <span class="o">=</span> \
-                        <span class="n">correct_rows_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">correct_rows_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">num_row_in_corrected_rows</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="c1"># remove</span>
-                        <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> \
-                            <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
-                            <span class="n">update_object_records</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span>
-                                                  <span class="n">regions_features</span><span class="p">,</span> <span class="n">all_rel_center_coord_cols</span><span class="p">,</span>
-                                                  <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span>
-                                                  <span class="n">color_array</span><span class="p">)</span>
+                <span class="n">num_row_in_corrected_rows</span> <span class="o">=</span> \
+                    <span class="n">correct_rows_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">correct_rows_df</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">num_row_in_corrected_rows</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># remove</span>
+                    <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> \
+                        <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-
                     <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
                         <span class="n">update_object_records</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span>
                                               <span class="n">regions_features</span><span class="p">,</span> <span class="n">all_rel_center_coord_cols</span><span class="p">,</span>
                                               <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span>
                                               <span class="n">color_array</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
 
-            <span class="k">elif</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost prev&#39;</span><span class="p">]:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Ambiguous cost match for faulty row at index </span><span class="si">{</span><span class="n">faulty_row_ndx</span><span class="si">}</span><span class="s2">. &quot;</span>
-                    <span class="s2">&quot;Both current and previous costs are identical.&quot;</span>
-                <span class="p">)</span>
+                <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span> <span class="o">=</span> \
+                    <span class="n">update_object_records</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">,</span> <span class="n">regions_color</span><span class="p">,</span>
+                                          <span class="n">regions_features</span><span class="p">,</span> <span class="n">all_rel_center_coord_cols</span><span class="p">,</span>
+                                          <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span>
+                                          <span class="n">color_array</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">par_ndx</span> <span class="ow">in</span> <span class="n">par_not_in_min_df</span><span class="p">:</span>
-            <span class="c1"># Update the img_array with the background color (0, 0, 0) for this region</span>
-            <span class="n">img_array</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">regions_coordinates</span><span class="p">[</span><span class="n">par_ndx</span><span class="p">]))]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost par&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">faulty_row</span><span class="p">[</span><span class="s1">&#39;Cost prev&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Ambiguous cost match for faulty row at index </span><span class="si">{</span><span class="n">faulty_row_ndx</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;Both current and previous costs are identical.&quot;</span>
+            <span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">correct_bac_idx</span><span class="p">,</span> <span class="n">correct_bac_row</span> <span class="ow">in</span> <span class="n">correct_rows_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-            <span class="n">bac_ndx</span> <span class="o">=</span> <span class="n">correct_bac_row</span><span class="p">[</span><span class="s1">&#39;cp index&#39;</span><span class="p">]</span>
-            <span class="n">this_region_color</span> <span class="o">=</span> <span class="n">regions_color</span><span class="p">[</span><span class="n">correct_bac_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">par_ndx</span> <span class="ow">in</span> <span class="n">par_not_in_min_df</span><span class="p">:</span>
+        <span class="c1"># Update the img_array with the background color (0, 0, 0) for this region</span>
+        <span class="n">img_array</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">regions_coordinates</span><span class="p">[</span><span class="n">par_ndx</span><span class="p">]))]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
-            <span class="n">color_array</span><span class="p">[</span><span class="n">bac_ndx</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_region_color</span>
-            <span class="n">coordinates_array</span> <span class="o">=</span> <span class="n">regions_coordinates</span><span class="p">[</span><span class="n">correct_bac_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]]</span>
-            <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">coordinates_array</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coordinates_array</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
-            <span class="c1"># Cantor Pairing Function</span>
-            <span class="n">encoded_numbers</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span>
-            <span class="n">coordinate_array</span><span class="p">[</span><span class="n">bac_ndx</span><span class="p">,</span> <span class="n">encoded_numbers</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">for</span> <span class="n">correct_bac_idx</span><span class="p">,</span> <span class="n">correct_bac_row</span> <span class="ow">in</span> <span class="n">correct_rows_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">bac_ndx</span> <span class="o">=</span> <span class="n">correct_bac_row</span><span class="p">[</span><span class="s1">&#39;cp index&#39;</span><span class="p">]</span>
+        <span class="n">this_region_color</span> <span class="o">=</span> <span class="n">regions_color</span><span class="p">[</span><span class="n">correct_bac_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]]</span>
 
-        <span class="c1"># now check correct_rows_df with duplicate</span>
-        <span class="n">correct_rows_dup_df</span> <span class="o">=</span> <span class="n">correct_rows_df</span><span class="p">[</span><span class="n">correct_rows_df</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="s1">&#39;row idx par&#39;</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
-        <span class="k">for</span> <span class="n">row_idx</span><span class="p">,</span> <span class="n">faulty_row</span> <span class="ow">in</span> <span class="n">correct_rows_dup_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-            <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> \
-                <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
+        <span class="n">color_array</span><span class="p">[</span><span class="n">bac_ndx</span><span class="p">]</span> <span class="o">=</span> <span class="n">this_region_color</span>
+        <span class="n">coordinates_array</span> <span class="o">=</span> <span class="n">regions_coordinates</span><span class="p">[</span><span class="n">correct_bac_row</span><span class="p">[</span><span class="s1">&#39;row idx par&#39;</span><span class="p">]]</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">coordinates_array</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coordinates_array</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Cantor Pairing Function</span>
+        <span class="n">encoded_numbers</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">y</span>
+        <span class="n">coordinate_array</span><span class="p">[</span><span class="n">bac_ndx</span><span class="p">,</span> <span class="n">encoded_numbers</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="c1"># now check correct_rows_df with duplicate</span>
+    <span class="n">correct_rows_dup_df</span> <span class="o">=</span> <span class="n">correct_rows_df</span><span class="p">[</span><span class="n">correct_rows_df</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="s1">&#39;row idx par&#39;</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">row_idx</span><span class="p">,</span> <span class="n">faulty_row</span> <span class="ow">in</span> <span class="n">correct_rows_dup_df</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="n">df</span><span class="p">,</span> <span class="n">img_array</span> <span class="o">=</span> \
+            <span class="n">remove_object_from_image</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">faulty_row</span><span class="p">,</span> <span class="n">img_array</span><span class="p">,</span> <span class="n">regions_coordinates</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">df</span><span class="p">,</span> <span class="n">coordinate_array</span><span class="p">,</span> <span class="n">color_array</span></div>
 
@@ -645,7 +669,7 @@
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=cb975c41"></script>
+</div><script src="../_static/documentation_options.js?v=010db75e"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>

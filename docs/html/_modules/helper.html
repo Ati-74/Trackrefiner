@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>helper - Trackrefiner 2025 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+        <title>helper - Trackrefiner 1.2.6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Trackrefiner 2025 documentation</div></a>
+      <a href="../index.html"><div class="brand">Trackrefiner 1.2.6 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -189,7 +189,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
   
-  <span class="sidebar-brand-text">Trackrefiner 2025 documentation</span>
+  <span class="sidebar-brand-text">Trackrefiner 1.2.6 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -235,14 +235,14 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for helper</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">distance_matrix</span>
-<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">lil_matrix</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">distance_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">lil_matrix</span>
 
 
-<span class="k">def</span> <span class="nf">print_progress_bar</span><span class="p">(</span><span class="n">iteration</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;█&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_progress_bar</span><span class="p">(</span><span class="n">iteration</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;█&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Call in a loop to create terminal progress bar</span>
 <span class="sd">    @params:</span>
@@ -267,7 +267,7 @@
 
 <div class="viewcode-block" id="calc_movement">
 <a class="viewcode-back" href="../modules.html#helper.calc_movement">[docs]</a>
-<span class="k">def</span> <span class="nf">calc_movement</span><span class="p">(</span><span class="n">bac2</span><span class="p">,</span> <span class="n">bac1</span><span class="p">,</span> <span class="n">center_coordinate_columns</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calc_movement</span><span class="p">(</span><span class="n">bac2</span><span class="p">,</span> <span class="n">bac1</span><span class="p">,</span> <span class="n">center_coordinate_columns</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function computes the displacement of a bacterium (`bac1` (source) to `bac2` (target))</span>
 <span class="sd">    using multiple spatial points.</span>
@@ -322,7 +322,7 @@
 
 <div class="viewcode-block" id="calc_neighbors_dir_motion_all">
 <a class="viewcode-back" href="../modules.html#helper.calc_neighbors_dir_motion_all">[docs]</a>
-<span class="k">def</span> <span class="nf">calc_neighbors_dir_motion_all</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">,</span> <span class="n">division_df</span><span class="p">,</span> <span class="n">selected_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calc_neighbors_dir_motion_all</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">,</span> <span class="n">division_df</span><span class="p">,</span> <span class="n">selected_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates motion alignment features for bacteria based on neighbor trajectories.</span>
 
@@ -433,7 +433,7 @@
 
 <div class="viewcode-block" id="update_dataframe_with_selected_rows">
 <a class="viewcode-back" href="../modules.html#helper.update_dataframe_with_selected_rows">[docs]</a>
-<span class="k">def</span> <span class="nf">update_dataframe_with_selected_rows</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">selected_rows</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_dataframe_with_selected_rows</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">selected_rows</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Updates specific rows in a DataFrame based on another DataFrame of selected rows.</span>
 
@@ -503,7 +503,7 @@
 
 <div class="viewcode-block" id="calculate_bacterial_life_history_features">
 <a class="viewcode-back" href="../modules.html#helper.calculate_bacterial_life_history_features">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate_bacterial_life_history_features</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">calc_all_features</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">,</span> <span class="n">division_df</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_bacterial_life_history_features</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">calc_all_features</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">,</span> <span class="n">division_df</span><span class="p">,</span>
                                               <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">use_selected_rows</span><span class="p">,</span> <span class="n">original_df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates features related to the continuous life history of bacteria.</span>
@@ -624,7 +624,7 @@
 
 <div class="viewcode-block" id="calculate_trajectory_displacement">
 <a class="viewcode-back" href="../modules.html#helper.calculate_trajectory_displacement">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate_trajectory_displacement</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_trajectory_displacement</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">axis</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the displacement of objects along a specified axis between consecutive positions.</span>
 
@@ -661,7 +661,7 @@
 
 <div class="viewcode-block" id="calculate_trajectory_angles">
 <a class="viewcode-back" href="../modules.html#helper.calculate_trajectory_angles">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate_trajectory_angles</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">suffix1</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suffix2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_trajectory_angles</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">suffix1</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">suffix2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the angles of trajectory directions between two objects.</span>
 
@@ -705,7 +705,7 @@
 
 <div class="viewcode-block" id="calculate_all_bac_slopes">
 <a class="viewcode-back" href="../modules.html#helper.calculate_all_bac_slopes">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate_all_bac_slopes</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_all_bac_slopes</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the slopes of lines formed by bacterial endpoints in the input DataFrame.</span>
 
@@ -742,7 +742,7 @@
 <span class="c1"># https://math.stackexchange.com/questions/2645689/what-is-the-parametric-equation-of-a-rotated-ellipse-given-the-angle-of-rotatio</span>
 <div class="viewcode-block" id="calculate_bac_endpoints">
 <a class="viewcode-back" href="../modules.html#helper.calculate_bac_endpoints">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate_bac_endpoints</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">major</span><span class="p">,</span> <span class="n">angle_rotation</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_bac_endpoints</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">major</span><span class="p">,</span> <span class="n">angle_rotation</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the endpoints of the major axis of a bacterium based on its center, length, and orientation.</span>
 
@@ -850,7 +850,7 @@
 
 <div class="viewcode-block" id="calculate_all_bac_endpoints">
 <a class="viewcode-back" href="../modules.html#helper.calculate_all_bac_endpoints">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate_all_bac_endpoints</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_all_bac_endpoints</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">angle_tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the endpoints of bacterial major axes based on orientation, length, and position.</span>
 
@@ -982,7 +982,7 @@
 
 <div class="viewcode-block" id="convert_angle_to_radian">
 <a class="viewcode-back" href="../modules.html#helper.convert_angle_to_radian">[docs]</a>
-<span class="k">def</span> <span class="nf">convert_angle_to_radian</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_angle_to_radian</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts bacterial orientation angles from degrees to radians and modifies the values.</span>
 
@@ -1010,7 +1010,7 @@
 
 <div class="viewcode-block" id="extract_bacteria_features">
 <a class="viewcode-back" href="../modules.html#helper.extract_bacteria_features">[docs]</a>
-<span class="k">def</span> <span class="nf">extract_bacteria_features</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_bacteria_features</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extracts key geometric and spatial features of bacteria from the input DataFrame.</span>
 
@@ -1045,7 +1045,7 @@
 
 <div class="viewcode-block" id="calc_normalized_angle_between_motion_for_df">
 <a class="viewcode-back" href="../modules.html#helper.calc_normalized_angle_between_motion_for_df">[docs]</a>
-<span class="k">def</span> <span class="nf">calc_normalized_angle_between_motion_for_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">target_bac_motion_x_col</span><span class="p">,</span> <span class="n">target_bac_motion_y_col</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calc_normalized_angle_between_motion_for_df</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">target_bac_motion_x_col</span><span class="p">,</span> <span class="n">target_bac_motion_y_col</span><span class="p">,</span>
                                                 <span class="n">neighbors_avg_dir_motion_x</span><span class="p">,</span> <span class="n">neighbors_avg_dir_motion_y</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the normalized angles between motion vectors for each row in a DataFrame.</span>
@@ -1152,7 +1152,7 @@
 
 <div class="viewcode-block" id="calculate_normalized_angle_between_motion_vectors">
 <a class="viewcode-back" href="../modules.html#helper.calculate_normalized_angle_between_motion_vectors">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate_normalized_angle_between_motion_vectors</span><span class="p">(</span><span class="n">neighbor_motion_vectors</span><span class="p">,</span> <span class="n">target_motion_vectors</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_normalized_angle_between_motion_vectors</span><span class="p">(</span><span class="n">neighbor_motion_vectors</span><span class="p">,</span> <span class="n">target_motion_vectors</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the normalized angle (0 to 1) between two sets of direction of motion vectors.</span>
 
@@ -1249,7 +1249,7 @@
 
 <div class="viewcode-block" id="calculate_angles_between_slopes">
 <a class="viewcode-back" href="../modules.html#helper.calculate_angles_between_slopes">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate_angles_between_slopes</span><span class="p">(</span><span class="n">slope_a</span><span class="p">,</span> <span class="n">slope_b</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_angles_between_slopes</span><span class="p">(</span><span class="n">slope_a</span><span class="p">,</span> <span class="n">slope_b</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates the orientation angles between two slopes in degrees.</span>
 
@@ -1305,7 +1305,7 @@
 
 <div class="viewcode-block" id="calc_distance_matrix">
 <a class="viewcode-back" href="../modules.html#helper.calc_distance_matrix">[docs]</a>
-<span class="k">def</span> <span class="nf">calc_distance_matrix</span><span class="p">(</span><span class="n">target_bac_coords_df</span><span class="p">,</span> <span class="n">reference_bac_coords_df</span><span class="p">,</span> <span class="n">x_col</span><span class="p">,</span> <span class="n">y_col</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">calc_distance_matrix</span><span class="p">(</span><span class="n">target_bac_coords_df</span><span class="p">,</span> <span class="n">reference_bac_coords_df</span><span class="p">,</span> <span class="n">x_col</span><span class="p">,</span> <span class="n">y_col</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculates a distance matrix between two sets of bacteria coordinates.</span>
 
@@ -1336,7 +1336,7 @@
 
 <div class="viewcode-block" id="convert_end_points_um_to_pixel">
 <a class="viewcode-back" href="../modules.html#helper.convert_end_points_um_to_pixel">[docs]</a>
-<span class="k">def</span> <span class="nf">convert_end_points_um_to_pixel</span><span class="p">(</span><span class="n">end_points</span><span class="p">,</span> <span class="n">um_per_pixel</span><span class="o">=</span><span class="mf">0.144</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_end_points_um_to_pixel</span><span class="p">(</span><span class="n">end_points</span><span class="p">,</span> <span class="n">um_per_pixel</span><span class="o">=</span><span class="mf">0.144</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts endpoint coordinates from micrometers (um) to pixel units based on a specified conversion factor.</span>
 
@@ -1357,7 +1357,7 @@
 
 <div class="viewcode-block" id="convert_um_to_pixel">
 <a class="viewcode-back" href="../modules.html#helper.convert_um_to_pixel">[docs]</a>
-<span class="k">def</span> <span class="nf">convert_um_to_pixel</span><span class="p">(</span><span class="n">major_len</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">endpoints</span><span class="p">,</span> <span class="n">center_pos</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="o">=</span><span class="mf">0.144</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_um_to_pixel</span><span class="p">(</span><span class="n">major_len</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">endpoints</span><span class="p">,</span> <span class="n">center_pos</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="o">=</span><span class="mf">0.144</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts physical measurements in pixel to micrometers (um) based on a specified conversion factor.</span>
 
@@ -1387,7 +1387,7 @@
 
 <div class="viewcode-block" id="convert_pixel_to_um">
 <a class="viewcode-back" href="../modules.html#helper.convert_pixel_to_um">[docs]</a>
-<span class="k">def</span> <span class="nf">convert_pixel_to_um</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">all_rel_center_coord_cols</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_pixel_to_um</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">pixel_per_micron</span><span class="p">,</span> <span class="n">all_rel_center_coord_cols</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Converts distance measurements from pixel units to micrometers (um)</span>
 <span class="sd">        within a DataFrame based on a specified conversion factor.</span>
@@ -1419,7 +1419,7 @@
 
 <div class="viewcode-block" id="identify_important_columns">
 <a class="viewcode-back" href="../modules.html#helper.identify_important_columns">[docs]</a>
-<span class="k">def</span> <span class="nf">identify_important_columns</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">identify_important_columns</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Identifies key columns related to center coordinates, labels, and parent objects</span>
 <span class="sd">    from the provided DataFrame.</span>
@@ -1480,7 +1480,7 @@
 
 <div class="viewcode-block" id="extract_bacteria_info">
 <a class="viewcode-back" href="../modules.html#helper.extract_bacteria_info">[docs]</a>
-<span class="k">def</span> <span class="nf">extract_bacteria_info</span><span class="p">(</span><span class="n">bacteria_data</span><span class="p">,</span> <span class="n">pixels_per_micron</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">major_axis_len_col</span><span class="p">,</span> <span class="n">orientation_col</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_bacteria_info</span><span class="p">(</span><span class="n">bacteria_data</span><span class="p">,</span> <span class="n">pixels_per_micron</span><span class="p">,</span> <span class="n">center_coord_cols</span><span class="p">,</span> <span class="n">major_axis_len_col</span><span class="p">,</span> <span class="n">orientation_col</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extracts and converts bacterial object information and convert from micrometers (µm) to pixel.</span>
 
@@ -1520,7 +1520,7 @@
 
 <div class="viewcode-block" id="find_bacteria_neighbors">
 <a class="viewcode-back" href="../modules.html#helper.find_bacteria_neighbors">[docs]</a>
-<span class="k">def</span> <span class="nf">find_bacteria_neighbors</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_bacteria_neighbors</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">neighbor_df</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constructs a neighbor adjacency matrix for bacterial objects based on their spatial relationships.</span>
@@ -1558,8 +1558,8 @@
                                                                             <span class="s1">&#39;First Object Number&#39;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">,</span>
                                                                   <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;_neighbor&#39;</span><span class="p">))</span>
 
-    <span class="n">neighbor_list_array</span> <span class="o">=</span> <span class="n">lil_matrix</span><span class="p">((</span><span class="n">df_bac_with_neighbors</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-                                      <span class="n">df_bac_with_neighbors</span><span class="p">[</span><span class="s1">&#39;index_neighbor&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;int64&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">neighbor_list_array</span> <span class="o">=</span> <span class="n">lil_matrix</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="n">df_bac_with_neighbors</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                                      <span class="nb">int</span><span class="p">(</span><span class="n">df_bac_with_neighbors</span><span class="p">[</span><span class="s1">&#39;index_neighbor&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
 
     <span class="c1"># values shows:</span>
     <span class="c1"># ImageNumber, ObjectNumber, index,	First Image Number,	First Object Number, Second Image Number,</span>
@@ -1609,7 +1609,7 @@
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=cb975c41"></script>
+</div><script src="../_static/documentation_options.js?v=010db75e"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>

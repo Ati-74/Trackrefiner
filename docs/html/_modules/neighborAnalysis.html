@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" />
 
     <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>neighborAnalysis - Trackrefiner 2025 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=a746c00c" />
+        <title>neighborAnalysis - Trackrefiner 1.2.6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     
@@ -165,7 +165,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../index.html"><div class="brand">Trackrefiner 2025 documentation</div></a>
+      <a href="../index.html"><div class="brand">Trackrefiner 1.2.6 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -189,7 +189,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
   
   
-  <span class="sidebar-brand-text">Trackrefiner 2025 documentation</span>
+  <span class="sidebar-brand-text">Trackrefiner 1.2.6 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -235,13 +235,13 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for neighborAnalysis</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">chain</span>
 
 
 <div class="viewcode-block" id="compare_neighbor_sets">
 <a class="viewcode-back" href="../modules.html#neighborAnalysis.compare_neighbor_sets">[docs]</a>
-<span class="k">def</span> <span class="nf">compare_neighbor_sets</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compare_neighbor_sets</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">parent_image_number_col</span><span class="p">,</span> <span class="n">parent_object_number_col</span><span class="p">,</span>
                           <span class="n">selected_rows_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">selected_time_step_df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">return_common_elements</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">col_target</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                           <span class="n">index2</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 
@@ -492,7 +492,7 @@
 
 <div class="viewcode-block" id="compare_neighbors_single_pair">
 <a class="viewcode-back" href="../modules.html#neighborAnalysis.compare_neighbors_single_pair">[docs]</a>
-<span class="k">def</span> <span class="nf">compare_neighbors_single_pair</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">bac1</span><span class="p">,</span> <span class="n">bac2</span><span class="p">,</span> <span class="n">return_common_elements</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compare_neighbors_single_pair</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">bac1</span><span class="p">,</span> <span class="n">bac2</span><span class="p">,</span> <span class="n">return_common_elements</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compares the neighbor sets of two bacteria (bac1 and bac2) to calculate the number of differing</span>
@@ -584,7 +584,7 @@
 
 <div class="viewcode-block" id="compare_neighbors_batch">
 <a class="viewcode-back" href="../modules.html#neighborAnalysis.compare_neighbors_batch">[docs]</a>
-<span class="k">def</span> <span class="nf">compare_neighbors_batch</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">bac1</span><span class="p">,</span> <span class="n">bac2_batch</span><span class="p">,</span> <span class="n">return_common_elements</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compare_neighbors_batch</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">neighbor_list_array</span><span class="p">,</span> <span class="n">bac1</span><span class="p">,</span> <span class="n">bac2_batch</span><span class="p">,</span> <span class="n">return_common_elements</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compares the neighbor sets of a single bacterium (`bac1`) with multiple bacteria (`bac2_batch`)</span>
@@ -709,7 +709,7 @@
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=cb975c41"></script>
+</div><script src="../_static/documentation_options.js?v=010db75e"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
