@@ -44,7 +44,7 @@ trackrefiner-track-editor
 ## How to Use TrackRefiner
 
 The following sections provide more details on:
-1.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/Installation-Guide'>Installation Guide</a>
+1.	<a href='Trackrefiner/wiki/Installation-Guide'>Installation Guide</a>
 2.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/How-to-Run-TrackRefiner'>How to Run TrackRefiner</a>
 3.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/Tutorial'>Tutorial</a>
 4.	<a href='https://github.com/Ati-74/Trackrefiner/wiki/Reported-Feature-Explanations'>Reported Feature Explanations</a>
