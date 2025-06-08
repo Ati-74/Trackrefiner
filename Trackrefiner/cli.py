@@ -1,5 +1,7 @@
 import argparse
 import os
+import sys
+import traceback
 from Trackrefiner import process_objects_data
 
 
@@ -138,16 +140,27 @@ def main():
 
     save_pickle = args.save_pickle
 
-    # run post-processing
-    process_objects_data(is_gui_mode=False, cp_output_csv=cp_output_csv_file,
-                         segmentation_res_dir=segmentation_results_dir, neighbor_csv=neighbor_csv,
-                         interval_time=interval_time, elongation_rate_method=elongation_rate_method,
-                         pixel_per_micron=pixel_per_micron, intensity_threshold=intensity_threshold,
-                         assigning_cell_type=assigning_cell_type, doubling_time=doubling_time_of_bacteria,
-                         disable_tracking_correction=disable_tracking_correction, clf=clf, n_cpu=n_cpu,
-                         image_boundaries=boundary_limits, dynamic_boundaries=dynamic_boundaries, out_dir=out_dir,
-                         save_pickle=save_pickle, verbose=verbose, command=command)
+    try:
+        # run post-processing
+        process_objects_data(is_gui_mode=False, cp_output_csv=cp_output_csv_file,
+                             segmentation_res_dir=segmentation_results_dir, neighbor_csv=neighbor_csv,
+                             interval_time=interval_time, elongation_rate_method=elongation_rate_method,
+                             pixel_per_micron=pixel_per_micron, intensity_threshold=intensity_threshold,
+                             assigning_cell_type=assigning_cell_type, doubling_time=doubling_time_of_bacteria,
+                             disable_tracking_correction=disable_tracking_correction, clf=clf, n_cpu=n_cpu,
+                             image_boundaries=boundary_limits, dynamic_boundaries=dynamic_boundaries, out_dir=out_dir,
+                             save_pickle=save_pickle, verbose=verbose, command=command)
+
+    except (ValueError, FileNotFoundError) as e:
+        print(f"{type(e).__name__}: {e}")
+        sys.exit(1)
+
+    except Exception:
+        # Unknown error: print full traceback
+        traceback.print_exc()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
+
     main()

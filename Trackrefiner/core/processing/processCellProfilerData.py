@@ -186,7 +186,7 @@ def process_objects_data(is_gui_mode, cp_output_csv, segmentation_res_dir, neigh
         print(command_log)
         log_list.append(command_log)
 
-        check_validity(is_gui_mode, cp_output_csv, segmentation_res_dir, neighbor_csv, interval_time, doubling_time,
+        check_validity(cp_output_csv, segmentation_res_dir, neighbor_csv, interval_time, doubling_time,
                        elongation_rate_method, pixel_per_micron, assigning_cell_type, intensity_threshold,
                        disable_tracking_correction, clf, n_cpu, image_boundaries, dynamic_boundaries)
 

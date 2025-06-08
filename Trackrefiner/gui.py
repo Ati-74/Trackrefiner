@@ -6,7 +6,17 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLa
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QIcon
 import os
+import traceback
 from Trackrefiner import process_objects_data
+
+
+def show_error_message(msg):
+    error_box = QMessageBox()
+    error_box.setIcon(QMessageBox.Critical)
+    error_box.setWindowTitle("Input Error")
+    error_box.setText(msg)
+    error_box.setStandardButtons(QMessageBox.Ok)
+    error_box.exec_()
 
 
 class OutputStream(QObject):
@@ -423,28 +433,38 @@ class TrackRefinerGUI(QWidget):
         # Construct the command statement
         command = self.build_command()
 
-        # Run process_objects_data with validated inputs
-        process_objects_data(
-            is_gui_mode=True,
-            cp_output_csv=get_text_or_none(self.cp_output_csv_file),
-            segmentation_res_dir=get_text_or_none(self.segmentation_results_dir),
-            neighbor_csv=get_text_or_none(self.neighbor_csv),
-            interval_time=self.interval_time.value() if self.interval_time.value() > 0 else None,
-            elongation_rate_method=self.elongation_rate_method.currentText(),
-            pixel_per_micron=self.pixel_per_micron.value(),
-            intensity_threshold=self.intensity_threshold.value() if self.assigning_cell_type.isChecked() else None,
-            assigning_cell_type=self.assigning_cell_type.isChecked(),
-            doubling_time=self.doubling_time_of_bacteria.value() if self.doubling_time_of_bacteria.value() > 0 else None,
-            disable_tracking_correction=self.disable_tracking_correction.isChecked(),
-            clf=self.clf.currentText(),
-            n_cpu=self.n_cpu.value(),
-            image_boundaries=self.boundary_limits.text() if self.boundary_limits.text().strip() else None,
-            dynamic_boundaries=get_text_or_none(self.dynamic_boundaries),
-            out_dir=get_text_or_none(self.out_dir),
-            verbose=self.verbose.isChecked(),
-            save_pickle=self.save_pickle.isChecked(),
-            command=command
-        )
+        try:
+            # Run process_objects_data with validated inputs
+            process_objects_data(
+                is_gui_mode=True,
+                cp_output_csv=get_text_or_none(self.cp_output_csv_file),
+                segmentation_res_dir=get_text_or_none(self.segmentation_results_dir),
+                neighbor_csv=get_text_or_none(self.neighbor_csv),
+                interval_time=self.interval_time.value() if self.interval_time.value() > 0 else None,
+                elongation_rate_method=self.elongation_rate_method.currentText(),
+                pixel_per_micron=self.pixel_per_micron.value(),
+                intensity_threshold=self.intensity_threshold.value() if self.assigning_cell_type.isChecked() else None,
+                assigning_cell_type=self.assigning_cell_type.isChecked(),
+                doubling_time=self.doubling_time_of_bacteria.value() if self.doubling_time_of_bacteria.value() > 0 else None,
+                disable_tracking_correction=self.disable_tracking_correction.isChecked(),
+                clf=self.clf.currentText(),
+                n_cpu=self.n_cpu.value(),
+                image_boundaries=self.boundary_limits.text() if self.boundary_limits.text().strip() else None,
+                dynamic_boundaries=get_text_or_none(self.dynamic_boundaries),
+                out_dir=get_text_or_none(self.out_dir),
+                verbose=self.verbose.isChecked(),
+                save_pickle=self.save_pickle.isChecked(),
+                command=command
+            )
+
+        except (ValueError, FileNotFoundError) as e:
+            print(f"{type(e).__name__}: {e}")
+            show_error_message(f"{type(e).__name__}: {e}")
+
+        except Exception:
+            show_error_message("An unexpected error occurred.\n\nPlease check the terminal for details.")
+            # Unknown error: print full traceback
+            traceback.print_exc()
 
 
 def main():
