@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(name='TrackRefiner',
-      version='1.2.7',
+      version='1.3',
       description='A precision tracking tool for bacillus cell tracking',
       long_description=long_description,
       long_description_content_type="text/markdown",
@@ -16,7 +16,8 @@ setup(name='TrackRefiner',
       setup_requires=['numpy==1.26.4', 'scipy', 'pandas >= 2.2.2', 'scikit-learn', 'matplotlib', 'opencv-python',
                       'scikit-image', 'psutil', 'seaborn', 'PyQt5'],
       packages=find_packages(include=["Trackrefiner", "Trackrefiner.*"]),
-      python_requires='>=3.9',
+      include_package_data=True,
+      python_requires='>=3.9, <3.13',
       url='https://github.com/ingallslab/Trackrefiner',
       author='Atiyeh Ahmadi',
       author_email='a94ahmad@uwaterloo.ca',
