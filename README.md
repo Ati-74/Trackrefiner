@@ -29,7 +29,7 @@ Use `-h` with commands to view available options.
 - **Run tracking refinement:**  
   - **Command-Line Interface:**  
     ```bash
-    trackrefiner-cli -h
+    trackrefiner-cli
     ```
   - **Graphical User Interface:**  
     ```bash
