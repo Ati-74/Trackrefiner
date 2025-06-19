@@ -1,5 +1,4 @@
 from sklearn.linear_model import LogisticRegression
-from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.compose import ColumnTransformer
@@ -254,7 +253,6 @@ def extract_feature_importance(pipeline):
             # Try to get feature importance for models
             feature_weights = model.feature_importances_[0]
         except AttributeError:
-            # For models like GaussianProcessClassifier, set feature weights to NaN
             feature_weights = np.nan
 
     if str(feature_weights) != 'nan':
@@ -290,7 +288,6 @@ def train_model(merged_df, feature_list, columns_to_scale, model_type, output_di
     :param str clf:
         The name of the classifier to use. Supported classifiers include:
             - 'LogisticRegression'
-            - 'GaussianProcessClassifier'
             - 'C-Support Vector Classifier'
     :param int n_cpu:
         Number of CPU cores to use for parallel processing in the classifier.
@@ -303,7 +300,6 @@ def train_model(merged_df, feature_list, columns_to_scale, model_type, output_di
 
     clf_dict = {
         'LogisticRegression': LogisticRegression(random_state=42, n_jobs=n_cpu, class_weight='balanced'),
-        'GaussianProcessClassifier': GaussianProcessClassifier(random_state=42, n_jobs=n_cpu),
         'C-Support Vector Classifier': SVC(random_state=42, probability=True, class_weight='balanced')}
 
     # Define features and target
