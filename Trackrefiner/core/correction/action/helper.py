@@ -962,7 +962,7 @@ def calculate_normalized_angle_between_motion_vectors(neighbor_motion_vectors, t
     cos_angle[valid_indices] = dot_product[valid_indices] / (
             magnitude_neighbors[valid_indices] * magnitude_direction[valid_indices])
 
-    # Calculate the angle in radians and then convert to degrees
+    cos_angle = np.clip(cos_angle, -1.0, 1.0)
     angle_radians = np.arccos(cos_angle)
     angle_degrees = np.degrees(angle_radians)
 
