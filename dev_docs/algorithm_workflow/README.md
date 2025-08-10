@@ -10,7 +10,7 @@ Standard flowchart conventions are employed, as follows:
 
 For enhanced clarity, color coding is applied so that <b>blue indicates correction processes</b> and <b>yellow denotes identification steps</b>.
 
-## Flowchart for Lineage Based Error Identification
+## Lineage Based Error Identification
 
 <img src="01.Lineage%20Based%20Error%20Identification.jpg" alt="Lineage Based Error Identification" width="100%">
 
