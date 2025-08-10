@@ -28,7 +28,25 @@ repetition and make both flowcharts easier to follow.
 <img src="02.2.Classifier training.jpg" alt="02.2.Classifier training.jpg" width="100%">
 
 
-## Feature Based Identification and Correction
-<p align="justify">
+## Feature-Based Identification and Correction
 
+<p align="justify">
+This section presents five sequential flowcharts, each representing a specific type of error in the order they are addressed during implementation.
+In steps <i>Swapped track links and missing division links</i> and <i>Untimely root and leaf</i>, there is a box labeled Evaluate the feasibility of making new links based on biological limits, data-driven thresholds, and the likelihoods predicted by the models. This box is further detailed in a separate flowchart, corresponding to <i>Applying Classifiers</i>.
 </p>
+
+### Feature-Based Identification and Correction for over-assigned division links
+<img src="03.1.over-assigned division links.jpg" alt="03.1.over-assigned division links.jpg" width="100%">
+
+### Feature-Based Identification and Correction for Redundant division links
+<img src="03.2.Redundant division links.jpg" alt="03.2.Redundant division links.jpg" width="100%">
+
+### Feature-Based Identification and Correction Flow chart for Swapped track links and Missing division links
+<img src="03.3.Swapped track links and missing division links.jpg" alt="03.3.Swapped track links and missing division links.jpg" width="100%">
+
+### Feature-Based Identification and Correction for Untimely root and leaf
+<img src="03.4.untimely root and leaf.jpg" alt="03.4.untimely root and leaf.jpg" width="100%">
+
+
+### Applying Classifiers
+<img src="03.5.Applying Classifiers.jpg" alt="03.5.Applying Classifiers.jpg" width="100%">
