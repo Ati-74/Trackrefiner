@@ -22,7 +22,10 @@ repetition and make both flowcharts easier to follow.
 </p>
 
 ### Classifier Training 1
-<img src="02.1.Classifier Training.jpg" alt="02.1.Classifier Training.jpg" width="100%">
+<img src="02.1.Classifier training.jpg" alt="02.1.Classifier training.jpg" width="100%">
+
+### Classifier Training 2
+<img src="02.2.Classifier training.jpg" alt="02.2.Classifier training.jpg" width="100%">
 
 
 ## Feature Based Identification and Correction
