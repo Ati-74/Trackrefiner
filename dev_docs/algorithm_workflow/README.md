@@ -25,7 +25,7 @@ For enhanced clarity, color coding is applied so that <b>blue indicates correcti
 
 ## Lineage-Based Error Identification
 
-<img src="01.Lineage%20Based%20Error%20Identification.jpg" alt="Lineage Based Error Identification" width="70%">
+<img src="01.Lineage%20Based%20Error%20Identification.jpg" alt="Lineage Based Error Identification" width="90%">
 
 ## ML Model Training
 <p align="justify">
@@ -35,10 +35,10 @@ repetition and make both flowcharts easier to follow.
 </p>
 
 ### Classifier Training 1
-<img src="02.1.Classifier training.jpg" alt="02.1.Classifier training.jpg" width="70%">
+<img src="02.1.Classifier training.jpg" alt="02.1.Classifier training.jpg" width="90%">
 
 ### Classifier Training 2
-<img src="02.2.Classifier training.jpg" alt="02.2.Classifier training.jpg" width="70%">
+<img src="02.2.Classifier training.jpg" alt="02.2.Classifier training.jpg" width="90%">
 
 
 ## Feature-Based Identification and Correction
@@ -49,17 +49,17 @@ In steps <i>Swapped track links and missing division links</i> and <i>Untimely r
 </p>
 
 ### Feature-Based Identification and Correction for over-assigned division links
-<img src="03.1.over-assigned division links.jpg" alt="03.1.over-assigned division links.jpg" width="70%">
+<img src="03.1.over-assigned division links.jpg" alt="03.1.over-assigned division links.jpg" width="90%">
 
 ### Feature-Based Identification and Correction for Redundant division links
-<img src="03.2.Redundant division links.jpg" alt="03.2.Redundant division links.jpg" width="70%">
+<img src="03.2.Redundant division links.jpg" alt="03.2.Redundant division links.jpg" width="90%">
 
 ### Feature-Based Identification and Correction Flow chart for Swapped track links and Missing division links
-<img src="03.3.Swapped track links and missing division links.jpg" alt="03.3.Swapped track links and missing division links.jpg" width="70%">
+<img src="03.3.Swapped track links and missing division links.jpg" alt="03.3.Swapped track links and missing division links.jpg" width="90%">
 
 ### Feature-Based Identification and Correction for Untimely root and leaf
-<img src="03.4.untimely root and leaf.jpg" alt="03.4.untimely root and leaf.jpg" width="70%">
+<img src="03.4.untimely root and leaf.jpg" alt="03.4.untimely root and leaf.jpg" width="90%">
 
 
 ### Applying Classifiers
-<img src="03.5.Applying Classifiers.jpg" alt="03.5.Applying Classifiers.jpg" width="70%">
+<img src="03.5.Applying Classifiers.jpg" alt="03.5.Applying Classifiers.jpg" width="90%">
