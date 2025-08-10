@@ -19,7 +19,7 @@ For enhanced clarity, color coding is applied so that <b>blue indicates correcti
 - [Feature-Based Identification and Correction](https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#feature-based-identification-and-correction)
   - [Feature-Based Identification and Correction for over-assigned division links](https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#feature-based-identification-and-correction-for-over-assigned-division-links)
   - [Feature-Based Identification and Correction for Redundant division links](https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#feature-based-identification-and-correction-for-redundant-division-links)
-  - [Feature-Based Identification and Correction Flow chart for Swapped track links and Missing division links](https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#feature-based-identification-and-correction-flow-chart-for-swapped-track-links-and-missing-division-links)
+  - [Feature-Based Identification and Correction for Swapped track links and Missing division links](https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#feature-based-identification-and-correction-for-swapped-track-links-and-missing-division-links)
   - [Feature-Based Identification and Correction for Untimely root and leaf](https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#feature-based-identification-and-correction-for-untimely-root-and-leaf)
   - [Applying Classifiers](https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#applying-classifiers)
 
@@ -45,7 +45,7 @@ repetition and make both flowcharts easier to follow.
 
 <p align="justify">
 This section presents five sequential flowcharts, each representing a specific type of error in the order they are addressed during implementation.
-In steps <i>Swapped track links and missing division links</i> and <i>Untimely root and leaf</i>, there is a box labeled Evaluate the feasibility of making new links based on biological limits, data-driven thresholds, and the likelihoods predicted by the models. This box is further detailed in a separate flowchart, corresponding to <i>Applying Classifiers</i>.
+In steps <a href="https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#feature-based-identification-and-correction-for-swapped-track-links-and-missing-division-links">Swapped track links and missing division links</a> and <a href="https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#feature-based-identification-and-correction-for-untimely-root-and-leaf">Untimely root and leaf</a>, there is a box labeled <i>Evaluate the feasibility of making new links based on biological limits, data-driven thresholds, and the likelihoods predicted by the models</i>. This box is further detailed in a separate flowchart, corresponding to <a href="https://github.com/Ati-74/Trackrefiner/tree/main/dev_docs/algorithm_workflow#applying-classifiers">Applying Classifiers</a>.
 </p>
 
 ### Feature-Based Identification and Correction for over-assigned division links
@@ -54,7 +54,7 @@ In steps <i>Swapped track links and missing division links</i> and <i>Untimely r
 ### Feature-Based Identification and Correction for Redundant division links
 <img src="03.2.Redundant division links.jpg" alt="03.2.Redundant division links.jpg" width="90%">
 
-### Feature-Based Identification and Correction Flow chart for Swapped track links and Missing division links
+### Feature-Based Identification and Correction for Swapped track links and Missing division links
 <img src="03.3.Swapped track links and missing division links.jpg" alt="03.3.Swapped track links and missing division links.jpg" width="90%">
 
 ### Feature-Based Identification and Correction for Untimely root and leaf
