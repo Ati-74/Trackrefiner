@@ -25,7 +25,7 @@ For enhanced clarity, color coding is applied so that <b>blue indicates correcti
 
 ## Lineage-Based Error Identification
 
-<img src="01.Lineage%20Based%20Error%20Identification.jpg" alt="Lineage Based Error Identification" width="90%">
+<img src="01.Lineage Based Error Identification.jpg" alt="01.Lineage Based Error Identification" width="90%">
 
 ## ML Model Training
 <p align="justify">
