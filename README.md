@@ -3,7 +3,7 @@
 | | |
 | --- | --- |
 | Package | [![PyPI Latest Release](https://img.shields.io/pypi/v/trackrefiner)](https://pypi.org/project/TrackRefiner/) [![Conda Latest Release](https://img.shields.io/conda/v/ingalls-lab/trackrefiner)](https://anaconda.org/ingalls-lab/trackrefiner) |
-| Meta | [![DOI](https://img.shields.io/badge/DOI-10.1101/2025.02.13.637647-blue.svg)](https://www.biorxiv.org/content/10.1101/2025.02.13.637647v1) [![License - BSD 3-Clause](https://img.shields.io/github/license/ati-74/trackrefiner)](https://github.com/Ati-74/Trackrefiner/blob/main/LICENSE.md) |
+| Meta | [![DOI](https://img.shields.io/badge/DOI-10.1038%2Fs41540--025--00600--3-blue.svg)](https://www.nature.com/articles/s41540-025-00600-3) [![License - BSD 3-Clause](https://img.shields.io/github/license/ati-74/trackrefiner)](https://github.com/Ati-74/Trackrefiner/blob/main/LICENSE.md) |
 
 
 <p align="center">
@@ -55,6 +55,6 @@ The following sections provide more details on:
 ### Citation
 If you use **TrackRefiner** in your research, please cite it using the following reference:
 
-<a href='https://www.biorxiv.org/content/10.1101/2025.02.13.637647v1'>TrackRefiner: A tool for refinement of bacillus cell tracking data</a>
+<a href='https://www.nature.com/articles/s41540-025-00600-3'>Ahmadi, A., Dostmohammadi, A., Mclean, R., & Ingalls, B. (2025). TrackRefiner a tool for refinement of bacillus cell tracking data. Npj Systems Biology and Applications, 11(1), 127. https://doi.org/10.1038/s41540-025-00600-3</a>
 
 </div>
